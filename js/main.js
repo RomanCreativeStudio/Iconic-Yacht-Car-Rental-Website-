@@ -263,6 +263,14 @@
         return;
       }
 
+      if (window.IconicAnalytics) {
+        window.IconicAnalytics.track('booking_form_submit', {
+          form: 'full',
+          rental_type: rentalTypeField.value,
+          selection: selectionField.value
+        });
+      }
+
       form.classList.add('is-hidden');
       successPanel.classList.add('is-visible');
       successPanel.focus();
@@ -568,6 +576,13 @@
         var firstError = qbForm.querySelector('.has-error input, .has-error select, .has-error textarea');
         if (firstError) firstError.focus();
         return;
+      }
+
+      if (window.IconicAnalytics) {
+        window.IconicAnalytics.track('booking_form_submit', {
+          form: 'quick',
+          rental_type: document.getElementById('qbRentalType').value
+        });
       }
 
       qbForm.classList.add('is-hidden');

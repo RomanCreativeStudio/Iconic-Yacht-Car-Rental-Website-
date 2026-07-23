@@ -6,6 +6,40 @@
 <title>Iconic Rentals | Luxury Yacht &amp; Exotic Car Rentals in Miami</title>
 <meta name="description" content="Iconic Rentals is Miami's private concierge for luxury yacht charters and exotic car rentals. Reserve your yacht or supercar experience today." />
 <meta name="theme-color" content="#0a0a0b" />
+<!-- ================================================================
+     ANALYTICS PLACEHOLDERS — see CLIENT_SETUP.md "Analytics & Tracking"
+     Both blocks below are commented out on purpose so no requests are
+     sent anywhere until you add real IDs. To activate:
+       1. Replace G-XXXXXXXXXX with your real GA4 Measurement ID
+       2. Replace YOUR_PIXEL_ID with your real Meta Pixel ID
+       3. Delete the comment markers surrounding the block you're enabling
+     ================================================================ -->
+<!--
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-XXXXXXXXXX');
+</script>
+-->
+
+<!--
+<script>
+  !function(f,b,e,v,n,t,s)
+  {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+  n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+  if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+  n.queue=[];t=b.createElement(e);t.async=!0;
+  t.src=v;s=b.getElementsByTagName(e)[0];
+  s.parentNode.insertBefore(t,s)}(window, document,'script',
+  'https://connect.facebook.net/en_US/fbevents.js');
+  fbq('init', 'YOUR_PIXEL_ID');
+  fbq('track', 'PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=YOUR_PIXEL_ID&ev=PageView&noscript=1" alt="" /></noscript>
+-->
+
 <link rel="canonical" href="https://www.iconicrentalsmiami.com/" />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230a0a0b'/%3E%3Ctext x='50' y='68' font-family='Georgia,serif' font-size='58' fill='%23c6a15b' text-anchor='middle'%3EI%3C/text%3E%3C/svg%3E" />
 
@@ -22,17 +56,97 @@
 
 <link rel="stylesheet" href="css/style.min.css" />
 
+<!--
+  Structured data note (see CLIENT_SETUP.md, "Structured Data" section):
+  schema.org has no official "CarRental" or "BoatRental" type. The closest
+  valid equivalents are used instead — AutoRental for the exotic car side,
+  and a generic Service entry (serviceType: "Yacht & Boat Rental") for the
+  yacht side, both linked back to the main LocalBusiness via "department".
+  The reviews below are placeholder testimonials matching what's on this
+  page today — replace them with real, verifiable customer reviews before
+  launch. Google's structured data policy requires review markup to
+  reflect genuine reviews that are actually visible on the page.
+-->
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
-  "@type": "LocalBusiness",
-  "name": "Iconic Rentals",
-  "description": "Luxury yacht charters and exotic car rentals in Miami, Florida.",
-  "areaServed": "Miami, FL",
-  "telephone": "+1-305-555-0198",
-  "email": "concierge@iconicrentalsmiami.com",
-  "priceRange": "$$$$",
-  "sameAs": ["https://www.instagram.com/iconicrentalsmiami"]
+  "@graph": [
+    {
+      "@type": "LocalBusiness",
+      "@id": "https://www.iconicrentalsmiami.com/#business",
+      "name": "Iconic Rentals",
+      "description": "Miami's private concierge for luxury yacht charters and exotic car rentals.",
+      "url": "https://www.iconicrentalsmiami.com/",
+      "image": "https://www.iconicrentalsmiami.com/images/hero-yacht-miami.jpg",
+      "telephone": "+1-305-555-0198",
+      "email": "concierge@iconicrentalsmiami.com",
+      "priceRange": "$$$$",
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "Miami",
+        "addressRegion": "FL",
+        "addressCountry": "US"
+      },
+      "areaServed": "Miami, FL",
+      "openingHoursSpecification": {
+        "@type": "OpeningHoursSpecification",
+        "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+        "opens": "08:00",
+        "closes": "22:00"
+      },
+      "sameAs": ["https://www.instagram.com/iconicrentalsmiami"],
+      "department": [
+        { "@id": "https://www.iconicrentalsmiami.com/#car-rental" },
+        { "@id": "https://www.iconicrentalsmiami.com/#yacht-rental" }
+      ],
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "5.0",
+        "reviewCount": "3"
+      },
+      "review": [
+        {
+          "@type": "Review",
+          "author": { "@type": "Person", "name": "Jonathan M." },
+          "reviewRating": { "@type": "Rating", "ratingValue": "5", "bestRating": "5" },
+          "reviewBody": "The yacht was immaculate and the crew treated us like royalty. Iconic handled every detail so all we had to do was show up and enjoy the sunset."
+        },
+        {
+          "@type": "Review",
+          "author": { "@type": "Person", "name": "Alexandra R." },
+          "reviewRating": { "@type": "Rating", "ratingValue": "5", "bestRating": "5" },
+          "reviewBody": "Rented a supercar for my anniversary weekend — delivered right to our hotel, spotless, and the concierge even suggested the best routes for photos."
+        },
+        {
+          "@type": "Review",
+          "author": { "@type": "Person", "name": "David K." },
+          "reviewRating": { "@type": "Rating", "ratingValue": "5", "bestRating": "5" },
+          "reviewBody": "Booked a yacht for a client dinner and it completely elevated the evening. Professional crew, gorgeous vessel, seamless booking process from start to finish."
+        }
+      ]
+    },
+    {
+      "@type": "AutoRental",
+      "@id": "https://www.iconicrentalsmiami.com/#car-rental",
+      "name": "Iconic Rentals — Exotic & Luxury Car Rentals",
+      "description": "Exotic and luxury car rentals in Miami, including Lamborghini, Ferrari, McLaren, Rolls-Royce, Bentley, Porsche, and Mercedes-Benz G-Wagon.",
+      "url": "https://www.iconicrentalsmiami.com/index.html#car-fleet",
+      "telephone": "+1-305-555-0198",
+      "priceRange": "$$$$",
+      "areaServed": "Miami, FL",
+      "parentOrganization": { "@id": "https://www.iconicrentalsmiami.com/#business" }
+    },
+    {
+      "@type": "Service",
+      "@id": "https://www.iconicrentalsmiami.com/#yacht-rental",
+      "name": "Iconic Rentals — Luxury Yacht Charters",
+      "serviceType": "Yacht & Boat Rental",
+      "description": "Private luxury yacht charters across Biscayne Bay and Miami, including sunset cruises, day charters, and multi-day bookings with a professional captain and crew.",
+      "url": "https://www.iconicrentalsmiami.com/index.html#yacht-fleet",
+      "provider": { "@id": "https://www.iconicrentalsmiami.com/#business" },
+      "areaServed": "Miami, FL"
+    }
+  ]
 }
 </script>
 </head>
@@ -881,6 +995,7 @@
 
 <script src="js/fleet-data.min.js"></script>
 <script src="js/fleet-render.min.js"></script>
+<script src="js/analytics.min.js"></script>
 <script src="js/main.min.js"></script>
 </body>
 </html>

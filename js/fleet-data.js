@@ -306,4 +306,21 @@
     getFleetByType: getFleetByType,
     getRelatedFleet: getRelatedFleet
   };
+
+  /**
+   * CMS migration path (see CLIENT_SETUP.md, "Future CMS Integration"):
+   * every consumer of this module (fleet-render.js, fleet-detail.js,
+   * main.js) reads FLEET_DATA synchronously through the functions above.
+   * To swap this file for a real CMS/API later:
+   *   1. Replace the FLEET_DATA array above with a fetch() call to your
+   *      CMS/API that resolves to the same array shape (same field
+   *      names — slug, type, name, category, specs, amenities, etc.).
+   *   2. Populate FLEET_DATA once the fetch resolves, then call
+   *      document.dispatchEvent(new CustomEvent('iconic:fleet-ready'))
+   *      so page scripts know the data has arrived.
+   *   3. Have fleet-render.js / fleet-detail.js's render calls run
+   *      inside a document.addEventListener('iconic:fleet-ready', ...)
+   *      instead of at the bottom of the script, as they do today.
+   * No template HTML or CSS changes are required for this migration.
+   */
 })(window);
