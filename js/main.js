@@ -759,6 +759,12 @@
           if (entry.isIntersecting) {
             navLinks.forEach(function (l) { l.classList.remove('is-active-link'); });
             link.classList.add('is-active-link');
+          } else {
+            /* A section leaving the band should always drop its own
+               highlight, even if no other tracked section is currently
+               entering it (e.g. scrolling back up into the hero) —
+               otherwise the last-active link stays stuck highlighted. */
+            link.classList.remove('is-active-link');
           }
         });
       },
