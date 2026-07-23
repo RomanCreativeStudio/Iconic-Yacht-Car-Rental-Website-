@@ -1,6 +1,15 @@
 (function () {
   'use strict';
 
+  /* Render homepage fleet grids from the shared fleet data module.
+     No-op on pages (e.g. fleet detail) that don't have these containers. */
+  if (window.IconicFleet && window.IconicFleetRender) {
+    var yachtGrid = document.getElementById('yachtFleetGrid');
+    var carGrid = document.getElementById('carFleetGrid');
+    if (yachtGrid) window.IconicFleetRender.renderFleetGrid(yachtGrid, window.IconicFleet.getFleetByType('yacht'));
+    if (carGrid) window.IconicFleetRender.renderFleetGrid(carGrid, window.IconicFleet.getFleetByType('car'));
+  }
+
   /* Header scroll state */
   var header = document.querySelector('.site-header');
   var onScroll = function () {
@@ -105,164 +114,200 @@
     });
   });
 
-  /* Booking form: pre-fill selection from fleet "Book" buttons */
+  /* Booking form: pre-fill selection from fleet "Book" buttons.
+     Only present on index.html — guarded so shared chrome (header, nav,
+     lightbox, floating widgets) still works unchanged on fleet detail pages. */
   var rentalTypeField = document.getElementById('rentalType');
   var selectionField = document.getElementById('selection');
   var bookingSection = document.getElementById('booking');
+  var form = document.getElementById('bookingForm');
+  var successPanel = document.getElementById('bookingSuccess');
 
-  var yachtSelectValues = [];
-  var carSelectValues = [];
+  if (rentalTypeField && selectionField && bookingSection && form && successPanel) {
+    var yachtSelectValues = [];
+    var carSelectValues = [];
 
-  document.querySelectorAll('[data-book-yacht]').forEach(function (btn) {
-    yachtSelectValues.push(btn.getAttribute('data-book-yacht'));
-  });
-  document.querySelectorAll('[data-book-car]').forEach(function (btn) {
-    carSelectValues.push(btn.getAttribute('data-book-car'));
-  });
-
-  function populateSelectionOptions(type) {
-    var list = type === 'Yacht Rental' ? yachtSelectValues : carSelectValues;
-    selectionField.innerHTML = '<option value="" disabled selected>Select ' + (type === 'Yacht Rental' ? 'a yacht' : 'a vehicle') + '</option>';
-    list.forEach(function (name) {
-      var opt = document.createElement('option');
-      opt.value = name;
-      opt.textContent = name;
-      selectionField.appendChild(opt);
+    document.querySelectorAll('[data-book-yacht]').forEach(function (btn) {
+      yachtSelectValues.push(btn.getAttribute('data-book-yacht'));
     });
-    var otherOpt = document.createElement('option');
-    otherOpt.value = 'Not sure yet';
-    otherOpt.textContent = 'Not sure yet — advise me';
-    selectionField.appendChild(otherOpt);
-  }
+    document.querySelectorAll('[data-book-car]').forEach(function (btn) {
+      carSelectValues.push(btn.getAttribute('data-book-car'));
+    });
 
-  rentalTypeField.addEventListener('change', function () {
-    populateSelectionOptions(rentalTypeField.value);
-    toggleGuestsField();
-  });
+    var populateSelectionOptions = function (type) {
+      var list = type === 'Yacht Rental' ? yachtSelectValues : carSelectValues;
+      selectionField.innerHTML = '<option value="" disabled selected>Select ' + (type === 'Yacht Rental' ? 'a yacht' : 'a vehicle') + '</option>';
+      list.forEach(function (name) {
+        var opt = document.createElement('option');
+        opt.value = name;
+        opt.textContent = name;
+        selectionField.appendChild(opt);
+      });
+      var otherOpt = document.createElement('option');
+      otherOpt.value = 'Not sure yet';
+      otherOpt.textContent = 'Not sure yet — advise me';
+      selectionField.appendChild(otherOpt);
+    };
 
-  document.querySelectorAll('[data-book-yacht], [data-book-car]').forEach(function (btn) {
-    btn.addEventListener('click', function () {
-      var isYacht = btn.hasAttribute('data-book-yacht');
-      var value = isYacht ? btn.getAttribute('data-book-yacht') : btn.getAttribute('data-book-car');
+    var guestsField = document.querySelector('.form-field--guests');
+    var toggleGuestsField = function () {
+      if (!guestsField) return;
+      var isYacht = rentalTypeField.value === 'Yacht Rental';
+      guestsField.style.display = isYacht ? '' : 'none';
+    };
+
+    var selectFleetItem = function (isYacht, value) {
       rentalTypeField.value = isYacht ? 'Yacht Rental' : 'Car Rental';
       populateSelectionOptions(rentalTypeField.value);
       selectionField.value = value;
       toggleGuestsField();
-      bookingSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+
+    rentalTypeField.addEventListener('change', function () {
+      populateSelectionOptions(rentalTypeField.value);
+      toggleGuestsField();
     });
-  });
 
-  /* Show/hide guest count for yachts only */
-  var guestsField = document.querySelector('.form-field--guests');
-  function toggleGuestsField() {
-    if (!guestsField) return;
-    var isYacht = rentalTypeField.value === 'Yacht Rental';
-    guestsField.style.display = isYacht ? '' : 'none';
-  }
-  toggleGuestsField();
+    document.querySelectorAll('[data-book-yacht], [data-book-car]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var isYacht = btn.hasAttribute('data-book-yacht');
+        var value = isYacht ? btn.getAttribute('data-book-yacht') : btn.getAttribute('data-book-car');
+        selectFleetItem(isYacht, value);
+        bookingSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    });
 
-  /* Booking form validation + submit */
-  var form = document.getElementById('bookingForm');
-  var successPanel = document.getElementById('bookingSuccess');
+    toggleGuestsField();
 
-  function setError(field, message) {
-    var wrapper = field.closest('.form-field');
-    var errorEl = wrapper.querySelector('.form-error');
-    if (message) {
-      wrapper.classList.add('has-error');
-      errorEl.textContent = message;
-      field.setAttribute('aria-invalid', 'true');
-    } else {
-      wrapper.classList.remove('has-error');
-      errorEl.textContent = '';
-      field.removeAttribute('aria-invalid');
-    }
-  }
+    /* Cross-page prefill: a fleet detail page's "Book Now" links here as
+       index.html?book=<slug>#booking. Resolve the slug via the shared
+       fleet data module and prefill the same way an on-page card would. */
+    (function () {
+      var bookSlug = new URLSearchParams(window.location.search).get('book');
+      if (!bookSlug || !window.IconicFleet) return;
+      var item = window.IconicFleet.getFleetItem(bookSlug);
+      if (!item) return;
+      selectFleetItem(item.type === 'yacht', item.bookLabel);
+      window.setTimeout(function () {
+        bookingSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 300);
+    })();
 
-  function shakeField(field) {
-    var wrapper = field.closest('.form-field');
-    wrapper.classList.remove('is-shaking');
-    // eslint-disable-next-line no-unused-expressions
-    wrapper.offsetWidth; /* force reflow so the animation can retrigger */
-    wrapper.classList.add('is-shaking');
-  }
+    /* Booking form validation + submit */
+    var setError = function (field, message) {
+      var wrapper = field.closest('.form-field');
+      var errorEl = wrapper.querySelector('.form-error');
+      if (message) {
+        wrapper.classList.add('has-error');
+        errorEl.textContent = message;
+        field.setAttribute('aria-invalid', 'true');
+      } else {
+        wrapper.classList.remove('has-error');
+        errorEl.textContent = '';
+        field.removeAttribute('aria-invalid');
+      }
+    };
 
-  function validateField(field) {
-    if (!field.hasAttribute('required')) return true;
-    var value = field.value.trim();
+    var shakeField = function (field) {
+      var wrapper = field.closest('.form-field');
+      wrapper.classList.remove('is-shaking');
+      wrapper.offsetWidth; /* force reflow so the animation can retrigger */
+      wrapper.classList.add('is-shaking');
+    };
 
-    if (!value) {
-      setError(field, 'This field is required.');
-      return false;
-    }
+    var validateField = function (field) {
+      if (!field.hasAttribute('required')) return true;
+      var value = field.value.trim();
 
-    if (field.type === 'email') {
-      var emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailPattern.test(value)) {
-        setError(field, 'Enter a valid email address.');
+      if (!value) {
+        setError(field, 'This field is required.');
         return false;
       }
-    }
 
-    if (field.type === 'tel') {
-      var phonePattern = /^[\d\s()+-]{7,}$/;
-      if (!phonePattern.test(value)) {
-        setError(field, 'Enter a valid phone number.');
-        return false;
+      if (field.type === 'email') {
+        var emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailPattern.test(value)) {
+          setError(field, 'Enter a valid email address.');
+          return false;
+        }
       }
-    }
 
-    setError(field, '');
-    return true;
+      if (field.type === 'tel') {
+        var phonePattern = /^[\d\s()+-]{7,}$/;
+        if (!phonePattern.test(value)) {
+          setError(field, 'Enter a valid phone number.');
+          return false;
+        }
+      }
+
+      setError(field, '');
+      return true;
+    };
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      var fields = form.querySelectorAll('input, select, textarea');
+      var isValid = true;
+      fields.forEach(function (field) {
+        if (field.offsetParent === null) return; // skip hidden fields (e.g. guests when hidden)
+        if (!validateField(field)) {
+          isValid = false;
+          shakeField(field);
+        }
+      });
+
+      if (!isValid) {
+        var firstError = form.querySelector('.has-error input, .has-error select, .has-error textarea');
+        if (firstError) firstError.focus();
+        return;
+      }
+
+      form.classList.add('is-hidden');
+      successPanel.classList.add('is-visible');
+      successPanel.focus();
+      form.reset();
+    });
+
+    form.querySelectorAll('input, select, textarea').forEach(function (field) {
+      field.addEventListener('blur', function () {
+        if (field.hasAttribute('required')) validateField(field);
+      });
+    });
   }
 
-  form.addEventListener('submit', function (e) {
-    e.preventDefault();
-
-    var fields = form.querySelectorAll('input, select, textarea');
-    var isValid = true;
-    fields.forEach(function (field) {
-      if (field.offsetParent === null) return; // skip hidden fields (e.g. guests when hidden)
-      if (!validateField(field)) {
-        isValid = false;
-        shakeField(field);
-      }
-    });
-
-    if (!isValid) {
-      var firstError = form.querySelector('.has-error input, .has-error select, .has-error textarea');
-      if (firstError) firstError.focus();
-      return;
-    }
-
-    form.classList.add('is-hidden');
-    successPanel.classList.add('is-visible');
-    successPanel.focus();
-    form.reset();
-  });
-
-  form.querySelectorAll('input, select, textarea').forEach(function (field) {
-    field.addEventListener('blur', function () {
-      if (field.hasAttribute('required')) validateField(field);
-    });
-  });
-
-  /* Gallery lightbox */
+  /* Gallery lightbox (keyboard arrows + swipe between images) */
   var lightbox = document.getElementById('lightbox');
   var lightboxImage = document.getElementById('lightboxImage');
   var lightboxCaption = document.getElementById('lightboxCaption');
   var lightboxClose = document.querySelector('.lightbox-close');
+  var lightboxPrevBtn = document.querySelector('.lightbox-prev');
+  var lightboxNextBtn = document.querySelector('.lightbox-next');
+  var lightboxTriggers = Array.prototype.slice.call(document.querySelectorAll('[data-lightbox-src]'));
   var lightboxTrigger = null;
+  var lightboxIndex = -1;
 
-  function openLightbox(trigger) {
+  function showLightboxAt(index) {
+    if (!lightboxTriggers.length) return;
+    lightboxIndex = (index + lightboxTriggers.length) % lightboxTriggers.length;
+    var trigger = lightboxTriggers[lightboxIndex];
     var src = trigger.getAttribute('data-lightbox-src');
     var caption = trigger.getAttribute('data-lightbox-caption') || '';
-    if (!src) return;
 
+    lightboxImage.style.opacity = '0';
+    window.setTimeout(function () {
+      lightboxImage.src = src;
+      lightboxImage.alt = caption;
+      lightboxCaption.textContent = caption;
+      lightboxImage.style.opacity = '1';
+    }, 120);
+  }
+
+  function openLightbox(trigger) {
+    if (!trigger.getAttribute('data-lightbox-src')) return;
     lightboxTrigger = trigger;
-    lightboxImage.src = src;
-    lightboxImage.alt = caption;
-    lightboxCaption.textContent = caption;
+    lightboxIndex = lightboxTriggers.indexOf(trigger);
+    showLightboxAt(lightboxIndex);
 
     lightbox.hidden = false;
     lightbox.classList.add('is-open');
@@ -289,11 +334,14 @@
     }
   }
 
-  document.querySelectorAll('[data-lightbox-src]').forEach(function (trigger) {
+  lightboxTriggers.forEach(function (trigger) {
     trigger.addEventListener('click', function () {
       openLightbox(trigger);
     });
   });
+
+  if (lightboxPrevBtn) lightboxPrevBtn.addEventListener('click', function () { showLightboxAt(lightboxIndex - 1); });
+  if (lightboxNextBtn) lightboxNextBtn.addEventListener('click', function () { showLightboxAt(lightboxIndex + 1); });
 
   lightboxClose.addEventListener('click', closeLightbox);
 
@@ -302,14 +350,376 @@
   });
 
   document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape' && !lightbox.hidden) closeLightbox();
+    if (lightbox.hidden) return;
 
-    if (e.key === 'Tab' && !lightbox.hidden) {
-      // Single focusable control inside the dialog — keep focus trapped on it.
+    if (e.key === 'Escape') {
+      closeLightbox();
+    } else if (e.key === 'ArrowRight') {
+      showLightboxAt(lightboxIndex + 1);
+    } else if (e.key === 'ArrowLeft') {
+      showLightboxAt(lightboxIndex - 1);
+    } else if (e.key === 'Tab') {
+      // Focusable controls are limited — keep focus cycling within the dialog.
+      var focusables = [lightboxPrevBtn, lightboxNextBtn, lightboxClose].filter(Boolean);
+      var currentIdx = focusables.indexOf(document.activeElement);
       e.preventDefault();
-      lightboxClose.focus();
+      var nextIdx = e.shiftKey
+        ? (currentIdx <= 0 ? focusables.length - 1 : currentIdx - 1)
+        : (currentIdx === -1 || currentIdx === focusables.length - 1 ? 0 : currentIdx + 1);
+      focusables[nextIdx].focus();
     }
   });
+
+  /* Touch swipe support */
+  (function () {
+    var touchStartX = null;
+    var figure = document.querySelector('.lightbox-figure');
+    if (!figure) return;
+
+    figure.addEventListener('touchstart', function (e) {
+      touchStartX = e.changedTouches[0].clientX;
+    }, { passive: true });
+
+    figure.addEventListener('touchend', function (e) {
+      if (touchStartX === null) return;
+      var dx = e.changedTouches[0].clientX - touchStartX;
+      if (Math.abs(dx) > 50) {
+        showLightboxAt(lightboxIndex + (dx < 0 ? 1 : -1));
+      }
+      touchStartX = null;
+    }, { passive: true });
+  })();
+
+  /* Sticky mobile CTA + floating contact menu: hide on scroll down, show on scroll up */
+  var stickyCta = document.getElementById('stickyMobileCta');
+  var floatingContact = document.getElementById('floatingContact');
+  var lastScrollY = window.scrollY;
+  var scrollDirTicking = false;
+
+  function handleScrollDirection() {
+    var currentY = window.scrollY;
+    var goingDown = currentY > lastScrollY && currentY > 120;
+
+    if (stickyCta) stickyCta.classList.toggle('is-hidden', goingDown);
+    if (floatingContact) floatingContact.classList.toggle('is-nudged', goingDown);
+
+    lastScrollY = currentY;
+    scrollDirTicking = false;
+  }
+
+  window.addEventListener('scroll', function () {
+    if (!scrollDirTicking) {
+      window.requestAnimationFrame(handleScrollDirection);
+      scrollDirTicking = true;
+    }
+  }, { passive: true });
+
+  /* Floating contact expand/collapse */
+  var floatingToggle = document.getElementById('floatingContactToggle');
+  if (floatingToggle && floatingContact) {
+    floatingToggle.addEventListener('click', function () {
+      var isOpen = floatingContact.classList.toggle('is-open');
+      floatingToggle.setAttribute('aria-expanded', String(isOpen));
+    });
+
+    document.addEventListener('click', function (e) {
+      if (floatingContact.classList.contains('is-open') && !floatingContact.contains(e.target)) {
+        floatingContact.classList.remove('is-open');
+        floatingToggle.setAttribute('aria-expanded', 'false');
+      }
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && floatingContact.classList.contains('is-open')) {
+        floatingContact.classList.remove('is-open');
+        floatingToggle.setAttribute('aria-expanded', 'false');
+        floatingToggle.focus();
+      }
+    });
+  }
+
+  /* Quick Book modal */
+  (function () {
+    var modal = document.getElementById('quickBookModal');
+    if (!modal) return;
+
+    var qbForm = document.getElementById('quickBookForm');
+    var qbSuccess = document.getElementById('quickBookSuccess');
+    var openers = document.querySelectorAll('[data-quick-book]');
+    var closers = modal.querySelectorAll('[data-quick-book-close]');
+    var lastFocusedEl = null;
+
+    function openModal(e) {
+      if (e) e.preventDefault();
+      lastFocusedEl = document.activeElement;
+      modal.hidden = false;
+      modal.classList.add('is-open');
+      lockBodyScroll();
+      window.setTimeout(function () {
+        var firstField = modal.querySelector('#qbName');
+        if (firstField) firstField.focus();
+      }, 320);
+    }
+
+    function closeModal() {
+      if (modal.hidden) return;
+      modal.classList.remove('is-open');
+      unlockBodyScroll();
+      window.setTimeout(function () {
+        modal.hidden = true;
+      }, 300);
+      if (lastFocusedEl) lastFocusedEl.focus();
+    }
+
+    openers.forEach(function (opener) {
+      opener.addEventListener('click', function (e) {
+        // "See all options" link inside the modal navigates instead of reopening.
+        if (opener.hasAttribute('data-quick-book-full')) return;
+        openModal(e);
+      });
+    });
+
+    closers.forEach(function (closer) {
+      closer.addEventListener('click', function (e) {
+        if (closer.hasAttribute('data-quick-book-full')) {
+          closeModal();
+          return;
+        }
+        e.preventDefault();
+        closeModal();
+      });
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && !modal.hidden) closeModal();
+
+      if (e.key === 'Tab' && !modal.hidden) {
+        var focusables = Array.prototype.slice.call(
+          modal.querySelectorAll('button, [href], input, select, textarea')
+        ).filter(function (el) { return el.offsetParent !== null; });
+        if (!focusables.length) return;
+        var first = focusables[0];
+        var last = focusables[focusables.length - 1];
+
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    });
+
+    function qbSetError(field, message) {
+      var wrapper = field.closest('.form-field');
+      var errorEl = wrapper.querySelector('.form-error');
+      if (message) {
+        wrapper.classList.add('has-error');
+        errorEl.textContent = message;
+        field.setAttribute('aria-invalid', 'true');
+      } else {
+        wrapper.classList.remove('has-error');
+        errorEl.textContent = '';
+        field.removeAttribute('aria-invalid');
+      }
+    }
+
+    function qbShake(field) {
+      var wrapper = field.closest('.form-field');
+      wrapper.classList.remove('is-shaking');
+      wrapper.offsetWidth; /* force reflow to allow re-trigger */
+      wrapper.classList.add('is-shaking');
+    }
+
+    function qbValidateField(field) {
+      if (!field.hasAttribute('required')) return true;
+      var value = field.value.trim();
+
+      if (!value) {
+        qbSetError(field, 'This field is required.');
+        return false;
+      }
+      if (field.type === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+        qbSetError(field, 'Enter a valid email address.');
+        return false;
+      }
+      if (field.type === 'tel' && !/^[\d\s()+-]{7,}$/.test(value)) {
+        qbSetError(field, 'Enter a valid phone number.');
+        return false;
+      }
+
+      qbSetError(field, '');
+      return true;
+    }
+
+    qbForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var fields = qbForm.querySelectorAll('input, select, textarea');
+      var isValid = true;
+      fields.forEach(function (field) {
+        if (!qbValidateField(field)) {
+          isValid = false;
+          qbShake(field);
+        }
+      });
+
+      if (!isValid) {
+        var firstError = qbForm.querySelector('.has-error input, .has-error select, .has-error textarea');
+        if (firstError) firstError.focus();
+        return;
+      }
+
+      qbForm.classList.add('is-hidden');
+      qbSuccess.classList.add('is-visible');
+      qbSuccess.focus();
+      qbForm.reset();
+
+      window.setTimeout(function () {
+        closeModal();
+        window.setTimeout(function () {
+          qbForm.classList.remove('is-hidden');
+          qbSuccess.classList.remove('is-visible');
+        }, 400);
+      }, 2600);
+    });
+
+    qbForm.querySelectorAll('input, select, textarea').forEach(function (field) {
+      field.addEventListener('blur', function () {
+        if (field.hasAttribute('required')) qbValidateField(field);
+      });
+    });
+  })();
+
+  /* Active nav-link highlighting (scroll-spy) */
+  (function () {
+    var navLinks = Array.prototype.slice.call(document.querySelectorAll('.nav-links a[href^="#"]'));
+    if (!navLinks.length || !('IntersectionObserver' in window)) return;
+
+    var sections = navLinks
+      .map(function (link) {
+        var id = link.getAttribute('href').slice(1);
+        return document.getElementById(id);
+      })
+      .filter(Boolean);
+
+    if (!sections.length) return;
+
+    var spy = new IntersectionObserver(
+      function (entries) {
+        entries.forEach(function (entry) {
+          var link = navLinks.filter(function (l) { return l.getAttribute('href') === '#' + entry.target.id; })[0];
+          if (!link) return;
+          if (entry.isIntersecting) {
+            navLinks.forEach(function (l) { l.classList.remove('is-active-link'); });
+            link.classList.add('is-active-link');
+          }
+        });
+      },
+      { rootMargin: '-45% 0px -50% 0px', threshold: 0 }
+    );
+
+    sections.forEach(function (section) { spy.observe(section); });
+  })();
+
+  /* Button ripple effect */
+  document.addEventListener('click', function (e) {
+    var btn = e.target.closest('.btn');
+    if (!btn) return;
+
+    var rect = btn.getBoundingClientRect();
+    var ripple = document.createElement('span');
+    var size = Math.max(rect.width, rect.height) * 1.6;
+    ripple.className = 'btn-ripple';
+    ripple.style.width = ripple.style.height = size + 'px';
+    ripple.style.left = (e.clientX - rect.left - size / 2) + 'px';
+    ripple.style.top = (e.clientY - rect.top - size / 2) + 'px';
+    btn.appendChild(ripple);
+    window.setTimeout(function () {
+      ripple.remove();
+    }, 650);
+  });
+
+  /* FAQ accordion (single item open at a time) */
+  (function () {
+    var faqItems = Array.prototype.slice.call(document.querySelectorAll('.faq-item'));
+    if (!faqItems.length) return;
+
+    function closeFaq(item) {
+      var btn = item.querySelector('.faq-question');
+      var answer = item.querySelector('.faq-answer');
+      btn.setAttribute('aria-expanded', 'false');
+      answer.classList.remove('is-open');
+      window.setTimeout(function () {
+        answer.hidden = true;
+      }, 650);
+    }
+
+    function openFaq(item) {
+      var btn = item.querySelector('.faq-question');
+      var answer = item.querySelector('.faq-answer');
+      btn.setAttribute('aria-expanded', 'true');
+      answer.hidden = false;
+      window.requestAnimationFrame(function () {
+        answer.classList.add('is-open');
+      });
+    }
+
+    faqItems.forEach(function (item) {
+      var btn = item.querySelector('.faq-question');
+      btn.addEventListener('click', function () {
+        var isOpen = btn.getAttribute('aria-expanded') === 'true';
+        faqItems.forEach(function (other) {
+          if (other !== item) closeFaq(other);
+        });
+        if (isOpen) {
+          closeFaq(item);
+        } else {
+          openFaq(item);
+        }
+      });
+    });
+  })();
+
+  /* Animated trust counters (count up once, when scrolled into view) */
+  (function () {
+    var counters = document.querySelectorAll('[data-counter]');
+    if (!counters.length) return;
+
+    function animateCounter(el) {
+      var target = parseInt(el.getAttribute('data-count-to'), 10) || 0;
+      var suffix = el.getAttribute('data-suffix') || '';
+      var duration = 1600;
+      var startTime = null;
+
+      function tick(timestamp) {
+        if (!startTime) startTime = timestamp;
+        var progress = Math.min((timestamp - startTime) / duration, 1);
+        var eased = 1 - Math.pow(1 - progress, 3);
+        el.textContent = Math.round(eased * target).toLocaleString() + suffix;
+        if (progress < 1) window.requestAnimationFrame(tick);
+      }
+
+      window.requestAnimationFrame(tick);
+    }
+
+    if ('IntersectionObserver' in window) {
+      var counterObserver = new IntersectionObserver(
+        function (entries) {
+          entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+              animateCounter(entry.target);
+              counterObserver.unobserve(entry.target);
+            }
+          });
+        },
+        { threshold: 0.5 }
+      );
+      counters.forEach(function (el) { counterObserver.observe(el); });
+    } else {
+      counters.forEach(animateCounter);
+    }
+  })();
 
   /* Footer year */
   var yearEl = document.getElementById('year');

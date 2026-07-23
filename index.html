@@ -52,7 +52,7 @@
         <li><a href="#gallery">Gallery</a></li>
         <li><a href="#contact">Contact</a></li>
       </ul>
-      <a href="#booking" class="btn btn-primary nav-cta">Book Your Experience</a>
+      <a href="#booking" class="btn btn-primary nav-cta" data-quick-book>Book Your Experience</a>
     </nav>
 
     <button class="nav-toggle" aria-expanded="false" aria-controls="primary-nav" aria-label="Toggle navigation menu">
@@ -73,7 +73,7 @@
       <h1 class="hero-title">Own the moment. <em>Live the icon.</em></h1>
       <p class="hero-text">From open-water sunsets aboard a private yacht to the open road in a hand-picked supercar — Iconic Rentals curates unforgettable luxury experiences across Miami, on your terms.</p>
       <div class="hero-ctas">
-        <a href="#booking" class="btn btn-primary">Book Your Experience</a>
+        <a href="#booking" class="btn btn-primary" data-quick-book>Book Your Experience</a>
         <a href="#services" class="btn btn-ghost">Explore Our Fleet</a>
       </div>
       <div class="hero-stats">
@@ -192,225 +192,12 @@
 
       <!-- Yacht Fleet Panel -->
       <div class="fleet-panel is-active" id="panel-yachts" role="tabpanel" aria-labelledby="yacht-fleet">
-        <div class="fleet-grid reveal-stagger">
-
-          <article class="fleet-card">
-            <div class="fleet-card-media">
-              <picture><source srcset="images/yacht-aerial.webp" type="image/webp" /><img src="images/yacht-aerial.jpg" alt="Aerial view of the Azure Horizon luxury motor yacht cruising turquoise water" loading="lazy" /></picture>
-              <span class="fleet-card-category">Motor Yacht</span>
-            </div>
-            <div class="fleet-card-body">
-              <h3>Azure Horizon</h3>
-              <div class="fleet-card-meta">
-                <span><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0ZM4 21c0-3.9 3.6-7 8-7s8 3.1 8 7"/></svg>12 Guests</span>
-                <span><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="7" width="18" height="12" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>85 ft</span>
-              </div>
-              <div class="fleet-card-features">
-                <span>Sun Deck</span>
-                <span>Jacuzzi</span>
-                <span>Full Bar</span>
-              </div>
-              <div class="fleet-card-footer">
-                <button class="btn btn-primary" data-book-yacht="Azure Horizon — Motor Yacht">Book Now</button>
-              </div>
-            </div>
-          </article>
-
-          <article class="fleet-card">
-            <div class="fleet-card-media">
-              <picture><source srcset="images/yacht-marina-dusk.webp" type="image/webp" /><img src="images/yacht-marina-dusk.jpg" alt="The Midnight Regatta yacht docked at a Miami marina at dusk" loading="lazy" /></picture>
-              <span class="fleet-card-category">Motor Yacht</span>
-            </div>
-            <div class="fleet-card-body">
-              <h3>Midnight Regatta</h3>
-              <div class="fleet-card-meta">
-                <span><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0ZM4 21c0-3.9 3.6-7 8-7s8 3.1 8 7"/></svg>16 Guests</span>
-                <span><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="7" width="18" height="12" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>102 ft</span>
-              </div>
-              <div class="fleet-card-features">
-                <span>Sky Lounge</span>
-                <span>Chef Onboard</span>
-                <span>Water Toys</span>
-              </div>
-              <div class="fleet-card-footer">
-                <button class="btn btn-primary" data-book-yacht="Midnight Regatta — Motor Yacht">Book Now</button>
-              </div>
-            </div>
-          </article>
-
-          <article class="fleet-card">
-            <div class="fleet-card-media">
-              <div class="fleet-placeholder">
-                <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M2 20c1.5 1.3 3.5 1.3 5 0 1.5 1.3 3.5 1.3 5 0 1.5 1.3 3.5 1.3 5 0 1.5 1.3 3.5 1.3 5 0"/><path d="M5 16 6 6l12 2-3 8Z"/></svg>
-                <span>Image Coming Soon</span>
-              </div>
-              <span class="fleet-card-category">Sport Yacht</span>
-            </div>
-            <div class="fleet-card-body">
-              <h3>Coastal Mirage</h3>
-              <div class="fleet-card-meta">
-                <span><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0ZM4 21c0-3.9 3.6-7 8-7s8 3.1 8 7"/></svg>8 Guests</span>
-                <span><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="7" width="18" height="12" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>62 ft</span>
-              </div>
-              <div class="fleet-card-features">
-                <span>Bow Lounge</span>
-                <span>Bluetooth Sound</span>
-                <span>Snorkel Gear</span>
-              </div>
-              <div class="fleet-card-footer">
-                <button class="btn btn-primary" data-book-yacht="Coastal Mirage — Sport Yacht">Book Now</button>
-              </div>
-            </div>
-          </article>
-
-        </div>
+        <div class="fleet-grid reveal-stagger" id="yachtFleetGrid"></div>
       </div>
 
       <!-- Car Fleet Panel -->
       <div class="fleet-panel" id="panel-cars" role="tabpanel" aria-labelledby="car-fleet">
-        <div class="fleet-grid reveal-stagger" id="carFleetGrid">
-
-          <article class="fleet-card">
-            <div class="fleet-card-media">
-              <div class="fleet-placeholder">
-                <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 13.5 5 8h14l2 5.5M3 13.5v4a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1v-1h12v1a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1v-4M3 13.5h18"/><circle cx="7" cy="16" r="1.4"/><circle cx="17" cy="16" r="1.4"/></svg>
-                <span>Image Coming Soon</span>
-              </div>
-              <span class="fleet-card-category">Super Sport</span>
-            </div>
-            <div class="fleet-card-body">
-              <h3>Lamborghini Huracán</h3>
-              <div class="fleet-card-meta">
-                <span><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M13 2 3 14h7l-1 8 11-14h-7l1-6Z"/></svg>602 HP</span>
-                <span><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0ZM4 21c0-3.9 3.6-7 8-7s8 3.1 8 7"/></svg>2 Seats</span>
-              </div>
-              <div class="fleet-card-footer">
-                <button class="btn btn-primary" data-book-car="Lamborghini Huracán — Super Sport">Book Now</button>
-              </div>
-            </div>
-          </article>
-
-          <article class="fleet-card">
-            <div class="fleet-card-media">
-              <div class="fleet-placeholder">
-                <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 13.5 5 8h14l2 5.5M3 13.5v4a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1v-1h12v1a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1v-4M3 13.5h18"/><circle cx="7" cy="16" r="1.4"/><circle cx="17" cy="16" r="1.4"/></svg>
-                <span>Image Coming Soon</span>
-              </div>
-              <span class="fleet-card-category">Super Sport</span>
-            </div>
-            <div class="fleet-card-body">
-              <h3>Ferrari 488</h3>
-              <div class="fleet-card-meta">
-                <span><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M13 2 3 14h7l-1 8 11-14h-7l1-6Z"/></svg>661 HP</span>
-                <span><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0ZM4 21c0-3.9 3.6-7 8-7s8 3.1 8 7"/></svg>2 Seats</span>
-              </div>
-              <div class="fleet-card-footer">
-                <button class="btn btn-primary" data-book-car="Ferrari 488 — Super Sport">Book Now</button>
-              </div>
-            </div>
-          </article>
-
-          <article class="fleet-card">
-            <div class="fleet-card-media">
-              <div class="fleet-placeholder">
-                <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 13.5 5 8h14l2 5.5M3 13.5v4a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1v-1h12v1a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1v-4M3 13.5h18"/><circle cx="7" cy="16" r="1.4"/><circle cx="17" cy="16" r="1.4"/></svg>
-                <span>Image Coming Soon</span>
-              </div>
-              <span class="fleet-card-category">Hypercar</span>
-            </div>
-            <div class="fleet-card-body">
-              <h3>McLaren 720S</h3>
-              <div class="fleet-card-meta">
-                <span><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M13 2 3 14h7l-1 8 11-14h-7l1-6Z"/></svg>710 HP</span>
-                <span><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0ZM4 21c0-3.9 3.6-7 8-7s8 3.1 8 7"/></svg>2 Seats</span>
-              </div>
-              <div class="fleet-card-footer">
-                <button class="btn btn-primary" data-book-car="McLaren 720S — Hypercar">Book Now</button>
-              </div>
-            </div>
-          </article>
-
-          <article class="fleet-card">
-            <div class="fleet-card-media">
-              <div class="fleet-placeholder">
-                <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 13.5 5 8h14l2 5.5M3 13.5v4a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1v-1h12v1a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1v-4M3 13.5h18"/><circle cx="7" cy="16" r="1.4"/><circle cx="17" cy="16" r="1.4"/></svg>
-                <span>Image Coming Soon</span>
-              </div>
-              <span class="fleet-card-category">Ultra Luxury Sedan</span>
-            </div>
-            <div class="fleet-card-body">
-              <h3>Rolls-Royce Ghost</h3>
-              <div class="fleet-card-meta">
-                <span><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M13 2 3 14h7l-1 8 11-14h-7l1-6Z"/></svg>563 HP</span>
-                <span><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0ZM4 21c0-3.9 3.6-7 8-7s8 3.1 8 7"/></svg>4 Seats</span>
-              </div>
-              <div class="fleet-card-footer">
-                <button class="btn btn-primary" data-book-car="Rolls-Royce Ghost — Ultra Luxury Sedan">Book Now</button>
-              </div>
-            </div>
-          </article>
-
-          <article class="fleet-card">
-            <div class="fleet-card-media">
-              <div class="fleet-placeholder">
-                <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 13.5 5 8h14l2 5.5M3 13.5v4a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1v-1h12v1a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1v-4M3 13.5h18"/><circle cx="7" cy="16" r="1.4"/><circle cx="17" cy="16" r="1.4"/></svg>
-                <span>Image Coming Soon</span>
-              </div>
-              <span class="fleet-card-category">Luxury Grand Tourer</span>
-            </div>
-            <div class="fleet-card-body">
-              <h3>Bentley Continental GT</h3>
-              <div class="fleet-card-meta">
-                <span><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M13 2 3 14h7l-1 8 11-14h-7l1-6Z"/></svg>542 HP</span>
-                <span><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0ZM4 21c0-3.9 3.6-7 8-7s8 3.1 8 7"/></svg>4 Seats</span>
-              </div>
-              <div class="fleet-card-footer">
-                <button class="btn btn-primary" data-book-car="Bentley Continental GT — Luxury Grand Tourer">Book Now</button>
-              </div>
-            </div>
-          </article>
-
-          <article class="fleet-card">
-            <div class="fleet-card-media">
-              <div class="fleet-placeholder">
-                <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 13.5 5 8h14l2 5.5M3 13.5v4a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1v-1h12v1a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1v-4M3 13.5h18"/><circle cx="7" cy="16" r="1.4"/><circle cx="17" cy="16" r="1.4"/></svg>
-                <span>Image Coming Soon</span>
-              </div>
-              <span class="fleet-card-category">Sports Coupe</span>
-            </div>
-            <div class="fleet-card-body">
-              <h3>Porsche 911 Turbo S</h3>
-              <div class="fleet-card-meta">
-                <span><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M13 2 3 14h7l-1 8 11-14h-7l1-6Z"/></svg>640 HP</span>
-                <span><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0ZM4 21c0-3.9 3.6-7 8-7s8 3.1 8 7"/></svg>4 Seats</span>
-              </div>
-              <div class="fleet-card-footer">
-                <button class="btn btn-primary" data-book-car="Porsche 911 Turbo S — Sports Coupe">Book Now</button>
-              </div>
-            </div>
-          </article>
-
-          <article class="fleet-card">
-            <div class="fleet-card-media">
-              <div class="fleet-placeholder">
-                <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 13.5 5 8h14l2 5.5M3 13.5v4a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1v-1h12v1a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1v-4M3 13.5h18"/><circle cx="7" cy="16" r="1.4"/><circle cx="17" cy="16" r="1.4"/></svg>
-                <span>Image Coming Soon</span>
-              </div>
-              <span class="fleet-card-category">Luxury SUV</span>
-            </div>
-            <div class="fleet-card-body">
-              <h3>Mercedes-Benz G-Wagon</h3>
-              <div class="fleet-card-meta">
-                <span><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M13 2 3 14h7l-1 8 11-14h-7l1-6Z"/></svg>577 HP</span>
-                <span><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0ZM4 21c0-3.9 3.6-7 8-7s8 3.1 8 7"/></svg>5 Seats</span>
-              </div>
-              <div class="fleet-card-footer">
-                <button class="btn btn-primary" data-book-car="Mercedes-Benz G-Wagon — Luxury SUV">Book Now</button>
-              </div>
-            </div>
-          </article>
-
-        </div>
+        <div class="fleet-grid reveal-stagger" id="carFleetGrid"></div>
       </div>
 
     </div>
@@ -569,6 +356,50 @@
     </div>
   </section>
 
+  <!-- ============ TRUST & SOCIAL PROOF ============ -->
+  <section class="section" id="trust" aria-labelledby="trust-heading">
+    <div class="container">
+      <div class="section-head center reveal">
+        <span class="eyebrow">Why Guests Trust Us</span>
+        <h2 class="section-title" id="trust-heading">Concierge-Level Service, Proven Over Time</h2>
+      </div>
+
+      <div class="trust-grid reveal-stagger">
+        <div class="trust-stat">
+          <span class="trust-number" data-counter data-count-to="12" data-suffix="+">0</span>
+          <span class="trust-label">Years of Experience</span>
+        </div>
+        <div class="trust-stat">
+          <span class="trust-number" data-counter data-count-to="2400" data-suffix="+">0</span>
+          <span class="trust-label">Happy Clients</span>
+        </div>
+        <div class="trust-stat">
+          <span class="trust-number" data-counter data-count-to="500" data-suffix="+">0</span>
+          <span class="trust-label">Luxury Experiences Delivered</span>
+        </div>
+        <div class="trust-stat">
+          <span class="trust-number" data-counter data-count-to="100" data-suffix="%">0</span>
+          <span class="trust-label">Licensed &amp; Insured</span>
+        </div>
+      </div>
+
+      <div class="trust-pillars reveal-stagger">
+        <div class="trust-pillar">
+          <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 21c-4-3-8-6.5-8-11a5 5 0 0 1 8-4 5 5 0 0 1 8 4c0 4.5-4 8-8 11Z"/></svg>
+          <span>Professional Crew</span>
+        </div>
+        <div class="trust-pillar">
+          <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2 3 6v6c0 5 4 9 9 10 5-1 9-5 9-10V6l-9-4Z"/></svg>
+          <span>Licensed &amp; Insured</span>
+        </div>
+        <div class="trust-pillar">
+          <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+          <span>Concierge-Level Service</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- ============ TESTIMONIALS ============ -->
   <section class="section section--charcoal" id="testimonials" aria-labelledby="testimonials-heading">
     <div class="container">
@@ -635,6 +466,115 @@
     </div>
   </section>
 
+  <!-- ============ FAQ ============ -->
+  <section class="section section--charcoal" id="faq" aria-labelledby="faq-heading">
+    <div class="container">
+      <div class="section-head center reveal">
+        <span class="eyebrow">Good to Know</span>
+        <h2 class="section-title" id="faq-heading">Frequently Asked Questions</h2>
+        <p class="section-sub">Everything you need to know before reserving your yacht or vehicle. Can't find your answer? Reach out to a concierge specialist directly.</p>
+      </div>
+
+      <div class="faq-list reveal-stagger">
+        <div class="faq-item">
+          <h3>
+            <button type="button" class="faq-question" aria-expanded="false" aria-controls="faq-answer-1" id="faq-question-1">
+              <span>What's included in a luxury yacht rental?</span>
+              <svg aria-hidden="true" focusable="false" class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12h14M12 5v14"/></svg>
+            </button>
+          </h3>
+          <div class="faq-answer" id="faq-answer-1" role="region" aria-labelledby="faq-question-1" hidden>
+            <p>Every yacht charter includes a professional captain and crew, fuel for the agreed itinerary, and standard onboard amenities listed on the yacht's detail page. Catering, water toys, and extended crew service are available as add-ons — just note them in your reservation's special requests.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <h3>
+            <button type="button" class="faq-question" aria-expanded="false" aria-controls="faq-answer-2" id="faq-question-2">
+              <span>Do I need a special license to rent an exotic car?</span>
+              <svg aria-hidden="true" focusable="false" class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12h14M12 5v14"/></svg>
+            </button>
+          </h3>
+          <div class="faq-answer" id="faq-answer-2" role="region" aria-labelledby="faq-question-2" hidden>
+            <p>No special license is required — a valid driver's license, a matching form of ID, and a driver at least 25 years of age are sufficient for most vehicles in our collection. Drivers between 21–24 may be approved case by case with an additional fee.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <h3>
+            <button type="button" class="faq-question" aria-expanded="false" aria-controls="faq-answer-3" id="faq-question-3">
+              <span>How does the booking process work?</span>
+              <svg aria-hidden="true" focusable="false" class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12h14M12 5v14"/></svg>
+            </button>
+          </h3>
+          <div class="faq-answer" id="faq-answer-3" role="region" aria-labelledby="faq-question-3" hidden>
+            <p>Submit a reservation request through our booking form or quick inquiry — either works as a first step, not a final commitment. A concierge specialist follows up within 24 hours to confirm availability, finalize details, and arrange payment and delivery or boarding logistics.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <h3>
+            <button type="button" class="faq-question" aria-expanded="false" aria-controls="faq-answer-4" id="faq-question-4">
+              <span>What is your cancellation policy?</span>
+              <svg aria-hidden="true" focusable="false" class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12h14M12 5v14"/></svg>
+            </button>
+          </h3>
+          <div class="faq-answer" id="faq-answer-4" role="region" aria-labelledby="faq-question-4" hidden>
+            <p>Cancellations made 7 or more days before your reservation receive a full refund. Cancellations within 7 days are eligible for credit toward a future booking. Weather-related cancellations for yacht charters are always fully refundable or reschedulable — see our weather policy below.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <h3>
+            <button type="button" class="faq-question" aria-expanded="false" aria-controls="faq-answer-5" id="faq-question-5">
+              <span>Is a security deposit required?</span>
+              <svg aria-hidden="true" focusable="false" class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12h14M12 5v14"/></svg>
+            </button>
+          </h3>
+          <div class="faq-answer" id="faq-answer-5" role="region" aria-labelledby="faq-question-5" hidden>
+            <p>Yes. A refundable security deposit is held on your card at the time of pickup or boarding and released in full after the vehicle or yacht is returned in its original condition. Your concierge specialist will confirm the exact amount for your specific reservation.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <h3>
+            <button type="button" class="faq-question" aria-expanded="false" aria-controls="faq-answer-6" id="faq-question-6">
+              <span>What happens if the weather turns on the day of my charter?</span>
+              <svg aria-hidden="true" focusable="false" class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12h14M12 5v14"/></svg>
+            </button>
+          </h3>
+          <div class="faq-answer" id="faq-answer-6" role="region" aria-labelledby="faq-question-6" hidden>
+            <p>Guest safety comes first. If conditions are unsafe for your scheduled charter, we'll work with you to reschedule at no charge or issue a full refund — your choice.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <h3>
+            <button type="button" class="faq-question" aria-expanded="false" aria-controls="faq-answer-7" id="faq-question-7">
+              <span>Can I request a specific driver or captain?</span>
+              <svg aria-hidden="true" focusable="false" class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12h14M12 5v14"/></svg>
+            </button>
+          </h3>
+          <div class="faq-answer" id="faq-answer-7" role="region" aria-labelledby="faq-question-7" hidden>
+            <p>Self-driving is available for our exotic cars for approved drivers. For yachts, a licensed captain and crew are always included and required by law. If you've worked with a specific captain before, let your concierge specialist know and we'll do our best to accommodate.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <h3>
+            <button type="button" class="faq-question" aria-expanded="false" aria-controls="faq-answer-8" id="faq-question-8">
+              <span>What does "luxury concierge service" actually include?</span>
+              <svg aria-hidden="true" focusable="false" class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12h14M12 5v14"/></svg>
+            </button>
+          </h3>
+          <div class="faq-answer" id="faq-answer-8" role="region" aria-labelledby="faq-question-8" hidden>
+            <p>Every reservation is handled personally by a dedicated specialist — from itinerary planning and vehicle or yacht selection to on-the-day coordination and any special requests, like restaurant reservations or add-on amenities. It's a single point of contact for your entire experience.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- ============ GALLERY ============ -->
   <section class="section" id="gallery" aria-labelledby="gallery-heading">
     <div class="container">
@@ -686,6 +626,54 @@
     </div>
   </section>
 
+  <!-- ============ INSTAGRAM ============ -->
+  <section class="section instagram-section" id="instagram" aria-labelledby="instagram-heading">
+    <div class="container">
+      <div class="instagram-head reveal">
+        <div>
+          <span class="eyebrow">The Iconic Lifestyle</span>
+          <h2 class="section-title" id="instagram-heading">Follow the Journey</h2>
+          <p class="section-sub">Real charters, real drives, real Miami. See the fleet in action and get first access to new arrivals.</p>
+        </div>
+        <a href="https://instagram.com/iconicrentalsmiami" target="_blank" rel="noopener" class="btn btn-primary instagram-follow">
+          <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg>
+          @iconicrentalsmiami
+        </a>
+      </div>
+
+      <!-- Static preview grid — swap for an embedded live feed (e.g. Instagram Basic Display API
+           or a widget like SnapWidget/Elfsight) by replacing the contents of #instagramFeed. -->
+      <div class="instagram-grid reveal-stagger" id="instagramFeed">
+        <a class="instagram-tile" href="https://instagram.com/iconicrentalsmiami" target="_blank" rel="noopener" aria-label="View on Instagram">
+          <picture><source srcset="images/hero-yacht-miami-thumb.webp" type="image/webp" /><img src="images/hero-yacht-miami-thumb.jpg" alt="Iconic Rentals yacht on Biscayne Bay, shared on Instagram" loading="lazy" /></picture>
+          <span class="instagram-tile-icon"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg></span>
+        </a>
+        <a class="instagram-tile" href="https://instagram.com/iconicrentalsmiami" target="_blank" rel="noopener" aria-label="View on Instagram">
+          <picture><source srcset="images/yacht-marina-dusk-thumb.webp" type="image/webp" /><img src="images/yacht-marina-dusk-thumb.jpg" alt="Yacht docked at Miami marina, shared on Instagram" loading="lazy" /></picture>
+          <span class="instagram-tile-icon"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg></span>
+        </a>
+        <a class="instagram-tile" href="https://instagram.com/iconicrentalsmiami" target="_blank" rel="noopener" aria-label="View on Instagram">
+          <picture><source srcset="images/car-mood-night-thumb.webp" type="image/webp" /><img src="images/car-mood-night-thumb.jpg" alt="Exotic car in Miami at night, shared on Instagram" loading="lazy" /></picture>
+          <span class="instagram-tile-icon"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg></span>
+        </a>
+        <a class="instagram-tile" href="https://instagram.com/iconicrentalsmiami" target="_blank" rel="noopener" aria-label="View on Instagram">
+          <picture><source srcset="images/yacht-aerial-thumb.webp" type="image/webp" /><img src="images/yacht-aerial-thumb.jpg" alt="Aerial view of a luxury yacht, shared on Instagram" loading="lazy" /></picture>
+          <span class="instagram-tile-icon"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg></span>
+        </a>
+        <a class="instagram-tile" href="https://instagram.com/iconicrentalsmiami" target="_blank" rel="noopener" aria-label="View on Instagram">
+          <picture><source srcset="images/about-yacht-deck-thumb.webp" type="image/webp" /><img src="images/about-yacht-deck-thumb.jpg" alt="Yacht deck lounge, shared on Instagram" loading="lazy" /></picture>
+          <span class="instagram-tile-icon"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg></span>
+        </a>
+        <a class="instagram-tile" href="https://instagram.com/iconicrentalsmiami" target="_blank" rel="noopener" aria-label="View on Instagram">
+          <div class="instagram-tile-placeholder">
+            <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg>
+            <span>@iconicrentalsmiami</span>
+          </div>
+        </a>
+      </div>
+    </div>
+  </section>
+
   <!-- ============ CONTACT ============ -->
   <section class="section section--charcoal" id="contact" aria-labelledby="contact-heading">
     <div class="container">
@@ -718,8 +706,18 @@
         </div>
       </div>
 
+      <div class="contact-map reveal">
+        <iframe
+          src="https://www.google.com/maps?q=Miami,+FL&output=embed"
+          title="Iconic Rentals service area map — Miami, Florida"
+          loading="lazy"
+          referrerpolicy="no-referrer-when-downgrade"
+          aria-label="Map showing the Miami, Florida service area">
+        </iframe>
+      </div>
+
       <div class="contact-cta reveal">
-        <a href="#booking" class="btn btn-primary">Book Your Experience</a>
+        <a href="#booking" class="btn btn-primary" data-quick-book>Book Your Experience</a>
       </div>
     </div>
   </section>
@@ -785,12 +783,104 @@
   <button type="button" class="lightbox-close" aria-label="Close image viewer">
     <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg>
   </button>
+  <button type="button" class="lightbox-nav lightbox-prev" aria-label="Previous image">
+    <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 6l-6 6 6 6"/></svg>
+  </button>
+  <button type="button" class="lightbox-nav lightbox-next" aria-label="Next image">
+    <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>
+  </button>
   <figure class="lightbox-figure">
     <img id="lightboxImage" src="" alt="" />
     <figcaption id="lightboxCaption"></figcaption>
   </figure>
 </div>
 
+<!-- ============ STICKY MOBILE BOOKING CTA ============ -->
+<div class="sticky-cta" id="stickyMobileCta">
+  <a href="#booking" class="btn btn-primary btn-block">
+    <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></svg>
+    Book Now
+  </a>
+</div>
+
+<!-- ============ FLOATING CONTACT MENU ============ -->
+<div class="floating-contact" id="floatingContact">
+  <div class="floating-contact-panel" id="floatingContactPanel">
+    <a href="https://wa.me/13055550198" target="_blank" rel="noopener" class="floating-contact-item" aria-label="Message us on WhatsApp" data-tooltip="WhatsApp">
+      <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="currentColor"><path d="M17.5 14.4c-.3-.1-1.6-.8-1.9-.9-.2-.1-.4-.1-.6.1-.2.3-.7.9-.8 1-.1.2-.3.2-.6.1-.3-.1-1.2-.4-2.2-1.4-.8-.7-1.4-1.6-1.5-1.9-.2-.3 0-.4.1-.6l.4-.5c.1-.1.2-.3.2-.4.1-.2 0-.3 0-.4-.1-.1-.6-1.4-.8-1.9-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.5.1-.7.3-.2.3-.9.9-.9 2.1 0 1.2.9 2.4 1 2.6.1.2 1.8 2.7 4.3 3.8.6.3 1.1.4 1.4.5.6.2 1.2.2 1.6.1.5-.1 1.6-.6 1.8-1.3.2-.6.2-1.1.2-1.3-.1-.1-.3-.2-.5-.3Z"/><path d="M20.5 3.5A10.4 10.4 0 0 0 3 16.8L2 22l5.4-1a10.4 10.4 0 0 0 15-19.5ZM12 20.4a8.4 8.4 0 0 1-4.3-1.2l-.3-.2-3.2.6.6-3.1-.2-.3A8.4 8.4 0 1 1 12 20.4Z"/></svg>
+    </a>
+    <a href="tel:+13055550198" class="floating-contact-item" aria-label="Call us" data-tooltip="Call Us">
+      <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3.1-8.7A2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 2 .7 3a2 2 0 0 1-.5 2.1L8 10.1a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.5c1 .3 2 .5 3 .7a2 2 0 0 1 1.7 2Z"/></svg>
+    </a>
+    <a href="mailto:concierge@iconicrentalsmiami.com" class="floating-contact-item" aria-label="Email us" data-tooltip="Email Us">
+      <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 6 10 7 10-7"/></svg>
+    </a>
+  </div>
+  <button type="button" class="floating-contact-toggle" id="floatingContactToggle" aria-expanded="false" aria-controls="floatingContactPanel" aria-label="Open contact options">
+    <svg class="icon-open" aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 11.5a8.5 8.5 0 0 1-12.3 7.6L3 20l1-5.4A8.5 8.5 0 1 1 21 11.5Z"/></svg>
+    <svg class="icon-close" aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg>
+  </button>
+</div>
+
+<!-- ============ QUICK BOOK MODAL ============ -->
+<div class="quick-book" id="quickBookModal" role="dialog" aria-modal="true" aria-labelledby="quickBookTitle" hidden>
+  <div class="quick-book-backdrop" data-quick-book-close></div>
+  <div class="quick-book-panel">
+    <button type="button" class="quick-book-close" data-quick-book-close aria-label="Close quick booking form">
+      <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+
+    <span class="eyebrow">Quick Inquiry</span>
+    <h3 id="quickBookTitle">Start Your Reservation</h3>
+    <p>A few details and a concierge specialist will follow up personally. Prefer the full form? <a href="#booking" data-quick-book-close data-quick-book-full>See all options.</a></p>
+
+    <form id="quickBookForm" novalidate>
+      <div class="form-field full">
+        <label for="qbName">Full Name</label>
+        <input type="text" id="qbName" name="qbName" autocomplete="name" required />
+        <span class="form-error" role="alert" aria-live="polite"></span>
+      </div>
+      <div class="form-field">
+        <label for="qbPhone">Phone Number</label>
+        <input type="tel" id="qbPhone" name="qbPhone" autocomplete="tel" required />
+        <span class="form-error" role="alert" aria-live="polite"></span>
+      </div>
+      <div class="form-field">
+        <label for="qbEmail">Email</label>
+        <input type="email" id="qbEmail" name="qbEmail" autocomplete="email" required />
+        <span class="form-error" role="alert" aria-live="polite"></span>
+      </div>
+      <div class="form-field">
+        <label for="qbRentalType">Rental Type</label>
+        <select id="qbRentalType" name="qbRentalType" required>
+          <option value="" disabled selected>Select rental type</option>
+          <option value="Yacht Rental">Yacht Rental</option>
+          <option value="Car Rental">Car Rental</option>
+          <option value="Not sure yet">Not sure yet</option>
+        </select>
+        <span class="form-error" role="alert" aria-live="polite"></span>
+      </div>
+      <div class="form-field">
+        <label for="qbDate">Preferred Date</label>
+        <input type="date" id="qbDate" name="qbDate" required />
+        <span class="form-error" role="alert" aria-live="polite"></span>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block">Send Inquiry</button>
+    </form>
+
+    <div class="form-success" id="quickBookSuccess" tabindex="-1" role="status" aria-live="polite">
+      <div class="check">
+        <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 13 4 4L19 7"/></svg>
+      </div>
+      <h3>Request Received</h3>
+      <p>Thank you for your request. One of our concierge specialists will contact you shortly.</p>
+    </div>
+  </div>
+</div>
+
+<script src="js/fleet-data.min.js"></script>
+<script src="js/fleet-render.min.js"></script>
 <script src="js/main.min.js"></script>
 </body>
 </html>
