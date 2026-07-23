@@ -2686,3 +2686,97 @@ div.gallery-item {
   white-space: nowrap;
   border: 0;
 }
+
+/* ==========================================================================
+   Booking system: honeypot, submission banners, button loading state
+   ========================================================================== */
+
+/* Spam honeypot — invisible and inert for real visitors/screen readers,
+   but present in the DOM so unsophisticated bots that auto-fill every
+   field still get caught. */
+.form-honeypot {
+  position: absolute;
+  left: -9999px;
+  top: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.form-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  padding: 0.85rem 1rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.88rem;
+  line-height: 1.5;
+  margin-bottom: var(--space-3);
+}
+
+.form-banner[hidden] {
+  display: none;
+}
+
+.form-banner--error {
+  background: rgba(177, 85, 79, 0.12);
+  border: 1px solid rgba(177, 85, 79, 0.4);
+  color: #e8a7a3;
+}
+
+.form-banner--error::before {
+  content: '!';
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: rgba(177, 85, 79, 0.5);
+  color: var(--color-white);
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 0.78rem;
+}
+
+/* Button loading state — keeps the button's size stable, dims the label,
+   and shows a spinner so a slow network never reads as an unresponsive
+   click. */
+.btn.is-loading {
+  pointer-events: none;
+  opacity: 0.85;
+}
+
+.btn.is-loading .btn-spinner {
+  display: inline-block;
+}
+
+.btn-spinner {
+  display: none;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  border: 2px solid rgba(10, 10, 11, 0.35);
+  border-top-color: currentColor;
+  animation: btn-spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+.btn-ghost .btn-spinner,
+.btn-primary .btn-spinner {
+  border-color: rgba(10, 10, 11, 0.25);
+  border-top-color: currentColor;
+}
+
+@keyframes btn-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn-spinner {
+    animation-duration: 1.4s;
+  }
+}

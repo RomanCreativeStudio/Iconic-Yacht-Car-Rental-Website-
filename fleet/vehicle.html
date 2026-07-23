@@ -277,6 +277,13 @@
     <p>A few details and a concierge specialist will follow up personally. Prefer the full form? <a href="../index.html#booking" data-quick-book-close data-quick-book-full>See all options.</a></p>
 
     <form id="quickBookForm" novalidate>
+      <div class="form-honeypot" aria-hidden="true">
+        <label for="qbCompany">Company</label>
+        <input type="text" id="qbCompany" name="company" data-honeypot tabindex="-1" autocomplete="off" />
+      </div>
+
+      <div class="form-banner form-banner--error" id="quickBookFormBanner" role="alert" hidden></div>
+
       <div class="form-field full">
         <label for="qbName">Full Name</label>
         <input type="text" id="qbName" name="qbName" autocomplete="name" required />
@@ -308,7 +315,7 @@
         <span class="form-error" role="alert" aria-live="polite"></span>
       </div>
 
-      <button type="submit" class="btn btn-primary btn-block">Send Inquiry</button>
+      <button type="submit" class="btn btn-primary btn-block" data-label="Send Inquiry" data-loading-label="Sending…">Send Inquiry</button>
     </form>
 
     <div class="form-success" id="quickBookSuccess" tabindex="-1" role="status" aria-live="polite">
@@ -324,6 +331,8 @@
 <script src="../js/fleet-data.min.js"></script>
 <script src="../js/fleet-render.min.js"></script>
 <script src="../js/fleet-detail.min.js"></script>
+<script src="../js/booking-config.js"></script>
+<script src="../js/booking-api.min.js"></script>
 <script src="../js/analytics.min.js"></script>
 <script src="../js/main.min.js"></script>
 </body>

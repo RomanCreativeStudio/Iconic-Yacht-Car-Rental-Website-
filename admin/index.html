@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en-US">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Booking Inquiries | Iconic Rentals Admin</title>
+<meta name="robots" content="noindex, nofollow" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230a0a0b'/%3E%3Ctext x='50' y='68' font-family='Georgia,serif' font-size='58' fill='%23c6a15b' text-anchor='middle'%3EI%3C/text%3E%3C/svg%3E" />
+
+<link rel="preload" as="font" type="font/woff2" href="../fonts/cormorant-garamond-normal.woff2" crossorigin />
+<link rel="preload" as="font" type="font/woff2" href="../fonts/jost.woff2" crossorigin />
+<link rel="stylesheet" href="../css/fonts.min.css" />
+<link rel="stylesheet" href="../css/style.min.css" />
+<link rel="stylesheet" href="../css/admin.css" />
+</head>
+<body class="admin-body">
+
+<header class="admin-header">
+  <a href="../index.html" class="brand">Iconic <strong>Rentals</strong></a>
+  <span class="admin-header-label">Booking Inquiries</span>
+  <button type="button" class="btn btn-ghost admin-signout" id="signOutBtn" hidden>Sign Out</button>
+</header>
+
+<main class="admin-main">
+
+  <!-- ============ LOGIN VIEW ============ -->
+  <section class="admin-login" id="loginView">
+    <div class="admin-login-card">
+      <span class="eyebrow">Staff Access</span>
+      <h1>Sign In</h1>
+      <p>This dashboard is for authorized staff only. See CLIENT_SETUP.md, "Admin Dashboard Access" to create your login.</p>
+
+      <form id="loginForm" novalidate>
+        <div class="form-field full">
+          <label for="loginEmail">Email</label>
+          <input type="email" id="loginEmail" name="loginEmail" autocomplete="username" required />
+          <span class="form-error" role="alert" aria-live="polite"></span>
+        </div>
+        <div class="form-field full">
+          <label for="loginPassword">Password</label>
+          <input type="password" id="loginPassword" name="loginPassword" autocomplete="current-password" required />
+          <span class="form-error" role="alert" aria-live="polite"></span>
+        </div>
+        <div class="form-banner form-banner--error" id="loginBanner" role="alert" hidden></div>
+        <button type="submit" class="btn btn-primary btn-block" data-label="Sign In" data-loading-label="Signing In…">Sign In</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- ============ DASHBOARD VIEW ============ -->
+  <section class="admin-dashboard" id="dashboardView" hidden>
+    <div class="admin-toolbar">
+      <div class="admin-filter-tabs" id="statusFilterTabs" role="tablist" aria-label="Filter by status">
+        <button class="admin-filter-tab is-active" data-status="all" role="tab" aria-selected="true">All</button>
+        <button class="admin-filter-tab" data-status="New" role="tab" aria-selected="false">New</button>
+        <button class="admin-filter-tab" data-status="Contacted" role="tab" aria-selected="false">Contacted</button>
+        <button class="admin-filter-tab" data-status="Confirmed" role="tab" aria-selected="false">Confirmed</button>
+        <button class="admin-filter-tab" data-status="Completed" role="tab" aria-selected="false">Completed</button>
+        <button class="admin-filter-tab" data-status="Cancelled" role="tab" aria-selected="false">Cancelled</button>
+      </div>
+      <button type="button" class="btn btn-ghost admin-refresh" id="refreshBtn">Refresh</button>
+    </div>
+
+    <div class="admin-banner" id="dashboardBanner" role="alert" hidden></div>
+
+    <div class="admin-table-wrap">
+      <table class="admin-table" id="inquiriesTable">
+        <thead>
+          <tr>
+            <th scope="col">Date Received</th>
+            <th scope="col">Name</th>
+            <th scope="col">Contact</th>
+            <th scope="col">Rental</th>
+            <th scope="col">Requested Date</th>
+            <th scope="col">Status</th>
+            <th scope="col"><span class="sr-only">Details</span></th>
+          </tr>
+        </thead>
+        <tbody id="inquiriesTableBody">
+          <tr><td colspan="7" class="admin-table-empty">Loading inquiries…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+</main>
+
+<!-- ============ DETAIL PANEL ============ -->
+<div class="admin-detail" id="detailPanel" role="dialog" aria-modal="true" aria-labelledby="detailPanelTitle" hidden>
+  <div class="admin-detail-backdrop" data-detail-close></div>
+  <div class="admin-detail-card">
+    <button type="button" class="quick-book-close" data-detail-close aria-label="Close details">
+      <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+    <span class="eyebrow">Inquiry Details</span>
+    <h2 id="detailPanelTitle">Name</h2>
+    <dl class="admin-detail-grid" id="detailPanelBody"></dl>
+
+    <div class="form-field full">
+      <label for="detailStatusSelect">Update Status</label>
+      <select id="detailStatusSelect">
+        <option>New</option>
+        <option>Contacted</option>
+        <option>Confirmed</option>
+        <option>Completed</option>
+        <option>Cancelled</option>
+      </select>
+    </div>
+    <button type="button" class="btn btn-primary btn-block" id="detailSaveBtn" data-label="Update Status" data-loading-label="Saving…">Update Status</button>
+  </div>
+</div>
+
+<script src="../js/booking-config.js"></script>
+<script src="../js/vendor/supabase-js.min.js"></script>
+<script src="dashboard.js"></script>
+</body>
+</html>

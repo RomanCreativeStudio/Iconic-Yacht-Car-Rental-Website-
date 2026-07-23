@@ -4,16 +4,24 @@ This document explains how to maintain, configure, and deploy this website
 day-to-day. It assumes no coding background beyond editing text in a file
 and running one command from a terminal.
 
-**Read the "Before You Launch" checklist first — one item on it (the
-booking forms) is not optional.**
+**Read the "Before You Launch" checklist first — one item on it (setting
+up the booking database and email) is not optional.**
 
 ---
 
 ## Before You Launch — Required Checklist
 
-- [ ] **Connect the booking forms to a real destination.** See
-      [How Booking Requests Work](#how-booking-requests-work) below —
-      this is the single most important item on this list.
+- [ ] **Create your Supabase project and run the database schema.** See
+      [Database Setup](#database-setup) below — until this is done, the
+      booking forms will show a friendly "not connected yet" message
+      instead of saving inquiries.
+- [ ] **Add your real Supabase URL and anon key to
+      `js/booking-config.js`.** See [Environment Variables](#environment-variables).
+- [ ] **Connect Resend and deploy the email Edge Function** so you and
+      your customers get emailed when a booking request comes in. See
+      [Email Configuration](#email-configuration).
+- [ ] **Create at least one admin login** so you can view and manage
+      inquiries. See [Admin Dashboard Access](#admin-dashboard-access).
 - [ ] Replace the phone number, email, Instagram handle, and hours with
       your real business information (see
       [Updating Business Information](#updating-business-information)).
@@ -39,11 +47,14 @@ booking forms) is not optional.**
 3. [Adding or Editing Fleet Items](#adding-or-editing-fleet-items)
 4. [Updating Business Information](#updating-business-information)
 5. [How Booking Requests Work](#how-booking-requests-work)
-6. [Analytics & Tracking](#analytics--tracking)
-7. [Structured Data & SEO](#structured-data--seo)
-8. [Future CMS Integration](#future-cms-integration)
-9. [How Deployment Works](#how-deployment-works)
-10. [Making Code Changes — the Minified Files](#making-code-changes--the-minified-files)
+6. [Database Setup](#database-setup)
+7. [Environment Variables](#environment-variables)
+8. [Email Configuration](#email-configuration)
+9. [Analytics & Tracking](#analytics--tracking)
+10. [Structured Data & SEO](#structured-data--seo)
+11. [Future CMS Integration](#future-cms-integration)
+12. [How Deployment Works](#how-deployment-works)
+13. [Making Code Changes — the Minified Files](#making-code-changes--the-minified-files)
 
 ---
 
@@ -185,10 +196,9 @@ A few notes:
 
 ## How Booking Requests Work
 
-**Read this section carefully — it describes the one thing you must fix
-before this site can actually generate leads.**
-
-There are two booking entry points on the site:
+There are two booking entry points on the site, and both are now backed
+by a real database and email notifications — no more "success message
+that goes nowhere."
 
 1. **The full reservation form** (`#booking` section on the homepage) —
    name, phone, email, rental type, vehicle, date, time, duration,
@@ -197,45 +207,203 @@ There are two booking entry points on the site:
    type, preferred date) that opens from the hero, header, and contact
    "Book Your Experience" buttons for a faster inquiry path.
 
-**Both forms currently validate and show a "Request Received" success
-message entirely in the visitor's browser — neither one sends the
-submitted information anywhere.** There is no backend, no email
-notification, and no database. A visitor can fill out the form, see a
-polished confirmation message, and your team will never know they were
-there. This is intentional at this stage of the build (there was no
-backend service to connect to), but **it must be wired up before this
-site goes live**, or every reservation request will be silently lost.
+### What happens on submit
 
-### Fixing this — three options, easiest first
+1. The visitor's browser sends the form data directly to your Supabase
+   project's database (a `booking_requests` table — see
+   [Database Setup](#database-setup)) using `fetch()` — there's no custom
+   server in between.
+2. The instant that save succeeds, the browser separately calls a
+   Supabase Edge Function (`send-booking-emails`), which uses
+   [Resend](https://resend.com) to send:
+   - A notification email to your business inbox with every detail of
+     the inquiry.
+   - A confirmation email to the customer.
+3. The visitor sees the "Request Received" success message and animation
+   only after the database save succeeds.
 
-**Option A — Formspree (or a similar form backend), no server needed.**
-Services like [Formspree](https://formspree.io) let a plain HTML form
-POST directly to their service, which emails you the submission. Add an
-`action="https://formspree.io/f/YOUR_FORM_ID"` and `method="POST"`
-attribute to the `<form id="bookingForm">` and `<form id="quickBookForm">`
-tags, and add `name="..."` attributes are already present on every field.
-You'd then adjust the JS submit handlers in `js/main.js` to `fetch()` the
-form action instead of only doing client-side validation, still showing
-the same success panel on a successful response. This requires no
-backend hosting of your own — usually the fastest path to "actually
-receiving leads."
+**Important: the database save and the email notification are
+independent.** If Resend is briefly down, misconfigured, or its API key
+hasn't been set yet, the inquiry is still saved permanently in your
+database — you just won't get the email alert until that's fixed. Check
+the admin dashboard periodically if you're ever unsure whether emails are
+arriving. The booking itself is never silently lost.
 
-**Option B — Your hosting provider's built-in form handling.** Netlify,
-Vercel, and several others offer built-in form capture with zero backend
-code. The integration specifics vary by host; check your host's docs for
-"form handling" or "form submissions."
+### If something goes wrong during submission
 
-**Option C — A custom backend/serverless function.** If you want
-submissions to land in a CRM, database, or trigger custom workflows
-(e.g. a Zapier automation), a small serverless function (AWS Lambda,
-Vercel Functions, Cloudflare Workers, etc.) receiving a `fetch()` POST
-from the same two forms is the most flexible option, but needs a
-developer to build and maintain.
+- **Before you've connected your Supabase project** (i.e. straight out of
+  the box): both forms detect that `js/booking-config.js` still has
+  placeholder values and show a friendly banner — "Online booking isn't
+  connected yet — please call or email us directly" — instead of
+  pretending to succeed. See [Database Setup](#database-setup) and
+  [Environment Variables](#environment-variables) to connect it.
+- **After you've connected it**, a network hiccup or a temporary outage
+  shows an on-form error banner ("We couldn't save your request right
+  now...") and keeps everything the visitor typed intact so they can just
+  hit submit again — nothing is cleared out from under them.
+- Every submit button shows a loading spinner and disables itself while
+  the request is in flight, so a slow connection never looks like an
+  unresponsive click.
 
-Whichever option you choose, the actual on-page experience (validation,
-shake animation on errors, the "Request Received" success message) should
-stay exactly as it is — you're only adding a destination for the data
-that's already being collected and validated correctly.
+### Spam protection
+
+Both forms include a honeypot field (invisible to real visitors and
+screen readers, irresistible to unsophisticated bots) and a minimum
+time-on-form check — a submission that arrives suspiciously fast is
+silently accepted-looking to whatever submitted it, but never actually
+saved. Neither check requires a visitor to solve a CAPTCHA or do anything
+extra. If you start seeing spam get through despite this, an upgrade path
+is to add [Cloudflare Turnstile](https://www.cloudflare.com/products/turnstile/)
+or [hCaptcha](https://www.hcaptcha.com) to the two forms — both offer a
+free tier and a small JS snippet.
+
+---
+
+## Database Setup
+
+The booking system is built on [Supabase](https://supabase.com) — a
+hosted Postgres database with a built-in REST API, authentication, and
+edge functions, all on a generous free tier for a business this size.
+
+1. **Create a Supabase account and project** at
+   [supabase.com](https://supabase.com/dashboard). Pick a region close to
+   Miami (e.g. US East) for the best latency.
+2. **Run the schema.** In your project dashboard, go to **SQL Editor >
+   New query**, paste the entire contents of `supabase/schema.sql` from
+   this project, and click **Run**. This creates the `booking_requests`
+   table with the exact fields below, plus the security rules described
+   next. It's safe to re-run if you're ever unsure whether it applied.
+
+   | Field | Type | Notes |
+   |---|---|---|
+   | `id` | uuid | Generated automatically |
+   | `created_at` | timestamp | Generated automatically |
+   | `name` | text | Required |
+   | `email` | text | Required |
+   | `phone` | text | Required |
+   | `rental_type` | text | Required — "Yacht Rental", "Car Rental", or "Not sure yet" |
+   | `fleet_item` | text | Optional |
+   | `date` | date | Optional |
+   | `time` | time | Optional |
+   | `duration` | text | Optional |
+   | `guests` | integer | Optional |
+   | `message` | text | Optional |
+   | `status` | text | One of: New, Contacted, Confirmed, Completed, Cancelled |
+   | `source` | text | "full_form" or "quick_form" — which form was used |
+
+3. **Row Level Security (RLS) is already configured by the schema** and
+   is the real security boundary for this data — not any secret key. In
+   plain terms:
+   - Anyone on the public website can *submit* a new inquiry (that's the
+     whole point of the form), but can never read, edit, or delete any
+     inquiry — including their own — through the public API.
+   - Only someone signed in through the admin dashboard can view or
+     update inquiries.
+   - **Nobody, including admin staff, can delete an inquiry** through the
+     app — cancelling sets `status = 'Cancelled'` instead. This is
+     deliberate: a permanent record of every inquiry is worth more than
+     the ability to tidy the list.
+
+### Admin Dashboard Access
+
+The dashboard at `admin/index.html` requires a Supabase Auth login —
+there's no separate username/password system to manage.
+
+1. In your Supabase dashboard, go to **Authentication > Users > Add
+   user** and create an account for each staff member who needs access
+   (email + password). Do this for every person individually — Supabase
+   supports as many users as you need to add this way.
+2. **Turn off public sign-ups** so a stranger can't create their own
+   account: **Authentication > Providers > Email**, disable "Allow new
+   users to sign up." Staff accounts are added by you, from the
+   dashboard, not by anyone signing up themselves.
+3. Staff sign in at `yourdomain.com/admin/` with the email/password you
+   created for them.
+
+The dashboard lets staff view every inquiry, filter by status, open one
+for full details, and update its status as they work it — new inquiry →
+contacted → confirmed → completed (or cancelled). This page is marked
+`noindex` so search engines won't list it, but that alone doesn't secure
+it — the Supabase Auth login and the RLS policies above are what actually
+protect customer data, and both are already in place.
+
+---
+
+## Environment Variables
+
+This is a static site with no server-side environment, so "environment
+variables" here means two small config files with placeholder values
+that you replace with your real project's details.
+
+### `js/booking-config.js` (used by the public site and the admin dashboard)
+
+```js
+window.IconicBookingConfig = {
+  SUPABASE_URL: 'https://YOUR-PROJECT-REF.supabase.co',
+  SUPABASE_ANON_KEY: 'YOUR-SUPABASE-ANON-KEY',
+  EMAIL_FUNCTION_URL: 'https://YOUR-PROJECT-REF.supabase.co/functions/v1/send-booking-emails'
+};
+```
+
+Find both values in your Supabase dashboard under **Settings > API**:
+`SUPABASE_URL` is the "Project URL," and `SUPABASE_ANON_KEY` is the
+"anon / public" key (not the "service_role" key — never use that one
+here or anywhere in frontend code; it bypasses RLS entirely).
+
+**The anon key is not a secret.** It's designed to be visible in frontend
+code — anyone can already see it in your browser's network tab whether
+you "hide" it or not. Row Level Security, configured by
+`supabase/schema.sql`, is what actually protects the data. This is a
+standard, intentional part of how Supabase is designed to be used.
+
+### Edge Function secrets (kept on Supabase's servers, never in this codebase)
+
+Set these using the Supabase CLI (see
+[Email Configuration](#email-configuration) below for the full walkthrough):
+
+| Secret | Value |
+|---|---|
+| `RESEND_API_KEY` | Your Resend API key — this one **is** a real secret |
+| `OWNER_EMAIL` | Where booking notifications should be sent |
+| `FROM_EMAIL` | The "from" address emails are sent from, e.g. `Iconic Rentals <bookings@yourdomain.com>` |
+
+---
+
+## Email Configuration
+
+Emails are sent by a Supabase Edge Function
+(`supabase/functions/send-booking-emails`) using
+[Resend](https://resend.com), a transactional email API with a free tier
+that comfortably covers a business at this scale.
+
+1. **Create a Resend account** at [resend.com](https://resend.com) and
+   verify a sending domain (**Domains > Add Domain**, then add the DNS
+   records Resend gives you at your domain registrar). Resend will not
+   send email from an address on an unverified domain — this step isn't
+   optional. Verification usually takes minutes to a few hours depending
+   on your DNS provider.
+2. **Create an API key** — **API Keys > Create API Key**.
+3. **Install the Supabase CLI** if you haven't already (`npm install -g
+   supabase`), then from this project's root folder:
+
+   ```bash
+   supabase login
+   supabase link --project-ref YOUR-PROJECT-REF
+   supabase secrets set RESEND_API_KEY=your_real_resend_key
+   supabase secrets set OWNER_EMAIL=concierge@yourdomain.com
+   supabase secrets set FROM_EMAIL="Iconic Rentals <bookings@yourdomain.com>"
+   supabase functions deploy send-booking-emails
+   ```
+4. **Test it** by submitting the booking form on your live (or locally
+   served) site once `js/booking-config.js` has your real project
+   details, and confirm both the owner notification and the customer
+   confirmation email arrive.
+
+If you'd rather not verify a domain right away, Resend's default
+`onboarding@resend.dev` sending address works out of the box for testing
+— swap in your own verified domain before relying on this for real
+customer communication, since `resend.dev` addresses are shared across
+all Resend users and can be rate-limited.
 
 ---
 
@@ -351,16 +519,40 @@ untouched.
 
 ## How Deployment Works
 
-This is a fully static site — HTML, CSS, and JavaScript files with no
-build step, server-side code, or database. That makes it deployable to
-almost any static host:
+The front end is a fully static site — HTML, CSS, and JavaScript files
+with no build step or server-side rendering. The booking system adds one
+piece of real backend infrastructure (Supabase database + Edge Function),
+but that lives entirely on Supabase's servers — there is still nothing to
+build or run on your static host. Deployment has two parts: the backend
+(one-time setup, see below) and the static site (every time you make
+content changes).
+
+### Part 1 — Backend (do this once, before going live)
+
+Complete these in order — each one depends on the last:
+
+1. [Database Setup](#database-setup) — create the Supabase project and
+   run `supabase/schema.sql`.
+2. [Environment Variables](#environment-variables) — put your real
+   Supabase URL and anon key into `js/booking-config.js`.
+3. [Email Configuration](#email-configuration) — connect Resend and
+   deploy the `send-booking-emails` Edge Function.
+4. [Admin Dashboard Access](#admin-dashboard-access) — create a staff
+   login so someone can actually see and manage the inquiries that come
+   in.
+
+You only need to repeat these steps if you move to a new Supabase
+project — routine site edits (photos, prices, text) never touch this
+part.
+
+### Part 2 — Static site hosting
 
 1. **Choose a static host.** Popular options: Netlify, Vercel, Cloudflare
    Pages, GitHub Pages, or a traditional shared-hosting provider.
 2. **Upload the entire project folder** (everything in this repository)
    to your host, preserving the folder structure (`css/`, `js/`,
-   `images/`, `fonts/`, `fleet/`, and `index.html` all need to stay at
-   the same relative paths to each other).
+   `images/`, `fonts/`, `fleet/`, `admin/`, and `index.html` all need to
+   stay at the same relative paths to each other).
 3. **Set `index.html` as the site's entry point** (most hosts do this
    automatically for a file literally named `index.html` at the root).
 4. **Point your domain at the host** following your host's DNS
@@ -369,15 +561,21 @@ almost any static host:
    - The homepage loads and every image appears.
    - `fleet/vehicle.html?slug=azure-horizon` (or any other slug from
      `js/fleet-data.js`) loads correctly.
-   - Both booking forms submit successfully (once you've completed the
-     [booking backend setup](#how-booking-requests-work) above).
+   - Both booking forms submit successfully and you receive the owner
+     notification email (once you've completed [Part 1](#part-1--backend-do-this-once-before-going-live) above).
+   - `admin/index.html` (e.g. `yourdomain.com/admin/`) lets you sign in
+     and see the test inquiry you just submitted.
    - The site loads correctly on a real phone, not just a browser resized
      to a phone width.
 
 **Recommended (not required):** most static hosts offer free HTTPS,
 gzip/brotli compression, and CDN caching automatically — enabling these
 (usually on by default) will noticeably improve real-world load times
-beyond what's observable when testing the raw files locally.
+beyond what's observable when testing the raw files locally. Also
+consider restricting the Edge Function's CORS header (currently `*` in
+`supabase/functions/send-booking-emails/index.ts`) to your real domain
+once you know it, and disabling public sign-ups in Supabase Auth so only
+staff you personally invite can access `admin/`.
 
 ---
 

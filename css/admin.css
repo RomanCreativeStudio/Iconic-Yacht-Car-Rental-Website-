@@ -1,0 +1,317 @@
+/* ==========================================================================
+   Admin Dashboard — page-specific styles
+   Reuses design tokens (colors, spacing, radii, fonts) from style.css.
+   ========================================================================== */
+
+.admin-body {
+  min-height: 100vh;
+  background: var(--color-black);
+}
+
+.admin-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid rgba(250, 249, 247, 0.1);
+  background: var(--color-charcoal);
+}
+
+.admin-header-label {
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-white-dim);
+  padding-left: var(--space-3);
+  border-left: 1px solid rgba(250, 249, 247, 0.15);
+}
+
+.admin-signout {
+  margin-left: auto;
+}
+
+.admin-main {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: var(--space-5) var(--space-4);
+}
+
+/* Login */
+.admin-login {
+  display: flex;
+  justify-content: center;
+  padding-top: var(--space-6);
+}
+
+.admin-login[hidden] {
+  display: none;
+}
+
+.admin-login-card {
+  width: 100%;
+  max-width: 420px;
+  background: var(--surface-glass);
+  border: 1px solid var(--surface-glass-border);
+  backdrop-filter: blur(18px);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+}
+
+.admin-login-card h1 {
+  font-size: 1.9rem;
+  margin-top: var(--space-2);
+  color: var(--color-white);
+}
+
+.admin-login-card > p {
+  margin-top: var(--space-2);
+  margin-bottom: var(--space-4);
+  color: var(--color-white-dim);
+  font-size: 0.9rem;
+}
+
+.admin-login-card form {
+  display: grid;
+  gap: var(--space-3);
+}
+
+/* Toolbar */
+.admin-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-4);
+}
+
+.admin-filter-tabs {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.admin-filter-tab {
+  background: transparent;
+  border: 1px solid rgba(250, 249, 247, 0.18);
+  color: var(--color-white-dim);
+  padding: 0.55rem 1.1rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: all var(--dur-fast) var(--ease-luxury);
+}
+
+.admin-filter-tab.is-active,
+.admin-filter-tab:hover {
+  border-color: var(--color-gold);
+  color: var(--color-gold-light);
+  background: var(--color-gold-dim);
+}
+
+.admin-banner {
+  margin-bottom: var(--space-3);
+  padding: 0.85rem 1rem;
+  border-radius: var(--radius-sm);
+  background: rgba(177, 85, 79, 0.12);
+  border: 1px solid rgba(177, 85, 79, 0.4);
+  color: #e8a7a3;
+  font-size: 0.88rem;
+}
+
+.admin-banner[hidden] {
+  display: none;
+}
+
+/* Table */
+.admin-table-wrap {
+  overflow-x: auto;
+  border: 1px solid rgba(250, 249, 247, 0.1);
+  border-radius: var(--radius-md);
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 760px;
+  font-size: 0.88rem;
+}
+
+.admin-table th {
+  text-align: left;
+  padding: 0.85rem 1rem;
+  background: var(--color-charcoal-soft);
+  color: var(--color-white-dim);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 500;
+  border-bottom: 1px solid rgba(250, 249, 247, 0.1);
+}
+
+.admin-table td {
+  padding: 0.85rem 1rem;
+  color: var(--color-white-dim);
+  border-bottom: 1px solid rgba(250, 249, 247, 0.06);
+  vertical-align: top;
+}
+
+.admin-table td a {
+  color: var(--color-gold-light);
+}
+
+.admin-row {
+  cursor: pointer;
+  transition: background-color var(--dur-fast) var(--ease-luxury);
+}
+
+.admin-row:hover,
+.admin-row:focus-visible {
+  background: rgba(198, 161, 91, 0.06);
+}
+
+.admin-table-empty {
+  text-align: center;
+  padding: var(--space-5) !important;
+  color: var(--color-white-dim);
+}
+
+.admin-muted {
+  color: rgba(233, 231, 226, 0.5);
+  font-size: 0.8rem;
+}
+
+.admin-view-btn {
+  padding: 0.4rem 0.9rem;
+  font-size: 0.7rem;
+}
+
+/* Status badges */
+.admin-badge {
+  display: inline-block;
+  padding: 0.28rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.admin-badge--new {
+  background: rgba(198, 161, 91, 0.18);
+  color: var(--color-gold-light);
+}
+
+.admin-badge--contacted {
+  background: rgba(111, 163, 173, 0.2);
+  color: var(--color-ocean-light);
+}
+
+.admin-badge--confirmed {
+  background: rgba(120, 190, 130, 0.18);
+  color: #8fd39a;
+}
+
+.admin-badge--completed {
+  background: rgba(233, 231, 226, 0.14);
+  color: var(--color-white-dim);
+}
+
+.admin-badge--cancelled {
+  background: rgba(177, 85, 79, 0.18);
+  color: #e8a7a3;
+}
+
+/* Detail panel (same visual language as the Quick Book modal) */
+.admin-detail {
+  position: fixed;
+  inset: 0;
+  z-index: 950;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-3);
+}
+
+.admin-detail[hidden] {
+  display: none;
+}
+
+.admin-detail-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(10, 10, 11, 0.82);
+  backdrop-filter: blur(10px);
+  opacity: 0;
+  transition: opacity var(--dur-med) var(--ease-luxury);
+}
+
+.admin-detail.is-open .admin-detail-backdrop {
+  opacity: 1;
+}
+
+.admin-detail-card {
+  position: relative;
+  width: 100%;
+  max-width: 520px;
+  max-height: 88vh;
+  overflow-y: auto;
+  background: rgba(27, 27, 30, 0.95);
+  border: 1px solid var(--surface-glass-border);
+  backdrop-filter: blur(22px);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  box-shadow: 0 60px 100px -40px rgba(0, 0, 0, 0.9);
+  opacity: 0;
+  transform: translateY(20px) scale(0.97);
+  transition: opacity var(--dur-med) var(--ease-luxury), transform var(--dur-med) var(--ease-luxury);
+}
+
+.admin-detail.is-open .admin-detail-card {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.admin-detail-card h2 {
+  font-size: 1.6rem;
+  margin-top: var(--space-2);
+  margin-bottom: var(--space-4);
+  color: var(--color-white);
+}
+
+.admin-detail-grid {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.6rem 1rem;
+  margin: 0 0 var(--space-4);
+  font-size: 0.9rem;
+}
+
+.admin-detail-grid dt {
+  color: var(--color-white-dim);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding-top: 0.15rem;
+}
+
+.admin-detail-grid dd {
+  margin: 0;
+  color: var(--color-white);
+}
+
+.admin-detail-card .form-field {
+  margin-bottom: var(--space-3);
+}
+
+@media (max-width: 640px) {
+  .admin-main {
+    padding: var(--space-4) var(--space-2);
+  }
+  .admin-detail-grid {
+    grid-template-columns: 1fr;
+  }
+  .admin-detail-grid dt {
+    padding-top: var(--space-2);
+  }
+}

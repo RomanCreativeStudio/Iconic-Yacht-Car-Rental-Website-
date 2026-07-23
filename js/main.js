@@ -32,6 +32,47 @@
     if (scrollLockCount === 0) document.body.style.overflow = '';
   }
 
+  /* Shared helpers for the booking forms (full form + Quick Book modal) */
+  var pageLoadedAt = Date.now();
+
+  function setButtonLoading(btn, isLoading) {
+    if (isLoading) {
+      btn.disabled = true;
+      btn.classList.add('is-loading');
+      if (!btn.querySelector('.btn-spinner')) {
+        var spinner = document.createElement('span');
+        spinner.className = 'btn-spinner';
+        spinner.setAttribute('aria-hidden', 'true');
+        btn.appendChild(spinner);
+      }
+      if (btn.dataset.loadingLabel) {
+        btn.dataset.originalHtml = btn.dataset.originalHtml || btn.innerHTML;
+        var spinnerEl = btn.querySelector('.btn-spinner');
+        btn.textContent = btn.dataset.loadingLabel + ' ';
+        if (spinnerEl) btn.appendChild(spinnerEl);
+      }
+    } else {
+      btn.disabled = false;
+      btn.classList.remove('is-loading');
+      if (btn.dataset.originalHtml) {
+        btn.innerHTML = btn.dataset.originalHtml;
+      }
+    }
+  }
+
+  function showFormBanner(banner, message) {
+    if (!banner) return;
+    banner.textContent = message;
+    banner.hidden = false;
+    banner.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  function hideFormBanner(banner) {
+    if (!banner) return;
+    banner.hidden = true;
+    banner.textContent = '';
+  }
+
   /* Mobile nav toggle */
   var navToggle = document.querySelector('.nav-toggle');
   var mainNav = document.querySelector('.main-nav');
@@ -244,8 +285,20 @@
       return true;
     };
 
+    var bookingBanner = document.getElementById('bookingFormBanner');
+    var bookingSubmitBtn = form.querySelector('button[type="submit"]');
+
     form.addEventListener('submit', function (e) {
       e.preventDefault();
+      hideFormBanner(bookingBanner);
+
+      if (window.IconicBookingAPI && window.IconicBookingAPI.isLikelySpam(form, pageLoadedAt)) {
+        // Silently "succeed" for bots — never reveal the honeypot to whoever/whatever tripped it.
+        form.classList.add('is-hidden');
+        successPanel.classList.add('is-visible');
+        form.reset();
+        return;
+      }
 
       var fields = form.querySelectorAll('input, select, textarea');
       var isValid = true;
@@ -263,18 +316,50 @@
         return;
       }
 
-      if (window.IconicAnalytics) {
-        window.IconicAnalytics.track('booking_form_submit', {
-          form: 'full',
-          rental_type: rentalTypeField.value,
-          selection: selectionField.value
-        });
+      var payload = {
+        name: document.getElementById('fullName').value.trim(),
+        phone: document.getElementById('phone').value.trim(),
+        email: document.getElementById('email').value.trim(),
+        rental_type: rentalTypeField.value,
+        fleet_item: selectionField.value || null,
+        date: document.getElementById('date').value || null,
+        time: document.getElementById('time').value || null,
+        duration: document.getElementById('duration').value || null,
+        guests: guestsField && guestsField.style.display !== 'none' && document.getElementById('guests').value
+          ? parseInt(document.getElementById('guests').value, 10)
+          : null,
+        message: document.getElementById('requests').value.trim() || null,
+        source: 'full_form'
+      };
+
+      if (!window.IconicBookingAPI) {
+        showFormBanner(bookingBanner, 'The reservation system is temporarily unavailable. Please call or email us directly.');
+        return;
       }
 
-      form.classList.add('is-hidden');
-      successPanel.classList.add('is-visible');
-      successPanel.focus();
-      form.reset();
+      if (bookingSubmitBtn) setButtonLoading(bookingSubmitBtn, true);
+
+      window.IconicBookingAPI.submitBooking(payload)
+        .then(function () {
+          if (window.IconicAnalytics) {
+            window.IconicAnalytics.track('booking_form_submit', {
+              form: 'full',
+              rental_type: payload.rental_type,
+              selection: payload.fleet_item
+            });
+          }
+
+          form.classList.add('is-hidden');
+          successPanel.classList.add('is-visible');
+          successPanel.focus();
+          form.reset();
+        })
+        .catch(function (err) {
+          showFormBanner(bookingBanner, (err && err.message) || 'Something went wrong sending your request. Please try again or call us directly.');
+        })
+        .then(function () {
+          if (bookingSubmitBtn) setButtonLoading(bookingSubmitBtn, false);
+        });
     });
 
     form.querySelectorAll('input, select, textarea').forEach(function (field) {
@@ -457,9 +542,12 @@
     var closers = modal.querySelectorAll('[data-quick-book-close]');
     var lastFocusedEl = null;
 
+    var modalOpenedAt = null;
+
     function openModal(e) {
       if (e) e.preventDefault();
       lastFocusedEl = document.activeElement;
+      modalOpenedAt = Date.now();
       modal.hidden = false;
       modal.classList.add('is-open');
       lockBodyScroll();
@@ -561,8 +649,33 @@
       return true;
     }
 
+    var qbBanner = document.getElementById('quickBookFormBanner');
+    var qbSubmitBtn = qbForm.querySelector('button[type="submit"]');
+
+    function finishQbSuccess() {
+      qbForm.classList.add('is-hidden');
+      qbSuccess.classList.add('is-visible');
+      qbSuccess.focus();
+      qbForm.reset();
+
+      window.setTimeout(function () {
+        closeModal();
+        window.setTimeout(function () {
+          qbForm.classList.remove('is-hidden');
+          qbSuccess.classList.remove('is-visible');
+        }, 400);
+      }, 2600);
+    }
+
     qbForm.addEventListener('submit', function (e) {
       e.preventDefault();
+      hideFormBanner(qbBanner);
+
+      if (window.IconicBookingAPI && window.IconicBookingAPI.isLikelySpam(qbForm, modalOpenedAt)) {
+        finishQbSuccess();
+        return;
+      }
+
       var fields = qbForm.querySelectorAll('input, select, textarea');
       var isValid = true;
       fields.forEach(function (field) {
@@ -578,25 +691,43 @@
         return;
       }
 
-      if (window.IconicAnalytics) {
-        window.IconicAnalytics.track('booking_form_submit', {
-          form: 'quick',
-          rental_type: document.getElementById('qbRentalType').value
-        });
+      var qbPayload = {
+        name: document.getElementById('qbName').value.trim(),
+        phone: document.getElementById('qbPhone').value.trim(),
+        email: document.getElementById('qbEmail').value.trim(),
+        rental_type: document.getElementById('qbRentalType').value,
+        fleet_item: null,
+        date: document.getElementById('qbDate').value || null,
+        time: null,
+        duration: null,
+        guests: null,
+        message: null,
+        source: 'quick_form'
+      };
+
+      if (!window.IconicBookingAPI) {
+        showFormBanner(qbBanner, 'The reservation system is temporarily unavailable. Please call or email us directly.');
+        return;
       }
 
-      qbForm.classList.add('is-hidden');
-      qbSuccess.classList.add('is-visible');
-      qbSuccess.focus();
-      qbForm.reset();
+      if (qbSubmitBtn) setButtonLoading(qbSubmitBtn, true);
 
-      window.setTimeout(function () {
-        closeModal();
-        window.setTimeout(function () {
-          qbForm.classList.remove('is-hidden');
-          qbSuccess.classList.remove('is-visible');
-        }, 400);
-      }, 2600);
+      window.IconicBookingAPI.submitBooking(qbPayload)
+        .then(function () {
+          if (window.IconicAnalytics) {
+            window.IconicAnalytics.track('booking_form_submit', {
+              form: 'quick',
+              rental_type: qbPayload.rental_type
+            });
+          }
+          finishQbSuccess();
+        })
+        .catch(function (err) {
+          showFormBanner(qbBanner, (err && err.message) || 'Something went wrong sending your request. Please try again or call us directly.');
+        })
+        .then(function () {
+          if (qbSubmitBtn) setButtonLoading(qbSubmitBtn, false);
+        });
     });
 
     qbForm.querySelectorAll('input, select, textarea').forEach(function (field) {
