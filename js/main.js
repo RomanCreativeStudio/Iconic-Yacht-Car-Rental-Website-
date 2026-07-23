@@ -12,20 +12,36 @@
     backToTop.classList.toggle('is-visible', window.scrollY > 700);
   };
 
+  /* Shared body-scroll lock (nav + lightbox can each hold a lock) */
+  var scrollLockCount = 0;
+  function lockBodyScroll() {
+    scrollLockCount += 1;
+    document.body.style.overflow = 'hidden';
+  }
+  function unlockBodyScroll() {
+    scrollLockCount = Math.max(0, scrollLockCount - 1);
+    if (scrollLockCount === 0) document.body.style.overflow = '';
+  }
+
   /* Mobile nav toggle */
   var navToggle = document.querySelector('.nav-toggle');
   var mainNav = document.querySelector('.main-nav');
 
   function closeNav() {
+    if (!mainNav.classList.contains('is-open')) return;
     mainNav.classList.remove('is-open');
     navToggle.setAttribute('aria-expanded', 'false');
-    document.body.style.overflow = '';
+    unlockBodyScroll();
   }
 
   navToggle.addEventListener('click', function () {
     var isOpen = mainNav.classList.toggle('is-open');
     navToggle.setAttribute('aria-expanded', String(isOpen));
-    document.body.style.overflow = isOpen ? 'hidden' : '';
+    if (isOpen) {
+      lockBodyScroll();
+    } else {
+      unlockBodyScroll();
+    }
   });
 
   document.querySelectorAll('.nav-links a').forEach(function (link) {
@@ -155,10 +171,20 @@
     if (message) {
       wrapper.classList.add('has-error');
       errorEl.textContent = message;
+      field.setAttribute('aria-invalid', 'true');
     } else {
       wrapper.classList.remove('has-error');
       errorEl.textContent = '';
+      field.removeAttribute('aria-invalid');
     }
+  }
+
+  function shakeField(field) {
+    var wrapper = field.closest('.form-field');
+    wrapper.classList.remove('is-shaking');
+    // eslint-disable-next-line no-unused-expressions
+    wrapper.offsetWidth; /* force reflow so the animation can retrigger */
+    wrapper.classList.add('is-shaking');
   }
 
   function validateField(field) {
@@ -197,7 +223,10 @@
     var isValid = true;
     fields.forEach(function (field) {
       if (field.offsetParent === null) return; // skip hidden fields (e.g. guests when hidden)
-      if (!validateField(field)) isValid = false;
+      if (!validateField(field)) {
+        isValid = false;
+        shakeField(field);
+      }
     });
 
     if (!isValid) {
@@ -216,6 +245,70 @@
     field.addEventListener('blur', function () {
       if (field.hasAttribute('required')) validateField(field);
     });
+  });
+
+  /* Gallery lightbox */
+  var lightbox = document.getElementById('lightbox');
+  var lightboxImage = document.getElementById('lightboxImage');
+  var lightboxCaption = document.getElementById('lightboxCaption');
+  var lightboxClose = document.querySelector('.lightbox-close');
+  var lightboxTrigger = null;
+
+  function openLightbox(trigger) {
+    var src = trigger.getAttribute('data-lightbox-src');
+    var caption = trigger.getAttribute('data-lightbox-caption') || '';
+    if (!src) return;
+
+    lightboxTrigger = trigger;
+    lightboxImage.src = src;
+    lightboxImage.alt = caption;
+    lightboxCaption.textContent = caption;
+
+    lightbox.hidden = false;
+    lightbox.classList.add('is-open');
+    lockBodyScroll();
+    /* Deferred past the entrance transition: a clicked <button> reclaims
+       focus as part of the browser's own post-click handling, which runs
+       later than a same-tick focus() call and would otherwise win the race. */
+    window.setTimeout(function () {
+      lightboxClose.focus();
+    }, 320);
+  }
+
+  function closeLightbox() {
+    if (lightbox.hidden) return;
+    lightbox.classList.remove('is-open');
+    unlockBodyScroll();
+    window.setTimeout(function () {
+      lightbox.hidden = true;
+      lightboxImage.src = '';
+    }, 300);
+    if (lightboxTrigger) {
+      lightboxTrigger.focus();
+      lightboxTrigger = null;
+    }
+  }
+
+  document.querySelectorAll('[data-lightbox-src]').forEach(function (trigger) {
+    trigger.addEventListener('click', function () {
+      openLightbox(trigger);
+    });
+  });
+
+  lightboxClose.addEventListener('click', closeLightbox);
+
+  lightbox.addEventListener('click', function (e) {
+    if (e.target === lightbox) closeLightbox();
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && !lightbox.hidden) closeLightbox();
+
+    if (e.key === 'Tab' && !lightbox.hidden) {
+      // Single focusable control inside the dialog — keep focus trapped on it.
+      e.preventDefault();
+      lightboxClose.focus();
+    }
   });
 
   /* Footer year */
