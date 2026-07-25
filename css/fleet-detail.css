@@ -281,11 +281,168 @@
   text-transform: none;
 }
 
-.fd-gallery-item-tag {
-  font-size: 0.65rem;
+/* Contextual placeholder sentence (e.g. "Master Cabin photography coming
+   soon.") shown under the category label on every empty slot. */
+.fd-gallery-item-message {
+  font-size: 0.74rem;
+  line-height: 1.4;
+  color: rgba(233, 231, 226, 0.45);
+}
+
+/* Video / social / tour cards (Videos & Tours tab). Real items are a link
+   (thumbnail + play icon) rather than an embed; empty ones reuse the same
+   per-slot placeholder as the photo categories. */
+.fd-video-item {
+  display: block;
+  background: var(--color-charcoal-soft);
+}
+
+.fd-video-item--no-thumb {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fd-video-play-icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 10, 11, 0.55);
+  backdrop-filter: blur(6px);
+  color: var(--color-white);
+  transition: transform var(--dur-fast) var(--ease-luxury), background-color var(--dur-fast) var(--ease-luxury);
+}
+
+.fd-video-play-icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.fd-video-item:hover .fd-video-play-icon {
+  transform: translate(-50%, -50%) scale(1.1);
+  background: var(--color-gold);
+  color: var(--color-black);
+}
+
+/* ==========================================================================
+   Recent Experiences
+   ========================================================================== */
+
+.fd-experiences-empty {
+  max-width: 520px;
+  margin: 0 auto;
+  padding: var(--space-5) var(--space-4);
+  border-radius: var(--radius-md);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  background:
+    radial-gradient(120% 140% at 15% 0%, rgba(198, 161, 91, 0.14), transparent 55%),
+    radial-gradient(120% 140% at 100% 100%, rgba(47, 93, 107, 0.2), transparent 55%),
+    linear-gradient(160deg, #1c1c20, #101012 70%);
+}
+
+/* [hidden] and .fd-experiences-empty are equal specificity, and author
+   origin beats the user-agent [hidden] default regardless of source
+   order — same fix applied elsewhere in this project (.admin-login,
+   .quick-book, etc.): an explicit override so hiding it actually hides it. */
+.fd-experiences-empty[hidden] {
+  display: none;
+}
+
+.fd-experiences-empty svg {
+  width: 32px;
+  height: 32px;
+  color: var(--color-gold-light);
+}
+
+.fd-experiences-empty p {
+  color: var(--color-white-dim);
+  font-size: 0.95rem;
+}
+
+.fd-experiences-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--space-4);
+}
+
+.fd-experiences-grid[hidden] {
+  display: none;
+}
+
+.fd-experience-card {
+  background: var(--color-charcoal-soft);
+  border: 1px solid rgba(250, 249, 247, 0.08);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: transform var(--dur-med) var(--ease-luxury), border-color var(--dur-med) var(--ease-luxury);
+}
+
+.fd-experience-card:hover {
+  transform: translateY(-5px);
+  border-color: rgba(198, 161, 91, 0.3);
+}
+
+.fd-experience-media,
+.fd-experience-media-placeholder {
+  aspect-ratio: 4 / 3;
+}
+
+.fd-experience-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.fd-experience-media-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-gold-light);
+  background:
+    radial-gradient(120% 140% at 15% 0%, rgba(198, 161, 91, 0.18), transparent 55%),
+    linear-gradient(160deg, #1c1c20, #101012 70%);
+}
+
+.fd-experience-media-placeholder svg {
+  width: 28px;
+  height: 28px;
+}
+
+.fd-experience-body {
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.fd-experience-date {
+  font-size: 0.7rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: rgba(233, 231, 226, 0.45);
+  color: var(--color-gold-light);
+}
+
+.fd-experience-body h3 {
+  font-size: 1.15rem;
+  color: var(--color-white);
+}
+
+.fd-experience-body .testimonial-quote {
+  font-size: 0.9rem;
 }
 
 /* Specifications */

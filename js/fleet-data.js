@@ -41,7 +41,7 @@
           { key: 'stern', label: 'Stern', src: null, webp: null, alt: null },
           { key: 'side-profile', label: 'Side Profile', src: '/images/yacht-marina-dusk.jpg', webp: '/images/yacht-marina-dusk.webp', alt: "Azure Horizon's profile at the marina, dusk" },
           { key: 'flybridge', label: 'Flybridge', src: null, webp: null, alt: null },
-          { key: 'water-views', label: 'Water Views', src: '/images/yacht-aerial.jpg', webp: '/images/yacht-aerial.webp', alt: 'Aerial view of Azure Horizon cruising turquoise water' }
+          { key: 'water-views', label: 'Water Views', src: null, webp: null, alt: null }
         ],
         interior: [
           { key: 'main-salon', label: 'Main Salon', src: null, webp: null, alt: null },
@@ -60,8 +60,41 @@
           { key: 'swimming-platform', label: 'Swimming Platform', src: null, webp: null, alt: null },
           { key: 'sunset-cruise', label: 'Sunset Cruise', src: '/images/hero-yacht-miami.jpg', webp: '/images/hero-yacht-miami.webp', alt: 'Azure Horizon at sunset against the Miami skyline' },
           { key: 'night-lighting', label: 'Night Lighting', src: null, webp: null, alt: null }
+        ],
+        /* Aerial/drone footage gets its own category rather than doubling up
+           inside Exterior — the one real aerial shot this yacht has lives
+           here now (it was previously duplicated under Exterior > Water
+           Views too, which just meant the same photo twice across tabs). */
+        drone: [
+          { key: 'aerial-overview', label: 'Aerial Overview', src: '/images/yacht-aerial.jpg', webp: '/images/yacht-aerial.webp', alt: 'Aerial view of Azure Horizon cruising turquoise water' },
+          { key: 'departure-sequence', label: 'Departure Sequence', src: null, webp: null, alt: null },
+          { key: 'anchored-cove', label: 'Anchored Cove', src: null, webp: null, alt: null },
+          { key: 'golden-hour-aerial', label: 'Golden Hour Aerial', src: null, webp: null, alt: null }
         ]
       },
+      /* Video & social content — none shot yet for any yacht, but the slots
+         are defined so dropping in a URL + thumbnail is the only step
+         needed later (see fleet-detail.js renderVideosPanel). */
+      videos: {
+        walkthrough: [
+          { key: 'full-walkthrough', label: 'Full Walkthrough', platform: 'video', url: null, thumbnail: null, thumbnailWebp: null }
+        ],
+        reels: [
+          { key: 'instagram-reel', label: 'Instagram Reel', platform: 'instagram', url: null, thumbnail: null, thumbnailWebp: null }
+        ],
+        tiktok: [
+          { key: 'tiktok-video', label: 'TikTok Video', platform: 'tiktok', url: null, thumbnail: null, thumbnailWebp: null }
+        ],
+        tours360: [
+          { key: 'virtual-tour', label: '360° Virtual Tour', platform: 'tour360', url: null, thumbnail: null, thumbnailWebp: null }
+        ]
+      },
+      /* Real charter moments + guest reviews, added as they happen. Each
+         entry: { id, title, date, coverImage: {src, webp, alt}, media: [],
+         review: { quote, guestName, rating } }. Empty until the client
+         starts sending over real photos/video from actual charters —
+         see fleet-detail.js renderExperiencesSection for the empty state. */
+      experiences: [],
       description: "Azure Horizon is the definition of effortless luxury on the water. Built for sun-soaked days on Biscayne Bay, her wide-open sun deck, plush bow lounge, and fully stocked bar make her the go-to choice for celebrations, day charters, and golden-hour cruises. A professional captain and crew handle every detail of the journey, so your only job is to enjoy it.",
       capacity: 12,
       length: '85 ft',
@@ -99,7 +132,7 @@
           { key: 'stern', label: 'Stern', src: null, webp: null, alt: null },
           { key: 'side-profile', label: 'Side Profile', src: '/images/yacht-marina-dusk.jpg', webp: '/images/yacht-marina-dusk.webp', alt: 'Midnight Regatta docked at a Miami marina at dusk' },
           { key: 'flybridge', label: 'Flybridge', src: null, webp: null, alt: null },
-          { key: 'water-views', label: 'Water Views', src: '/images/yacht-aerial.jpg', webp: '/images/yacht-aerial.webp', alt: 'Midnight Regatta cruising open water' }
+          { key: 'water-views', label: 'Water Views', src: null, webp: null, alt: null }
         ],
         interior: [
           { key: 'main-salon', label: 'Main Salon', src: null, webp: null, alt: null },
@@ -118,8 +151,29 @@
           { key: 'swimming-platform', label: 'Swimming Platform', src: null, webp: null, alt: null },
           { key: 'sunset-cruise', label: 'Sunset Cruise', src: '/images/hero-yacht-miami.jpg', webp: '/images/hero-yacht-miami.webp', alt: 'Midnight Regatta at sunset on Biscayne Bay' },
           { key: 'night-lighting', label: 'Night Lighting', src: null, webp: null, alt: null }
+        ],
+        drone: [
+          { key: 'aerial-overview', label: 'Aerial Overview', src: '/images/yacht-aerial.jpg', webp: '/images/yacht-aerial.webp', alt: 'Midnight Regatta cruising open water' },
+          { key: 'departure-sequence', label: 'Departure Sequence', src: null, webp: null, alt: null },
+          { key: 'anchored-cove', label: 'Anchored Cove', src: null, webp: null, alt: null },
+          { key: 'golden-hour-aerial', label: 'Golden Hour Aerial', src: null, webp: null, alt: null }
         ]
       },
+      videos: {
+        walkthrough: [
+          { key: 'full-walkthrough', label: 'Full Walkthrough', platform: 'video', url: null, thumbnail: null, thumbnailWebp: null }
+        ],
+        reels: [
+          { key: 'instagram-reel', label: 'Instagram Reel', platform: 'instagram', url: null, thumbnail: null, thumbnailWebp: null }
+        ],
+        tiktok: [
+          { key: 'tiktok-video', label: 'TikTok Video', platform: 'tiktok', url: null, thumbnail: null, thumbnailWebp: null }
+        ],
+        tours360: [
+          { key: 'virtual-tour', label: '360° Virtual Tour', platform: 'tour360', url: null, thumbnail: null, thumbnailWebp: null }
+        ]
+      },
+      experiences: [],
       description: "Midnight Regatta is built for evenings on the water — a sky lounge with skyline views, a private chef on request, and enough deck space to host in comfort. She's the vessel of choice for milestone celebrations, client entertaining, and sunset-into-nightfall charters across Biscayne Bay.",
       capacity: 16,
       length: '102 ft',
@@ -153,7 +207,7 @@
           { key: 'stern', label: 'Stern', src: null, webp: null, alt: null },
           { key: 'side-profile', label: 'Side Profile', src: '/images/yacht-marina-dusk.jpg', webp: '/images/yacht-marina-dusk.webp', alt: "Coastal Mirage's profile at the marina, dusk" },
           { key: 'flybridge', label: 'Flybridge', src: null, webp: null, alt: null },
-          { key: 'water-views', label: 'Water Views', src: '/images/yacht-aerial.jpg', webp: '/images/yacht-aerial.webp', alt: 'Aerial view of Coastal Mirage cruising turquoise water' }
+          { key: 'water-views', label: 'Water Views', src: null, webp: null, alt: null }
         ],
         interior: [
           { key: 'main-salon', label: 'Main Salon', src: null, webp: null, alt: null },
@@ -172,8 +226,29 @@
           { key: 'swimming-platform', label: 'Swimming Platform', src: null, webp: null, alt: null },
           { key: 'sunset-cruise', label: 'Sunset Cruise', src: '/images/hero-yacht-miami.jpg', webp: '/images/hero-yacht-miami.webp', alt: 'Coastal Mirage at sunset on Biscayne Bay' },
           { key: 'night-lighting', label: 'Night Lighting', src: null, webp: null, alt: null }
+        ],
+        drone: [
+          { key: 'aerial-overview', label: 'Aerial Overview', src: '/images/yacht-aerial.jpg', webp: '/images/yacht-aerial.webp', alt: 'Aerial view of Coastal Mirage cruising turquoise water' },
+          { key: 'departure-sequence', label: 'Departure Sequence', src: null, webp: null, alt: null },
+          { key: 'anchored-cove', label: 'Anchored Cove', src: null, webp: null, alt: null },
+          { key: 'golden-hour-aerial', label: 'Golden Hour Aerial', src: null, webp: null, alt: null }
         ]
       },
+      videos: {
+        walkthrough: [
+          { key: 'full-walkthrough', label: 'Full Walkthrough', platform: 'video', url: null, thumbnail: null, thumbnailWebp: null }
+        ],
+        reels: [
+          { key: 'instagram-reel', label: 'Instagram Reel', platform: 'instagram', url: null, thumbnail: null, thumbnailWebp: null }
+        ],
+        tiktok: [
+          { key: 'tiktok-video', label: 'TikTok Video', platform: 'tiktok', url: null, thumbnail: null, thumbnailWebp: null }
+        ],
+        tours360: [
+          { key: 'virtual-tour', label: '360° Virtual Tour', platform: 'tour360', url: null, thumbnail: null, thumbnailWebp: null }
+        ]
+      },
+      experiences: [],
       description: "Coastal Mirage is our nimblest vessel — ideal for smaller groups who want the full yacht experience without the scale. Her bow lounge and Bluetooth sound system make her a favorite for sandbar days, snorkeling trips, and relaxed afternoons on the bay.",
       capacity: 8,
       length: '62 ft',

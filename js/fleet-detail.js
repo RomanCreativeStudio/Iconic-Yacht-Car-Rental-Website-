@@ -31,6 +31,18 @@
   var ICON_BOLT = '<svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M13 2 3 14h7l-1 8 11-14h-7l1-6Z"/></svg>';
   var ICON_CHECK = '<svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m5 13 4 4L19 7"/></svg>';
   var ICON_CAMERA = '<svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M4 17c1.5 1.3 3.5 1.3 5 0 1.5 1.3 3.5 1.3 5 0 1.5 1.3 3.5 1.3 5 0"/><path d="M6 13 7 5l10 1.5-2 6.5Z"/></svg>';
+  var ICON_PLAY = '<svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="12" cy="12" r="9"/><path d="M10.5 8.3v7.4l6-3.7-6-3.7Z" fill="currentColor" stroke="none"/></svg>';
+  var ICON_INSTAGRAM = '<svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg>';
+  var ICON_TIKTOK = '<svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M14 3.5v11a3.3 3.3 0 1 1-3.3-3.3c.3 0 .6.02.9.08"/><path d="M14 3.5c.35 2.3 2.15 4.1 4.4 4.35"/></svg>';
+  var ICON_TOUR360 = '<svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="12" cy="12" r="3"/><ellipse cx="12" cy="12" rx="9" ry="3.6"/><ellipse cx="12" cy="12" rx="3.6" ry="9"/></svg>';
+  var ICON_STAR = '<svg aria-hidden="true" focusable="false" viewBox="0 0 20 20" fill="currentColor"><path d="M10 1l2.6 5.9 6.4.6-4.8 4.3 1.4 6.2L10 14.9 4.4 18l1.4-6.2L1 7.5l6.4-.6L10 1Z"/></svg>';
+
+  var VIDEO_ICONS = {
+    video: ICON_PLAY,
+    instagram: ICON_INSTAGRAM,
+    tiktok: ICON_TIKTOK,
+    tour360: ICON_TOUR360
+  };
 
   /* Service inclusions are the same for every yacht charter (crew, fuel,
      safety, cleaning) — unlike Amenities, which describes onboard hardware
@@ -47,8 +59,21 @@
   var GALLERY_CATEGORIES = [
     { key: 'exterior', label: 'Exterior' },
     { key: 'interior', label: 'Interior' },
-    { key: 'lifestyle', label: 'Lifestyle' }
+    { key: 'lifestyle', label: 'Lifestyle' },
+    { key: 'drone', label: 'Drone' }
   ];
+
+  /* Contextual placeholder copy: "{label} {suffix} coming soon." instead of
+     a generic "Coming Soon" tag repeated on every empty slot — e.g. "Master
+     Cabin photography coming soon.", "Flybridge gallery coming soon." One
+     suffix per category keeps 15+ placeholder cards from reading like the
+     same sentence copy-pasted over and over. */
+  var GALLERY_PLACEHOLDER_SUFFIX = {
+    exterior: 'gallery',
+    interior: 'photography',
+    lifestyle: 'moments',
+    drone: 'aerial footage'
+  };
 
   /* Document metadata */
   document.title = item.name + ' | ' + item.category + ' | Iconic Rentals';
@@ -84,9 +109,49 @@
   document.getElementById('fdName').textContent = item.name;
   document.getElementById('fdTagline').textContent = item.tagline;
 
-  /* Categorized brochure gallery (Exterior / Interior / Lifestyle tabs) for
-     yachts that have the new `galleries` field; everything else (cars,
-     or any yacht missing it) falls back to the original flat gallery. */
+  /* Videos & Tours panel: walkthrough video, Instagram Reels, TikTok, and a
+     future 360° tour, flattened into one grid. Real content is a link-out
+     card (thumbnail + platform icon, opens the source platform in a new
+     tab) rather than an embed — safer and simpler than pulling in each
+     platform's embed script, and just as easy to drop a URL into later. */
+  function renderVideosPanel(vehicle) {
+    var videos = vehicle.videos || {};
+    var allItems = [].concat(videos.walkthrough || [], videos.reels || [], videos.tiktok || [], videos.tours360 || []);
+
+    var itemsHtml = allItems.map(function (v) {
+      var icon = VIDEO_ICONS[v.platform] || ICON_PLAY;
+      if (v.url) {
+        var caption = vehicle.name + ' — ' + v.label;
+        return (
+          '<a class="fd-gallery-item fd-video-item' + (v.thumbnail ? '' : ' fd-video-item--no-thumb') + '" href="' + escapeHtml(v.url) + '" target="_blank" rel="noopener" aria-label="Watch: ' + escapeHtml(caption) + '">' +
+          (v.thumbnail
+            ? '<picture>' + (v.thumbnailWebp ? '<source srcset="../' + v.thumbnailWebp + '" type="image/webp" />' : '') + '<img src="../' + v.thumbnail + '" alt="' + escapeHtml(caption) + '" loading="lazy" /></picture>'
+            : '') +
+          '<span class="fd-video-play-icon">' + ICON_PLAY + '</span>' +
+          '<span class="fd-gallery-item-caption">' + escapeHtml(v.label) + '</span>' +
+          '</a>'
+        );
+      }
+      return (
+        '<div class="fd-gallery-item fd-gallery-item-placeholder">' +
+        icon +
+        '<span class="fd-gallery-item-caption">' + escapeHtml(v.label) + '</span>' +
+        '<span class="fd-gallery-item-message">' + escapeHtml(v.label) + ' coming soon.</span>' +
+        '</div>'
+      );
+    }).join('');
+
+    return (
+      '<div class="fleet-panel" data-panel="videos" id="fdGalPanel-videos" role="tabpanel" aria-labelledby="fdGalTab-videos">' +
+        '<div class="fd-gallery">' + itemsHtml + '</div>' +
+      '</div>'
+    );
+  }
+
+  /* Categorized brochure gallery (Exterior / Interior / Lifestyle / Drone /
+     Videos & Tours tabs) for yachts that have the new `galleries` field;
+     everything else (cars, or any yacht missing it) falls back to the
+     original flat gallery. */
   function renderCategorizedGallery(vehicle, container) {
     /* Reuses the homepage's .fleet-tab / .fleet-panel components (see
        style.css) rather than inventing new tab styling — same visual
@@ -102,7 +167,14 @@
        the tabs and every panel into a sliver a third of the page width. */
     container.classList.remove('fd-gallery');
 
-    var tabsHtml = GALLERY_CATEGORIES.map(function (cat, i) {
+    /* Videos & Tours rides in the same tab bar as one more entry, but its
+       panel renders link-out cards (see renderVideoCard) instead of a photo
+       grid — so it's appended here rather than folded into GALLERY_CATEGORIES,
+       which drives the contextual-placeholder-by-category-suffix logic that
+       only makes sense for photo categories. */
+    var allTabs = GALLERY_CATEGORIES.concat([{ key: 'videos', label: 'Videos & Tours' }]);
+
+    var tabsHtml = allTabs.map(function (cat, i) {
       return (
         '<button type="button" class="fleet-tab' + (i === 0 ? ' is-active' : '') + '" data-category="' + cat.key + '" role="tab" aria-selected="' + (i === 0 ? 'true' : 'false') + '" id="fdGalTab-' + cat.key + '" aria-controls="fdGalPanel-' + cat.key + '">' + cat.label + '</button>'
       );
@@ -110,6 +182,7 @@
 
     var panelsHtml = GALLERY_CATEGORIES.map(function (cat, i) {
       var shots = vehicle.galleries[cat.key] || [];
+      var suffix = GALLERY_PLACEHOLDER_SUFFIX[cat.key] || 'gallery';
       var shotsHtml = shots.map(function (shot) {
         if (shot.src) {
           var caption = vehicle.name + ' — ' + shot.label;
@@ -124,7 +197,7 @@
           '<div class="fd-gallery-item fd-gallery-item-placeholder">' +
           ICON_CAMERA +
           '<span class="fd-gallery-item-caption">' + escapeHtml(shot.label) + '</span>' +
-          '<span class="fd-gallery-item-tag">Coming Soon</span>' +
+          '<span class="fd-gallery-item-message">' + escapeHtml(shot.label) + ' ' + suffix + ' coming soon.</span>' +
           '</div>'
         );
       }).join('');
@@ -134,7 +207,7 @@
           '<div class="fd-gallery">' + shotsHtml + '</div>' +
         '</div>'
       );
-    }).join('');
+    }).join('') + renderVideosPanel(vehicle);
 
     container.innerHTML =
       '<div class="fleet-tabs" role="tablist" aria-label="Gallery categories">' + tabsHtml + '</div>' +
@@ -231,6 +304,58 @@
 
   var quickInquiryBtn = document.getElementById('fdQuickInquiryBtn');
   quickInquiryBtn.setAttribute('data-quick-book', '');
+
+  /* Recent Experiences — real charter highlights (photos/video + a guest
+     review) as they come in. Yacht-only, same reasoning as What's Included.
+     Empty today for every yacht (none have been photographed yet); the
+     empty state says so rather than showing nothing, and the populated
+     branch below is what actually renders once `experiences` has entries —
+     no further code changes needed to go live, only data. */
+  var experiencesSection = document.getElementById('fdExperiencesSection');
+  if (experiencesSection && item.type === 'yacht') {
+    experiencesSection.hidden = false;
+    var experiences = item.experiences || [];
+    var experiencesGrid = document.getElementById('fdExperiencesGrid');
+    var experiencesEmpty = document.getElementById('fdExperiencesEmpty');
+
+    if (experiences.length) {
+      experiencesEmpty.hidden = true;
+      experiencesGrid.hidden = false;
+      experiencesGrid.innerHTML = experiences.map(function (exp) {
+        var cover = exp.coverImage;
+        var mediaHtml = cover
+          ? '<picture>' + (cover.webp ? '<source srcset="../' + cover.webp + '" type="image/webp" />' : '') + '<img src="../' + cover.src + '" alt="' + escapeHtml(cover.alt || exp.title) + '" loading="lazy" /></picture>'
+          : '<div class="fd-experience-media-placeholder">' + ICON_CAMERA + '</div>';
+
+        var reviewHtml = '';
+        if (exp.review) {
+          var stars = Array(exp.review.rating || 5).fill(ICON_STAR).join('');
+          reviewHtml =
+            '<div class="testimonial-stars" aria-hidden="true">' + stars + '</div>' +
+            '<p class="testimonial-quote">“' + escapeHtml(exp.review.quote) + '”</p>' +
+            '<div class="testimonial-author"><span>' + escapeHtml(exp.review.guestName) + '</span></div>';
+        }
+
+        return (
+          '<article class="fd-experience-card">' +
+          '<div class="fd-experience-media">' + mediaHtml + '</div>' +
+          '<div class="fd-experience-body">' +
+          (exp.date ? '<span class="fd-experience-date">' + escapeHtml(exp.date) + '</span>' : '') +
+          '<h3>' + escapeHtml(exp.title) + '</h3>' +
+          reviewHtml +
+          '</div>' +
+          '</article>'
+        );
+      }).join('');
+    } else {
+      experiencesGrid.hidden = true;
+      experiencesEmpty.hidden = false;
+      var emptyText = experiencesEmpty.querySelector('[data-experiences-empty-text]');
+      if (emptyText) {
+        emptyText.textContent = 'Charter highlights for ' + item.name + ' are on their way — as we photograph and film upcoming trips, real guest moments, video, and reviews will appear here.';
+      }
+    }
+  }
 
   /* Related fleet */
   var relatedGrid = document.getElementById('relatedFleetGrid');
