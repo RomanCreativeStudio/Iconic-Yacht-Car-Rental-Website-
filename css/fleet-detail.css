@@ -190,6 +190,104 @@
   color: var(--color-white-dim);
 }
 
+/* Categorized brochure gallery (Exterior / Interior / Lifestyle). Tabs and
+   panels reuse .fleet-tab/.fleet-panel from style.css; everything below is
+   scoped under #fdGallery so it can't bleed into the homepage's identical
+   fleet-type tabs. */
+#fdGallery .fleet-tabs {
+  margin-bottom: var(--space-3);
+}
+
+#fdGallery .fleet-panel.is-active {
+  animation: fd-gallery-panel-in 0.5s var(--ease-luxury);
+}
+
+@keyframes fd-gallery-panel-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Caption overlay on real photos — same reveal-on-hover treatment as the
+   homepage's .gallery-item, so both galleries feel like one component.
+   Excluded from placeholders: there's no photo underneath to reveal, and
+   their caption is already shown persistently (see below). */
+.fd-gallery-item:not(.fd-gallery-item-placeholder)::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 55%, rgba(10, 10, 11, 0.78));
+  opacity: 0;
+  transition: opacity var(--dur-fast) var(--ease-luxury);
+}
+
+.fd-gallery-item:not(.fd-gallery-item-placeholder):hover::after,
+.fd-gallery-item:not(.fd-gallery-item-placeholder):focus-visible::after {
+  opacity: 1;
+}
+
+.fd-gallery-item .fd-gallery-item-caption {
+  position: absolute;
+  bottom: var(--space-2);
+  left: var(--space-2);
+  right: var(--space-2);
+  z-index: 1;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-white);
+  text-align: left;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity var(--dur-fast) var(--ease-luxury), transform var(--dur-fast) var(--ease-luxury);
+}
+
+.fd-gallery-item:not(.fd-gallery-item-placeholder):hover .fd-gallery-item-caption,
+.fd-gallery-item:not(.fd-gallery-item-placeholder):focus-visible .fd-gallery-item-caption {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Per-slot placeholder — a single grid cell standing in for one specific
+   shot (e.g. "Master Cabin"), distinct from .fd-gallery-placeholder above,
+   which spans the whole gallery when there are no photos at all. */
+.fd-gallery-item-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  text-align: center;
+  padding: var(--space-2);
+  background:
+    radial-gradient(120% 140% at 15% 0%, rgba(198, 161, 91, 0.14), transparent 55%),
+    radial-gradient(120% 140% at 100% 100%, rgba(47, 93, 107, 0.2), transparent 55%),
+    linear-gradient(160deg, #1c1c20, #101012 70%);
+  color: var(--color-gold-light);
+}
+
+.fd-gallery-item-placeholder svg {
+  width: 24px;
+  height: 24px;
+  opacity: 0.85;
+}
+
+.fd-gallery-item-placeholder .fd-gallery-item-caption {
+  position: static;
+  opacity: 1;
+  transform: none;
+  color: var(--color-white-dim);
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  text-transform: none;
+}
+
+.fd-gallery-item-tag {
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(233, 231, 226, 0.45);
+}
+
 /* Specifications */
 .fd-specs-grid {
   display: grid;

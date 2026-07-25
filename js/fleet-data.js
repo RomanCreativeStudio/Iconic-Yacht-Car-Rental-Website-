@@ -30,6 +30,38 @@
         { src: '/images/about-yacht-deck.jpg', webp: '/images/about-yacht-deck.webp', alt: 'Azure Horizon deck lounge at sunset' },
         { src: '/images/yacht-marina-dusk.jpg', webp: '/images/yacht-marina-dusk.webp', alt: 'Azure Horizon docked at marina at dusk' }
       ],
+      /* Categorized brochure gallery for the fleet detail page. Most shots
+         are still "Image Coming Soon" — this yacht only has 4 real photos
+         site-wide, reused here wherever they genuinely fit — but the full
+         set of categories/slots is defined up front so real photography
+         can be dropped in later without touching fleet-detail.js. */
+      galleries: {
+        exterior: [
+          { key: 'bow', label: 'Bow', src: null, webp: null, alt: null },
+          { key: 'stern', label: 'Stern', src: null, webp: null, alt: null },
+          { key: 'side-profile', label: 'Side Profile', src: '/images/yacht-marina-dusk.jpg', webp: '/images/yacht-marina-dusk.webp', alt: "Azure Horizon's profile at the marina, dusk" },
+          { key: 'flybridge', label: 'Flybridge', src: null, webp: null, alt: null },
+          { key: 'water-views', label: 'Water Views', src: '/images/yacht-aerial.jpg', webp: '/images/yacht-aerial.webp', alt: 'Aerial view of Azure Horizon cruising turquoise water' }
+        ],
+        interior: [
+          { key: 'main-salon', label: 'Main Salon', src: null, webp: null, alt: null },
+          { key: 'dining-area', label: 'Dining Area', src: null, webp: null, alt: null },
+          { key: 'master-cabin', label: 'Master Cabin', src: null, webp: null, alt: null },
+          { key: 'guest-cabins', label: 'Guest Cabins', src: null, webp: null, alt: null },
+          { key: 'bathrooms', label: 'Bathrooms', src: null, webp: null, alt: null },
+          { key: 'galley', label: 'Galley', src: null, webp: null, alt: null },
+          { key: 'helm', label: 'Helm', src: null, webp: null, alt: null }
+        ],
+        lifestyle: [
+          { key: 'dining-setup', label: 'Dining Setup', src: null, webp: null, alt: null },
+          { key: 'champagne-service', label: 'Champagne Service', src: '/images/about-yacht-deck.jpg', webp: '/images/about-yacht-deck.webp', alt: "Champagne service on Azure Horizon's aft deck" },
+          { key: 'guests-relaxing', label: 'Guests Relaxing', src: null, webp: null, alt: null },
+          { key: 'water-toys', label: 'Water Toys', src: null, webp: null, alt: null },
+          { key: 'swimming-platform', label: 'Swimming Platform', src: null, webp: null, alt: null },
+          { key: 'sunset-cruise', label: 'Sunset Cruise', src: '/images/hero-yacht-miami.jpg', webp: '/images/hero-yacht-miami.webp', alt: 'Azure Horizon at sunset against the Miami skyline' },
+          { key: 'night-lighting', label: 'Night Lighting', src: null, webp: null, alt: null }
+        ]
+      },
       description: "Azure Horizon is the definition of effortless luxury on the water. Built for sun-soaked days on Biscayne Bay, her wide-open sun deck, plush bow lounge, and fully stocked bar make her the go-to choice for celebrations, day charters, and golden-hour cruises. A professional captain and crew handle every detail of the journey, so your only job is to enjoy it.",
       capacity: 12,
       length: '85 ft',
@@ -61,6 +93,33 @@
         { src: '/images/yacht-aerial.jpg', webp: '/images/yacht-aerial.webp', alt: 'Midnight Regatta cruising open water' },
         { src: '/images/about-yacht-deck.jpg', webp: '/images/about-yacht-deck.webp', alt: 'Midnight Regatta deck lounge' }
       ],
+      galleries: {
+        exterior: [
+          { key: 'bow', label: 'Bow', src: null, webp: null, alt: null },
+          { key: 'stern', label: 'Stern', src: null, webp: null, alt: null },
+          { key: 'side-profile', label: 'Side Profile', src: '/images/yacht-marina-dusk.jpg', webp: '/images/yacht-marina-dusk.webp', alt: 'Midnight Regatta docked at a Miami marina at dusk' },
+          { key: 'flybridge', label: 'Flybridge', src: null, webp: null, alt: null },
+          { key: 'water-views', label: 'Water Views', src: '/images/yacht-aerial.jpg', webp: '/images/yacht-aerial.webp', alt: 'Midnight Regatta cruising open water' }
+        ],
+        interior: [
+          { key: 'main-salon', label: 'Main Salon', src: null, webp: null, alt: null },
+          { key: 'dining-area', label: 'Dining Area', src: null, webp: null, alt: null },
+          { key: 'master-cabin', label: 'Master Cabin', src: null, webp: null, alt: null },
+          { key: 'guest-cabins', label: 'Guest Cabins', src: null, webp: null, alt: null },
+          { key: 'bathrooms', label: 'Bathrooms', src: null, webp: null, alt: null },
+          { key: 'galley', label: 'Galley', src: null, webp: null, alt: null },
+          { key: 'helm', label: 'Helm', src: null, webp: null, alt: null }
+        ],
+        lifestyle: [
+          { key: 'dining-setup', label: 'Dining Setup', src: null, webp: null, alt: null },
+          { key: 'champagne-service', label: 'Champagne Service', src: '/images/about-yacht-deck.jpg', webp: '/images/about-yacht-deck.webp', alt: 'Champagne service aboard Midnight Regatta' },
+          { key: 'guests-relaxing', label: 'Guests Relaxing', src: null, webp: null, alt: null },
+          { key: 'water-toys', label: 'Water Toys', src: null, webp: null, alt: null },
+          { key: 'swimming-platform', label: 'Swimming Platform', src: null, webp: null, alt: null },
+          { key: 'sunset-cruise', label: 'Sunset Cruise', src: '/images/hero-yacht-miami.jpg', webp: '/images/hero-yacht-miami.webp', alt: 'Midnight Regatta at sunset on Biscayne Bay' },
+          { key: 'night-lighting', label: 'Night Lighting', src: null, webp: null, alt: null }
+        ]
+      },
       description: "Midnight Regatta is built for evenings on the water — a sky lounge with skyline views, a private chef on request, and enough deck space to host in comfort. She's the vessel of choice for milestone celebrations, client entertaining, and sunset-into-nightfall charters across Biscayne Bay.",
       capacity: 16,
       length: '102 ft',
@@ -88,6 +147,33 @@
       cardImage: null,
       cardImageWebp: null,
       gallery: [],
+      galleries: {
+        exterior: [
+          { key: 'bow', label: 'Bow', src: null, webp: null, alt: null },
+          { key: 'stern', label: 'Stern', src: null, webp: null, alt: null },
+          { key: 'side-profile', label: 'Side Profile', src: '/images/yacht-marina-dusk.jpg', webp: '/images/yacht-marina-dusk.webp', alt: "Coastal Mirage's profile at the marina, dusk" },
+          { key: 'flybridge', label: 'Flybridge', src: null, webp: null, alt: null },
+          { key: 'water-views', label: 'Water Views', src: '/images/yacht-aerial.jpg', webp: '/images/yacht-aerial.webp', alt: 'Aerial view of Coastal Mirage cruising turquoise water' }
+        ],
+        interior: [
+          { key: 'main-salon', label: 'Main Salon', src: null, webp: null, alt: null },
+          { key: 'dining-area', label: 'Dining Area', src: null, webp: null, alt: null },
+          { key: 'master-cabin', label: 'Master Cabin', src: null, webp: null, alt: null },
+          { key: 'guest-cabins', label: 'Guest Cabins', src: null, webp: null, alt: null },
+          { key: 'bathrooms', label: 'Bathrooms', src: null, webp: null, alt: null },
+          { key: 'galley', label: 'Galley', src: null, webp: null, alt: null },
+          { key: 'helm', label: 'Helm', src: null, webp: null, alt: null }
+        ],
+        lifestyle: [
+          { key: 'dining-setup', label: 'Dining Setup', src: null, webp: null, alt: null },
+          { key: 'champagne-service', label: 'Champagne Service', src: '/images/about-yacht-deck.jpg', webp: '/images/about-yacht-deck.webp', alt: 'Champagne service aboard Coastal Mirage' },
+          { key: 'guests-relaxing', label: 'Guests Relaxing', src: null, webp: null, alt: null },
+          { key: 'water-toys', label: 'Water Toys', src: null, webp: null, alt: null },
+          { key: 'swimming-platform', label: 'Swimming Platform', src: null, webp: null, alt: null },
+          { key: 'sunset-cruise', label: 'Sunset Cruise', src: '/images/hero-yacht-miami.jpg', webp: '/images/hero-yacht-miami.webp', alt: 'Coastal Mirage at sunset on Biscayne Bay' },
+          { key: 'night-lighting', label: 'Night Lighting', src: null, webp: null, alt: null }
+        ]
+      },
       description: "Coastal Mirage is our nimblest vessel — ideal for smaller groups who want the full yacht experience without the scale. Her bow lounge and Bluetooth sound system make her a favorite for sandbar days, snorkeling trips, and relaxed afternoons on the bay.",
       capacity: 8,
       length: '62 ft',

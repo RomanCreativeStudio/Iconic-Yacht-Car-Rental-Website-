@@ -134,9 +134,13 @@
     });
   }
 
-  /* Fleet tabs */
-  var fleetTabs = document.querySelectorAll('.fleet-tab');
-  var fleetPanels = document.querySelectorAll('.fleet-panel');
+  /* Fleet tabs (homepage Yacht/Car switcher only — scoped to #fleet so this
+     doesn't also match/interfere with other .fleet-tab/.fleet-panel-based
+     tab groups elsewhere, e.g. the fleet detail page's gallery categories,
+     which render their own data-target-less tabs and manage their own
+     panels independently). */
+  var fleetTabs = document.querySelectorAll('#fleet .fleet-tab');
+  var fleetPanels = document.querySelectorAll('#fleet .fleet-panel');
 
   fleetTabs.forEach(function (tab) {
     tab.addEventListener('click', function () {
@@ -369,21 +373,34 @@
     });
   }
 
-  /* Gallery lightbox (keyboard arrows + swipe between images) */
+  /* Gallery lightbox (keyboard arrows + swipe between images)
+     Triggers are queried fresh at open-time rather than once at load, since
+     the fleet detail page's category tabs render/replace gallery markup
+     after this script runs. An optional data-lightbox-group scopes prev/next
+     to just that group (e.g. one yacht's "Exterior" tab) instead of every
+     [data-lightbox-src] on the page; triggers with no group (the homepage
+     gallery) are treated as one shared ungrouped set, same as before. */
   var lightbox = document.getElementById('lightbox');
   var lightboxImage = document.getElementById('lightboxImage');
   var lightboxCaption = document.getElementById('lightboxCaption');
   var lightboxClose = document.querySelector('.lightbox-close');
   var lightboxPrevBtn = document.querySelector('.lightbox-prev');
   var lightboxNextBtn = document.querySelector('.lightbox-next');
-  var lightboxTriggers = Array.prototype.slice.call(document.querySelectorAll('[data-lightbox-src]'));
+  var lightboxGroup = [];
   var lightboxTrigger = null;
   var lightboxIndex = -1;
 
+  function triggersInGroup(groupKey) {
+    var all = Array.prototype.slice.call(document.querySelectorAll('[data-lightbox-src]'));
+    return all.filter(function (el) {
+      return (el.getAttribute('data-lightbox-group') || null) === groupKey;
+    });
+  }
+
   function showLightboxAt(index) {
-    if (!lightboxTriggers.length) return;
-    lightboxIndex = (index + lightboxTriggers.length) % lightboxTriggers.length;
-    var trigger = lightboxTriggers[lightboxIndex];
+    if (!lightboxGroup.length) return;
+    lightboxIndex = (index + lightboxGroup.length) % lightboxGroup.length;
+    var trigger = lightboxGroup[lightboxIndex];
     var src = trigger.getAttribute('data-lightbox-src');
     var caption = trigger.getAttribute('data-lightbox-caption') || '';
 
@@ -399,7 +416,8 @@
   function openLightbox(trigger) {
     if (!trigger.getAttribute('data-lightbox-src')) return;
     lightboxTrigger = trigger;
-    lightboxIndex = lightboxTriggers.indexOf(trigger);
+    lightboxGroup = triggersInGroup(trigger.getAttribute('data-lightbox-group') || null);
+    lightboxIndex = lightboxGroup.indexOf(trigger);
     showLightboxAt(lightboxIndex);
 
     lightbox.hidden = false;
@@ -427,10 +445,9 @@
     }
   }
 
-  lightboxTriggers.forEach(function (trigger) {
-    trigger.addEventListener('click', function () {
-      openLightbox(trigger);
-    });
+  document.addEventListener('click', function (e) {
+    var trigger = e.target.closest('[data-lightbox-src]');
+    if (trigger) openLightbox(trigger);
   });
 
   if (lightboxPrevBtn) lightboxPrevBtn.addEventListener('click', function () { showLightboxAt(lightboxIndex - 1); });
