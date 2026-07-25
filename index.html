@@ -55,6 +55,7 @@
 <link rel="stylesheet" href="css/fonts.min.css" />
 
 <link rel="stylesheet" href="css/style.min.css" />
+<link rel="stylesheet" href="css/media-components.min.css" />
 
 <!--
   Structured data note (see CLIENT_SETUP.md, "Structured Data" section):
@@ -94,7 +95,7 @@
         "opens": "08:00",
         "closes": "22:00"
       },
-      "sameAs": ["https://www.instagram.com/iconicrentalsmiami"],
+      "sameAs": ["https://www.instagram.com/iconic_yacht/"],
       "department": [
         { "@id": "https://www.iconicrentalsmiami.com/#car-rental" },
         { "@id": "https://www.iconicrentalsmiami.com/#yacht-rental" }
@@ -521,6 +522,27 @@
     </div>
   </section>
 
+  <!-- ============ CLIENTELE / SOCIAL PROOF ============ -->
+  <section class="section section--charcoal" id="clientele" aria-labelledby="clientele-heading">
+    <div class="container">
+      <div class="section-head center reveal">
+        <span class="eyebrow">Who We Serve</span>
+        <h2 class="section-title" id="clientele-heading">Trusted by Miami's Most Discerning Clientele</h2>
+        <p class="section-sub">From private off-season getaways to fully discreet arrangements, Iconic Rentals is built to serve every kind of high-profile guest.</p>
+      </div>
+
+      <div class="clientele-grid reveal-stagger" id="clienteleCategories"></div>
+
+      <!-- Approved endorsements only — see js/clientele-data.js. No name,
+           quote, or logo appears here until a client has explicitly
+           approved its use. -->
+      <div class="clientele-endorsements-empty reveal" id="clienteleEndorsementsEmpty">
+        <p>Client endorsements will appear here once shared with us and approved for publication.</p>
+      </div>
+      <div class="testimonial-grid reveal-stagger" id="clienteleEndorsements" hidden></div>
+    </div>
+  </section>
+
   <!-- ============ TESTIMONIALS ============ -->
   <section class="section section--charcoal" id="testimonials" aria-labelledby="testimonials-heading">
     <div class="container">
@@ -747,6 +769,26 @@
     </div>
   </section>
 
+  <!-- ============ LUXURY EXPERIENCES ============ -->
+  <section class="section section--charcoal" id="luxury-experiences" aria-labelledby="luxury-experiences-heading">
+    <div class="container">
+      <div class="section-head center reveal">
+        <span class="eyebrow">Real Charters, Real Moments</span>
+        <h2 class="section-title" id="luxury-experiences-heading">Luxury Experiences</h2>
+        <p class="section-sub">Birthdays on the water, proposals at sunset, bachelor weekends, corporate days offshore — every charter has its own story. As we document real guest experiences, they'll appear here by category.</p>
+      </div>
+
+      <div class="fleet-tabs reveal" role="tablist" aria-label="Filter experiences by category" id="experiencesFilters" hidden></div>
+
+      <div class="fd-experiences-grid reveal-stagger" id="experiencesGrid" hidden></div>
+
+      <div class="fd-experiences-empty reveal" id="experiencesEmpty">
+        <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M4 19h16M6 19V9l6-4 6 4v10M10 19v-5h4v5"/></svg>
+        <p data-experiences-empty-text>Real charter moments — birthday celebrations, proposals, bachelor weekends, corporate days on the water, and more — are on their way. As we photograph and film upcoming trips, they'll appear here, organized by category.</p>
+      </div>
+    </div>
+  </section>
+
   <!-- ============ INSTAGRAM ============ -->
   <section class="section instagram-section" id="instagram" aria-labelledby="instagram-heading">
     <div class="container">
@@ -756,42 +798,41 @@
           <h2 class="section-title" id="instagram-heading">Follow the Journey</h2>
           <p class="section-sub">Real charters, real drives, real Miami. See the fleet in action and get first access to new arrivals.</p>
         </div>
-        <a href="https://instagram.com/iconicrentalsmiami" target="_blank" rel="noopener" class="btn btn-primary instagram-follow">
+        <a href="https://www.instagram.com/iconic_yacht/" target="_blank" rel="noopener" class="btn btn-primary instagram-follow">
           <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg>
-          @iconicrentalsmiami
+          Follow @iconic_yacht
         </a>
       </div>
 
-      <!-- Static preview grid — swap for an embedded live feed (e.g. Instagram Basic Display API
-           or a widget like SnapWidget/Elfsight) by replacing the contents of #instagramFeed. -->
-      <div class="instagram-grid reveal-stagger" id="instagramFeed">
-        <a class="instagram-tile" href="https://instagram.com/iconicrentalsmiami" target="_blank" rel="noopener" aria-label="View on Instagram">
-          <picture><source srcset="images/hero-yacht-miami-thumb.webp" type="image/webp" /><img src="images/hero-yacht-miami-thumb.jpg" alt="Iconic Rentals yacht on Biscayne Bay, shared on Instagram" loading="lazy" /></picture>
-          <span class="instagram-tile-icon"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg></span>
-        </a>
-        <a class="instagram-tile" href="https://instagram.com/iconicrentalsmiami" target="_blank" rel="noopener" aria-label="View on Instagram">
-          <picture><source srcset="images/yacht-marina-dusk-thumb.webp" type="image/webp" /><img src="images/yacht-marina-dusk-thumb.jpg" alt="Yacht docked at Miami marina, shared on Instagram" loading="lazy" /></picture>
-          <span class="instagram-tile-icon"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg></span>
-        </a>
-        <a class="instagram-tile" href="https://instagram.com/iconicrentalsmiami" target="_blank" rel="noopener" aria-label="View on Instagram">
-          <picture><source srcset="images/car-mood-night-thumb.webp" type="image/webp" /><img src="images/car-mood-night-thumb.jpg" alt="Exotic car in Miami at night, shared on Instagram" loading="lazy" /></picture>
-          <span class="instagram-tile-icon"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg></span>
-        </a>
-        <a class="instagram-tile" href="https://instagram.com/iconicrentalsmiami" target="_blank" rel="noopener" aria-label="View on Instagram">
-          <picture><source srcset="images/yacht-aerial-thumb.webp" type="image/webp" /><img src="images/yacht-aerial-thumb.jpg" alt="Aerial view of a luxury yacht, shared on Instagram" loading="lazy" /></picture>
-          <span class="instagram-tile-icon"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg></span>
-        </a>
-        <a class="instagram-tile" href="https://instagram.com/iconicrentalsmiami" target="_blank" rel="noopener" aria-label="View on Instagram">
-          <picture><source srcset="images/about-yacht-deck-thumb.webp" type="image/webp" /><img src="images/about-yacht-deck-thumb.jpg" alt="Yacht deck lounge, shared on Instagram" loading="lazy" /></picture>
-          <span class="instagram-tile-icon"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg></span>
-        </a>
-        <a class="instagram-tile" href="https://instagram.com/iconicrentalsmiami" target="_blank" rel="noopener" aria-label="View on Instagram">
-          <div class="instagram-tile-placeholder">
-            <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg>
-            <span>@iconicrentalsmiami</span>
+      <!-- Profile preview -->
+      <div class="instagram-profile reveal">
+        <div class="instagram-wordmark" aria-hidden="true">
+          <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg>
+          <span>Instagram</span>
+        </div>
+        <div class="instagram-profile-main">
+          <div class="instagram-profile-avatar" id="instagramAvatar" aria-hidden="true">IR</div>
+          <div class="instagram-profile-info">
+            <strong class="instagram-profile-handle" id="instagramHandle">@iconic_yacht</strong>
+            <p class="instagram-profile-bio" id="instagramBio">Miami's private concierge for luxury yacht charters &amp; exotic car rentals.</p>
+            <dl class="instagram-profile-stats" id="instagramStats" aria-label="Instagram profile stats"></dl>
           </div>
-        </a>
+        </div>
+        <a href="https://www.instagram.com/iconic_yacht/" target="_blank" rel="noopener" class="btn btn-ghost instagram-profile-cta">View Profile</a>
       </div>
+
+      <!-- Recent Posts — data-driven from js/instagram-data.js so connecting
+           the real Instagram Graph API later is a data swap, not a redesign. -->
+      <div class="instagram-subhead reveal">
+        <h3>Recent Posts</h3>
+      </div>
+      <div class="instagram-grid reveal-stagger" id="instagramFeed"></div>
+
+      <!-- Reels -->
+      <div class="instagram-subhead reveal">
+        <h3>Reels</h3>
+      </div>
+      <div class="instagram-reels reveal-stagger" id="instagramReels"></div>
     </div>
   </section>
 
@@ -818,7 +859,7 @@
         <div class="contact-card">
           <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg>
           <h3>Instagram</h3>
-          <a href="https://instagram.com/iconicrentalsmiami" target="_blank" rel="noopener">@iconicrentalsmiami</a>
+          <a href="https://www.instagram.com/iconic_yacht/" target="_blank" rel="noopener">@iconic_yacht</a>
         </div>
         <div class="contact-card">
           <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
@@ -851,7 +892,7 @@
       <a href="#top" class="brand">Iconic <strong>Rentals</strong></a>
       <p>Miami's private concierge for luxury yacht charters and exotic car rentals.</p>
       <div class="footer-social">
-        <a href="https://instagram.com/iconicrentalsmiami" target="_blank" rel="noopener" aria-label="Iconic Rentals on Instagram">
+        <a href="https://www.instagram.com/iconic_yacht/" target="_blank" rel="noopener" aria-label="Iconic Rentals on Instagram">
           <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg>
         </a>
         <a href="mailto:concierge@iconicrentalsmiami.com" aria-label="Email Iconic Rentals">
@@ -1009,6 +1050,13 @@
 
 <script src="js/fleet-data.min.js"></script>
 <script src="js/fleet-render.min.js"></script>
+<script src="js/media-components.min.js"></script>
+<script src="js/instagram-data.min.js"></script>
+<script src="js/instagram.min.js"></script>
+<script src="js/experiences-data.min.js"></script>
+<script src="js/experiences.min.js"></script>
+<script src="js/clientele-data.min.js"></script>
+<script src="js/clientele.min.js"></script>
 <script src="js/booking-config.js"></script>
 <script src="js/booking-api.min.js"></script>
 <script src="js/analytics.min.js"></script>

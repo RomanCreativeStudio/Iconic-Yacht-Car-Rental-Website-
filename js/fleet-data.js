@@ -89,12 +89,6 @@
           { key: 'virtual-tour', label: '360° Virtual Tour', platform: 'tour360', url: null, thumbnail: null, thumbnailWebp: null }
         ]
       },
-      /* Real charter moments + guest reviews, added as they happen. Each
-         entry: { id, title, date, coverImage: {src, webp, alt}, media: [],
-         review: { quote, guestName, rating } }. Empty until the client
-         starts sending over real photos/video from actual charters —
-         see fleet-detail.js renderExperiencesSection for the empty state. */
-      experiences: [],
       description: "Azure Horizon is the definition of effortless luxury on the water. Built for sun-soaked days on Biscayne Bay, her wide-open sun deck, plush bow lounge, and fully stocked bar make her the go-to choice for celebrations, day charters, and golden-hour cruises. A professional captain and crew handle every detail of the journey, so your only job is to enjoy it.",
       capacity: 12,
       length: '85 ft',
@@ -173,7 +167,6 @@
           { key: 'virtual-tour', label: '360° Virtual Tour', platform: 'tour360', url: null, thumbnail: null, thumbnailWebp: null }
         ]
       },
-      experiences: [],
       description: "Midnight Regatta is built for evenings on the water — a sky lounge with skyline views, a private chef on request, and enough deck space to host in comfort. She's the vessel of choice for milestone celebrations, client entertaining, and sunset-into-nightfall charters across Biscayne Bay.",
       capacity: 16,
       length: '102 ft',
@@ -248,7 +241,6 @@
           { key: 'virtual-tour', label: '360° Virtual Tour', platform: 'tour360', url: null, thumbnail: null, thumbnailWebp: null }
         ]
       },
-      experiences: [],
       description: "Coastal Mirage is our nimblest vessel — ideal for smaller groups who want the full yacht experience without the scale. Her bow lounge and Bluetooth sound system make her a favorite for sandbar days, snorkeling trips, and relaxed afternoons on the bay.",
       capacity: 8,
       length: '62 ft',

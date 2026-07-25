@@ -9,7 +9,7 @@
 (function () {
   'use strict';
 
-  if (!window.IconicFleet || !window.IconicFleetRender) return;
+  if (!window.IconicFleet || !window.IconicFleetRender || !window.IconicMedia) return;
 
   var params = new URLSearchParams(window.location.search);
   var slug = params.get('slug');
@@ -20,29 +20,14 @@
     return;
   }
 
-  function escapeHtml(str) {
-    return String(str).replace(/[&<>"']/g, function (c) {
-      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
-    });
-  }
+  var escapeHtml = window.IconicMedia.escapeHtml;
+  var ICONS = window.IconicMedia.icons;
 
+  /* Fleet-detail-specific icons (spec/sidebar meta) — everything shared
+     with the Instagram/Experiences sections lives in media-components.js. */
   var ICON_PERSON = '<svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0ZM4 21c0-3.9 3.6-7 8-7s8 3.1 8 7"/></svg>';
   var ICON_LENGTH = '<svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="7" width="18" height="12" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>';
   var ICON_BOLT = '<svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M13 2 3 14h7l-1 8 11-14h-7l1-6Z"/></svg>';
-  var ICON_CHECK = '<svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m5 13 4 4L19 7"/></svg>';
-  var ICON_CAMERA = '<svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M4 17c1.5 1.3 3.5 1.3 5 0 1.5 1.3 3.5 1.3 5 0 1.5 1.3 3.5 1.3 5 0"/><path d="M6 13 7 5l10 1.5-2 6.5Z"/></svg>';
-  var ICON_PLAY = '<svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="12" cy="12" r="9"/><path d="M10.5 8.3v7.4l6-3.7-6-3.7Z" fill="currentColor" stroke="none"/></svg>';
-  var ICON_INSTAGRAM = '<svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg>';
-  var ICON_TIKTOK = '<svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M14 3.5v11a3.3 3.3 0 1 1-3.3-3.3c.3 0 .6.02.9.08"/><path d="M14 3.5c.35 2.3 2.15 4.1 4.4 4.35"/></svg>';
-  var ICON_TOUR360 = '<svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="12" cy="12" r="3"/><ellipse cx="12" cy="12" rx="9" ry="3.6"/><ellipse cx="12" cy="12" rx="3.6" ry="9"/></svg>';
-  var ICON_STAR = '<svg aria-hidden="true" focusable="false" viewBox="0 0 20 20" fill="currentColor"><path d="M10 1l2.6 5.9 6.4.6-4.8 4.3 1.4 6.2L10 14.9 4.4 18l1.4-6.2L1 7.5l6.4-.6L10 1Z"/></svg>';
-
-  var VIDEO_ICONS = {
-    video: ICON_PLAY,
-    instagram: ICON_INSTAGRAM,
-    tiktok: ICON_TIKTOK,
-    tour360: ICON_TOUR360
-  };
 
   /* Service inclusions are the same for every yacht charter (crew, fuel,
      safety, cleaning) — unlike Amenities, which describes onboard hardware
@@ -110,36 +95,14 @@
   document.getElementById('fdTagline').textContent = item.tagline;
 
   /* Videos & Tours panel: walkthrough video, Instagram Reels, TikTok, and a
-     future 360° tour, flattened into one grid. Real content is a link-out
-     card (thumbnail + platform icon, opens the source platform in a new
-     tab) rather than an embed — safer and simpler than pulling in each
-     platform's embed script, and just as easy to drop a URL into later. */
+     future 360° tour, flattened into one grid via the shared media
+     component (window.IconicMedia.renderVideoGrid) so this exact card
+     look/behavior is reused verbatim by the homepage Instagram and
+     Experiences sections instead of being reimplemented per page. */
   function renderVideosPanel(vehicle) {
     var videos = vehicle.videos || {};
     var allItems = [].concat(videos.walkthrough || [], videos.reels || [], videos.tiktok || [], videos.tours360 || []);
-
-    var itemsHtml = allItems.map(function (v) {
-      var icon = VIDEO_ICONS[v.platform] || ICON_PLAY;
-      if (v.url) {
-        var caption = vehicle.name + ' — ' + v.label;
-        return (
-          '<a class="fd-gallery-item fd-video-item' + (v.thumbnail ? '' : ' fd-video-item--no-thumb') + '" href="' + escapeHtml(v.url) + '" target="_blank" rel="noopener" aria-label="Watch: ' + escapeHtml(caption) + '">' +
-          (v.thumbnail
-            ? '<picture>' + (v.thumbnailWebp ? '<source srcset="../' + v.thumbnailWebp + '" type="image/webp" />' : '') + '<img src="../' + v.thumbnail + '" alt="' + escapeHtml(caption) + '" loading="lazy" /></picture>'
-            : '') +
-          '<span class="fd-video-play-icon">' + ICON_PLAY + '</span>' +
-          '<span class="fd-gallery-item-caption">' + escapeHtml(v.label) + '</span>' +
-          '</a>'
-        );
-      }
-      return (
-        '<div class="fd-gallery-item fd-gallery-item-placeholder">' +
-        icon +
-        '<span class="fd-gallery-item-caption">' + escapeHtml(v.label) + '</span>' +
-        '<span class="fd-gallery-item-message">' + escapeHtml(v.label) + ' coming soon.</span>' +
-        '</div>'
-      );
-    }).join('');
+    var itemsHtml = window.IconicMedia.renderVideoGrid(allItems, { pathPrefix: '../', captionPrefix: vehicle.name });
 
     return (
       '<div class="fleet-panel" data-panel="videos" id="fdGalPanel-videos" role="tabpanel" aria-labelledby="fdGalTab-videos">' +
@@ -193,13 +156,7 @@
             '</button>'
           );
         }
-        return (
-          '<div class="fd-gallery-item fd-gallery-item-placeholder">' +
-          ICON_CAMERA +
-          '<span class="fd-gallery-item-caption">' + escapeHtml(shot.label) + '</span>' +
-          '<span class="fd-gallery-item-message">' + escapeHtml(shot.label) + ' ' + suffix + ' coming soon.</span>' +
-          '</div>'
-        );
+        return window.IconicMedia.renderPlaceholder(shot.label, ICONS.camera, shot.label + ' ' + suffix + ' coming soon.');
       }).join('');
 
       return (
@@ -271,7 +228,7 @@
   var amenitiesEl = document.getElementById('fdAmenities');
   var allAmenities = (item.features || []).concat(item.amenities || []);
   amenitiesEl.innerHTML = allAmenities.map(function (a) {
-    return '<li>' + ICON_CHECK + '<span>' + escapeHtml(a) + '</span></li>';
+    return '<li>' + ICONS.check + '<span>' + escapeHtml(a) + '</span></li>';
   }).join('');
 
   /* What's Included — yachts only; a car detail page has no crew/fuel/dockage
@@ -279,7 +236,7 @@
   var includedSection = document.getElementById('fdIncludedSection');
   if (includedSection && item.type === 'yacht') {
     document.getElementById('fdIncludedList').innerHTML = YACHT_INCLUDED.map(function (a) {
-      return '<li>' + ICON_CHECK + '<span>' + escapeHtml(a) + '</span></li>';
+      return '<li>' + ICONS.check + '<span>' + escapeHtml(a) + '</span></li>';
     }).join('');
     includedSection.hidden = false;
   }
@@ -306,15 +263,19 @@
   quickInquiryBtn.setAttribute('data-quick-book', '');
 
   /* Recent Experiences — real charter highlights (photos/video + a guest
-     review) as they come in. Yacht-only, same reasoning as What's Included.
-     Empty today for every yacht (none have been photographed yet); the
+     review) as they come in, pulled from the single shared
+     js/experiences-data.js source (filtered to this yacht) rather than a
+     per-yacht array, so there's exactly one data object to edit no matter
+     whether a charter is being added here or to the homepage's own
+     Luxury Experiences section. Yacht-only, same reasoning as What's
+     Included. Empty today for every yacht (none documented yet); the
      empty state says so rather than showing nothing, and the populated
-     branch below is what actually renders once `experiences` has entries —
-     no further code changes needed to go live, only data. */
+     branch below is what actually renders once entries exist — no further
+     code changes needed to go live, only data. */
   var experiencesSection = document.getElementById('fdExperiencesSection');
-  if (experiencesSection && item.type === 'yacht') {
+  if (experiencesSection && item.type === 'yacht' && window.IconicExperiences) {
     experiencesSection.hidden = false;
-    var experiences = item.experiences || [];
+    var experiences = window.IconicExperiences.getByYacht(item.slug);
     var experiencesGrid = document.getElementById('fdExperiencesGrid');
     var experiencesEmpty = document.getElementById('fdExperiencesEmpty');
 
@@ -323,26 +284,35 @@
       experiencesGrid.hidden = false;
       experiencesGrid.innerHTML = experiences.map(function (exp) {
         var cover = exp.coverImage;
+        var categoryInfo = window.IconicExperiences.getCategory(exp.category);
         var mediaHtml = cover
           ? '<picture>' + (cover.webp ? '<source srcset="../' + cover.webp + '" type="image/webp" />' : '') + '<img src="../' + cover.src + '" alt="' + escapeHtml(cover.alt || exp.title) + '" loading="lazy" /></picture>'
-          : '<div class="fd-experience-media-placeholder">' + ICON_CAMERA + '</div>';
+          : '<div class="fd-experience-media-placeholder">' + ICONS.camera + '</div>';
+        var categoryTag = categoryInfo ? '<span class="fd-experience-category">' + escapeHtml(categoryInfo.label) + '</span>' : '';
 
         var reviewHtml = '';
-        if (exp.review) {
-          var stars = Array(exp.review.rating || 5).fill(ICON_STAR).join('');
+        if (exp.clientReview) {
+          var stars = Array(exp.clientReview.rating || 5).fill(ICONS.star).join('');
           reviewHtml =
             '<div class="testimonial-stars" aria-hidden="true">' + stars + '</div>' +
-            '<p class="testimonial-quote">“' + escapeHtml(exp.review.quote) + '”</p>' +
-            '<div class="testimonial-author"><span>' + escapeHtml(exp.review.guestName) + '</span></div>';
+            '<p class="testimonial-quote">“' + escapeHtml(exp.clientReview.quote) + '”</p>' +
+            '<div class="testimonial-author"><span>' + escapeHtml(exp.clientReview.guestName) + '</span></div>';
         }
+
+        var linkParts = [];
+        if (exp.instagramPost) linkParts.push('<a href="' + escapeHtml(exp.instagramPost) + '" target="_blank" rel="noopener">View Post</a>');
+        if (exp.instagramReel) linkParts.push('<a href="' + escapeHtml(exp.instagramReel) + '" target="_blank" rel="noopener">Watch Reel</a>');
+        var linksHtml = linkParts.length ? '<div class="fd-experience-links">' + linkParts.join('') + '</div>' : '';
 
         return (
           '<article class="fd-experience-card">' +
-          '<div class="fd-experience-media">' + mediaHtml + '</div>' +
+          '<div class="fd-experience-media">' + mediaHtml + categoryTag + '</div>' +
           '<div class="fd-experience-body">' +
           (exp.date ? '<span class="fd-experience-date">' + escapeHtml(exp.date) + '</span>' : '') +
           '<h3>' + escapeHtml(exp.title) + '</h3>' +
+          (exp.description ? '<p class="fd-experience-desc">' + escapeHtml(exp.description) + '</p>' : '') +
           reviewHtml +
+          linksHtml +
           '</div>' +
           '</article>'
         );

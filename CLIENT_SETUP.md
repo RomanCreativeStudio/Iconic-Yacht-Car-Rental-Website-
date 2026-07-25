@@ -22,15 +22,24 @@ up the booking database and email) is not optional.**
       [Email Configuration](#email-configuration).
 - [ ] **Create at least one admin login** so you can view and manage
       inquiries. See [Admin Dashboard Access](#admin-dashboard-access).
-- [ ] Replace the phone number, email, Instagram handle, and hours with
-      your real business information (see
-      [Updating Business Information](#updating-business-information)).
+- [ ] Replace the phone number, email, and hours with your real business
+      information (see
+      [Updating Business Information](#updating-business-information)) —
+      Instagram is already set to the real handle.
 - [ ] Replace placeholder fleet photography with real photos (see
       [Replacing Images](#replacing-images)).
 - [ ] Replace the three placeholder testimonials with real, verifiable
       customer reviews, or remove them (see
       [Structured Data & SEO](#structured-data--seo) — this affects more
       than just what's visible on the page).
+- [ ] As you document real charters, add them to `js/experiences-data.js`
+      so the homepage Luxury Experiences section and each yacht's Recent
+      Experiences panel stop showing "coming soon" (see
+      [Luxury Experiences & Recent Charters](#luxury-experiences--recent-charters)).
+- [ ] If a high-profile client agrees to be named and quoted, add their
+      endorsement to `js/clientele-data.js` — never before they've
+      explicitly approved it (see
+      [Clientele / Social Proof Section](#clientele--social-proof-section)).
 - [ ] Add your real street address to the structured data if you have a
       public office/marina address (optional but improves local SEO).
 - [ ] Activate Google Analytics and/or the Meta Pixel if you plan to use
@@ -46,15 +55,18 @@ up the booking database and email) is not optional.**
 2. [Replacing Images](#replacing-images)
 3. [Adding or Editing Fleet Items](#adding-or-editing-fleet-items)
 4. [Updating Business Information](#updating-business-information)
-5. [How Booking Requests Work](#how-booking-requests-work)
-6. [Database Setup](#database-setup)
-7. [Environment Variables](#environment-variables)
-8. [Email Configuration](#email-configuration)
-9. [Analytics & Tracking](#analytics--tracking)
-10. [Structured Data & SEO](#structured-data--seo)
-11. [Future CMS Integration](#future-cms-integration)
-12. [How Deployment Works](#how-deployment-works)
-13. [Making Code Changes — the Minified Files](#making-code-changes--the-minified-files)
+5. [Instagram Section](#instagram-section)
+6. [Luxury Experiences & Recent Charters](#luxury-experiences--recent-charters)
+7. [Clientele / Social Proof Section](#clientele--social-proof-section)
+8. [How Booking Requests Work](#how-booking-requests-work)
+9. [Database Setup](#database-setup)
+10. [Environment Variables](#environment-variables)
+11. [Email Configuration](#email-configuration)
+12. [Analytics & Tracking](#analytics--tracking)
+13. [Structured Data & SEO](#structured-data--seo)
+14. [Future CMS Integration](#future-cms-integration)
+15. [How Deployment Works](#how-deployment-works)
+16. [Making Code Changes — the Minified Files](#making-code-changes--the-minified-files)
 
 ---
 
@@ -71,11 +83,25 @@ up the booking database and email) is not optional.**
 │   ├── style.min.css       Minified copy actually loaded by the pages
 │   ├── fleet-detail.css    Fleet detail page styles (source)
 │   ├── fleet-detail.min.css
+│   ├── media-components.css   Shared gallery/video/experience-card
+│   │                           styles — loaded by every page that uses
+│   │                           IconicMedia (see below)
+│   ├── media-components.min.css
 │   └── fonts.css / fonts.min.css   Self-hosted font declarations
 ├── js/
 │   ├── fleet-data.js       Every yacht and car lives here — see below
 │   ├── fleet-render.js     Turns fleet-data.js entries into the card HTML
 │   ├── fleet-detail.js     Populates fleet/vehicle.html from fleet-data.js
+│   ├── media-components.js    Shared icon/video-card/placeholder toolkit
+│   │                           (window.IconicMedia) reused by the
+│   │                           Instagram, Experiences, and fleet-detail
+│   │                           scripts
+│   ├── instagram-data.js  Instagram profile/posts/reels — see below
+│   ├── instagram.js        Populates the homepage Instagram section
+│   ├── experiences-data.js    Every documented charter — see below
+│   ├── experiences.js      Populates the homepage Luxury Experiences section
+│   ├── clientele-data.js  Clientele categories + approved endorsements
+│   ├── clientele.js        Populates the homepage Clientele section
 │   ├── analytics.js        Google Analytics / Meta Pixel tracking helper
 │   ├── main.js             Site-wide behavior (nav, forms, lightbox, etc.)
 │   └── *.min.js            Minified copies actually loaded by the pages
@@ -164,18 +190,24 @@ After any edit to `fleet-data.js`, re-minify it (see
 
 ## Updating Business Information
 
-Your phone number, email, hours, and Instagram handle appear in several
-places. Search-and-replace each of the following across `index.html`,
-`fleet/vehicle.html`, and `js/fleet-detail.js`:
+Your phone number, email, and hours are still placeholders and appear in
+several places. Search-and-replace each of the following across
+`index.html`, `fleet/vehicle.html`, and `js/fleet-detail.js`:
 
 | What | Current placeholder value |
 |---|---|
 | Phone (display) | `(305) 555-0198` |
 | Phone (link format) | `+13055550198` |
 | Email | `concierge@iconicrentalsmiami.com` |
-| Instagram handle | `@iconicrentalsmiami` / `iconicrentalsmiami` |
 | WhatsApp number | `13055550198` (inside the `wa.me/` link in the floating contact menu) |
 | Business hours | `Daily · 8:00 AM – 10:00 PM` (Contact section) and the `openingHoursSpecification` in the structured data block near the top of `index.html` |
+
+**Instagram is already configured** with the real handle,
+[@iconic_yacht](https://www.instagram.com/iconic_yacht/) — every link on
+the site (Instagram section, footer, contact section, structured data)
+already points there. See
+[Instagram Section](#instagram-section) below for how the feed itself
+works and how to keep it updated.
 
 A few notes:
 
@@ -191,6 +223,107 @@ A few notes:
   in sync — that's the tradeoff of a hand-built static site rather than a
   CMS. See [Future CMS Integration](#future-cms-integration) if this
   becomes a maintenance burden.
+
+---
+
+## Instagram Section
+
+The homepage "Follow the Journey" section (profile card, Recent Posts
+grid, and Reels row) is entirely data-driven from `js/instagram-data.js`.
+To update it, edit that one file — no HTML/CSS changes are needed.
+
+**Profile card** — edit the `INSTAGRAM_PROFILE` object: `bio`, `avatar`
+(path to a square photo, or leave `null` to keep the "IR" monogram),
+`followerCount`, and `postCount`. Both counts are `null` today and render
+as an em dash (`—`) rather than a guessed number — only fill them in with
+real, current figures.
+
+**Recent Posts** — `INSTAGRAM_POSTS` is an array of `{ id, media_type,
+media_url, media_url_webp, permalink, caption, timestamp }` objects. Add,
+remove, or reorder entries to change what shows in the grid; each needs a
+real image path and a `permalink` (link to the actual post, or the profile
+URL if you'd rather not link a specific post).
+
+**Reels** — `INSTAGRAM_REELS` is empty until you have real Reels to
+feature. Leave it empty and the section shows an honest "Reels are coming
+soon" message; add entries in the same shape once you have them
+(`caption`, `permalink`, `thumbnail_url`).
+
+**Connecting the real Instagram Graph API later:** the data shape here
+already matches what the Graph API's `IG Media` endpoint returns, so
+swapping manual entries for a live feed is a data-source change, not a
+redesign — see the migration note at the bottom of `js/instagram-data.js`
+for the exact steps.
+
+After editing, re-minify `js/instagram-data.js` (see
+[Making Code Changes](#making-code-changes--the-minified-files)).
+
+---
+
+## Luxury Experiences & Recent Charters
+
+Every documented charter — a birthday party, a proposal, a corporate
+event, and so on — lives in one file: `js/experiences-data.js`. A single
+entry there automatically shows up in **two** places: the homepage
+"Luxury Experiences" section, and (if it's tied to a specific yacht) that
+yacht's own "Recent Experiences on This Yacht" panel on its detail page.
+
+To add a real, completed charter, push a new object into the
+`EXPERIENCES_DATA` array. The full shape (documented at the top of the
+file) is:
+
+```
+{
+  id, title, category, date, yachtSlug,
+  coverImage: { src, webp, alt } | null,
+  photos: [{ src, webp, alt }],
+  videos: [{ label, platform, url, thumbnail, thumbnailWebp }],
+  instagramPost, instagramReel,
+  description,
+  clientReview: { quote, guestName, rating } | null,
+  featured
+}
+```
+
+- `category` must be one of the keys in `EXPERIENCE_CATEGORIES` (birthday,
+  proposal, bachelor, corporate, sunset, athlete, influencer, vacation).
+- `yachtSlug` should match a `slug` from `js/fleet-data.js` if the charter
+  happened on a specific yacht (so it also appears on that yacht's page);
+  leave it `null` for a car rental or a general charter.
+- Only add a `clientReview` if the guest actually gave one and agreed to
+  have it published — never write one in on their behalf.
+- `featured: true` moves that entry to the front of the homepage grid.
+
+The array is empty today — no charters have been documented yet — so both
+the homepage section and every yacht page show an honest "coming soon"
+message instead of invented example content. Nothing else needs to
+change when you add the first real entry; the empty states disappear on
+their own.
+
+After editing, re-minify `js/experiences-data.js`.
+
+---
+
+## Clientele / Social Proof Section
+
+The homepage "Trusted by Miami's Most Discerning Clientele" section has
+two parts, both driven by `js/clientele-data.js`:
+
+- **Category cards** (Professional Athletes, College Athletes, Influencers
+  & Creators, Luxury Travelers, Celebrities & Public Figures) — general
+  descriptions of the kinds of guests you serve, not tied to any named
+  individual. Edit `CLIENTELE_CATEGORIES` if you want to change the
+  wording or add another category.
+- **Endorsements** — real, named quotes from real clients or brands.
+  `CLIENTELE_ENDORSEMENTS` is intentionally empty. **Only add an entry
+  once that specific person or brand has explicitly agreed to be named and
+  quoted on the site.** Each entry needs `approved: true` to render at
+  all — this is a deliberate safeguard, not just a formality. Never invent
+  a name, quote, logo, or endorsement here; until an entry is added, the
+  section shows an honest "endorsements will appear here once approved"
+  message rather than fabricated social proof.
+
+After editing, re-minify `js/clientele-data.js`.
 
 ---
 
@@ -599,6 +732,7 @@ folder:
 # CSS
 npx clean-css-cli -o css/style.min.css css/style.css
 npx clean-css-cli -o css/fleet-detail.min.css css/fleet-detail.css
+npx clean-css-cli -o css/media-components.min.css css/media-components.css
 npx clean-css-cli -o css/fonts.min.css css/fonts.css
 
 # JavaScript
@@ -606,6 +740,13 @@ npx terser js/main.js -o js/main.min.js --compress --mangle
 npx terser js/fleet-data.js -o js/fleet-data.min.js --compress --mangle
 npx terser js/fleet-render.js -o js/fleet-render.min.js --compress --mangle
 npx terser js/fleet-detail.js -o js/fleet-detail.min.js --compress --mangle
+npx terser js/media-components.js -o js/media-components.min.js --compress --mangle
+npx terser js/instagram-data.js -o js/instagram-data.min.js --compress --mangle
+npx terser js/instagram.js -o js/instagram.min.js --compress --mangle
+npx terser js/experiences-data.js -o js/experiences-data.min.js --compress --mangle
+npx terser js/experiences.js -o js/experiences.min.js --compress --mangle
+npx terser js/clientele-data.js -o js/clientele-data.min.js --compress --mangle
+npx terser js/clientele.js -o js/clientele.min.js --compress --mangle
 npx terser js/analytics.js -o js/analytics.min.js --compress --mangle
 ```
 
