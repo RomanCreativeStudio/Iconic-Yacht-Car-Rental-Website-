@@ -45,7 +45,9 @@
     { key: 'sunset', label: 'Sunset Cruises' },
     { key: 'athlete', label: 'Professional Athlete Charters' },
     { key: 'influencer', label: 'Influencer Experiences' },
-    { key: 'vacation', label: 'Luxury Vacations' }
+    { key: 'vacation', label: 'Luxury Vacations' },
+    { key: 'family', label: 'Family Experiences' },
+    { key: 'vip', label: 'VIP Events' }
   ];
 
   var EXPERIENCES_DATA = [];

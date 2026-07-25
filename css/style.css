@@ -403,8 +403,8 @@ html {
   letter-spacing: 0.06em;
   color: var(--color-white);
   display: flex;
-  align-items: baseline;
-  gap: 0.4rem;
+  align-items: center;
+  gap: 0.6rem;
 }
 
 .brand strong {
@@ -412,15 +412,43 @@ html {
   font-weight: 600;
 }
 
+.brand-mark {
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-sm);
+  background: var(--color-gold-dim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px;
+}
+
+.brand-mark img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.brand-text {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.4rem;
+}
+
+.footer-brand-logo {
+  margin-bottom: 0.25rem;
+}
+
 .main-nav {
   display: flex;
   align-items: center;
-  gap: var(--space-5);
+  gap: var(--space-4);
 }
 
 .nav-links {
   display: flex;
-  gap: var(--space-4);
+  gap: 1.15rem;
 }
 
 .nav-links a {
@@ -430,6 +458,7 @@ html {
   color: var(--color-white-dim);
   position: relative;
   padding: 0.25rem 0;
+  white-space: nowrap;
   transition: color var(--dur-fast) var(--ease-luxury);
 }
 
@@ -470,6 +499,32 @@ html {
 @media (min-width: 981px) {
   .nav-cta {
     display: inline-flex;
+  }
+}
+
+/* Nine nav items no longer fit the roomier spacing/type-scale used at wide
+   desktop widths — tighten letter-spacing, size, and gaps just for the
+   narrower part of the desktop range so nothing wraps or pushes the CTA
+   off-screen. */
+@media (min-width: 981px) and (max-width: 1300px) {
+  .main-nav {
+    gap: var(--space-3);
+  }
+
+  .nav-links {
+    gap: 0.85rem;
+  }
+
+  .nav-links a {
+    font-size: 0.72rem;
+    letter-spacing: 0.03em;
+  }
+
+  .nav-cta {
+    padding-left: var(--space-3);
+    padding-right: var(--space-3);
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
   }
 }
 

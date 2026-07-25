@@ -46,27 +46,38 @@ up the booking database and email) is not optional.**
       them (see [Analytics & Tracking](#analytics--tracking)).
 - [ ] Update the WhatsApp number in the floating contact menu, or remove
       that button if you don't use WhatsApp for business.
+- [ ] As real yacht walkthroughs, drone footage, Reels, TikTok videos, or
+      client videos are filmed, add them to the relevant data file
+      (`fleet-data.js`, `experiences-data.js`, or `instagram-data.js`) so
+      the homepage Videos section stops showing "coming soon" for that
+      category (see [Videos Section](#videos-section)).
+
+The official logo is already integrated sitewide (nav, footer, favicon,
+apple touch icon, and social share image) — see
+[Brand Logo](#brand-logo) if the client ever sends a revised logo file.
 
 ---
 
 ## Table of Contents
 
 1. [Project Structure](#project-structure)
-2. [Replacing Images](#replacing-images)
-3. [Adding or Editing Fleet Items](#adding-or-editing-fleet-items)
-4. [Updating Business Information](#updating-business-information)
-5. [Instagram Section](#instagram-section)
-6. [Luxury Experiences & Recent Charters](#luxury-experiences--recent-charters)
-7. [Clientele / Social Proof Section](#clientele--social-proof-section)
-8. [How Booking Requests Work](#how-booking-requests-work)
-9. [Database Setup](#database-setup)
-10. [Environment Variables](#environment-variables)
-11. [Email Configuration](#email-configuration)
-12. [Analytics & Tracking](#analytics--tracking)
-13. [Structured Data & SEO](#structured-data--seo)
-14. [Future CMS Integration](#future-cms-integration)
-15. [How Deployment Works](#how-deployment-works)
-16. [Making Code Changes — the Minified Files](#making-code-changes--the-minified-files)
+2. [Brand Logo](#brand-logo)
+3. [Replacing Images](#replacing-images)
+4. [Adding or Editing Fleet Items](#adding-or-editing-fleet-items)
+5. [Updating Business Information](#updating-business-information)
+6. [Instagram Section](#instagram-section)
+7. [Luxury Experiences & Recent Charters](#luxury-experiences--recent-charters)
+8. [Clientele / Social Proof Section](#clientele--social-proof-section)
+9. [Videos Section](#videos-section)
+10. [How Booking Requests Work](#how-booking-requests-work)
+11. [Database Setup](#database-setup)
+12. [Environment Variables](#environment-variables)
+13. [Email Configuration](#email-configuration)
+14. [Analytics & Tracking](#analytics--tracking)
+15. [Structured Data & SEO](#structured-data--seo)
+16. [Future CMS Integration](#future-cms-integration)
+17. [How Deployment Works](#how-deployment-works)
+18. [Making Code Changes — the Minified Files](#making-code-changes--the-minified-files)
 
 ---
 
@@ -102,10 +113,16 @@ up the booking database and email) is not optional.**
 │   ├── experiences.js      Populates the homepage Luxury Experiences section
 │   ├── clientele-data.js  Clientele categories + approved endorsements
 │   ├── clientele.js        Populates the homepage Clientele section
+│   ├── videos.js           Populates the homepage Videos section from
+│   │                        fleet/experiences/Instagram video content
 │   ├── analytics.js        Google Analytics / Meta Pixel tracking helper
 │   ├── main.js             Site-wide behavior (nav, forms, lightbox, etc.)
 │   └── *.min.js            Minified copies actually loaded by the pages
-├── images/                 Photography (JPEG + WebP pairs)
+├── images/                 Photography (JPEG + WebP pairs) + logo/favicon
+│                            files (logo-icon.png, logo-full.png,
+│                            favicon-*.png, apple-touch-icon.png,
+│                            og-image-brand.jpg — see "Brand Logo" below)
+├── favicon.ico             Multi-size favicon, referenced from the site root
 ├── fonts/                  Self-hosted webfont files
 └── CLIENT_SETUP.md         This file
 ```
@@ -114,6 +131,42 @@ up the booking database and email) is not optional.**
 (e.g. `main.js`) and a `.min.js`/`.min.css` version that's actually
 referenced by the HTML pages. Always edit the full-size source file, then
 re-minify — see [Making Code Changes](#making-code-changes--the-minified-files).
+
+---
+
+## Brand Logo
+
+The official logo (the yacht/palm mark with the "IconicYacht Experience"
+wordmark) is now integrated across the site:
+
+- **Nav (desktop + mobile)** and **footer** use just the icon mark (boat +
+  palm + wave), in a small gold-tinted badge, next to the site's existing
+  "Iconic Rentals" text. The full lockup's wordmark is navy-on-transparent
+  and nearly invisible against the site's near-black nav/footer — that was
+  tested directly and only the icon (which reads clearly on dark) is used
+  in either spot. The full lockup (icon + wordmark) appears on the
+  branded social-share image instead, sized much larger there.
+- **Favicon**: `favicon.ico` (multi-size) plus `images/favicon-32.png` and
+  `images/favicon-192.png`, all on a dark rounded-square backdrop so the
+  mark stays visible in both light and dark browser chrome.
+- **Apple touch icon**: `images/apple-touch-icon.png` (180×180), same
+  dark rounded-square treatment (iOS fills transparent areas with black
+  otherwise).
+- **Social sharing preview (Open Graph)**: `images/og-image-brand.jpg`
+  (1200×630) — the full logo lockup centered on a branded dark/gold
+  gradient background, used for `og:image` and `twitter:image` on both
+  `index.html` and `fleet/vehicle.html`.
+
+**If the client provides a new or updated logo file:** the source files
+these were generated from are the master assets — replace
+`images/logo-icon.png` / `.webp` (icon only, transparent background) and
+`images/logo-full.png` / `.webp` (icon + wordmark, transparent
+background) with new versions in the same aspect ratio, then regenerate
+`favicon.ico`, `images/favicon-32.png`, `images/favicon-192.png`,
+`images/apple-touch-icon.png`, and `images/og-image-brand.jpg` from the
+new icon/lockup (any image editor, or ask a developer — this is a
+five-minute job). No HTML/CSS changes are needed as long as the new files
+keep the same filenames.
 
 ---
 
@@ -286,7 +339,8 @@ file) is:
 ```
 
 - `category` must be one of the keys in `EXPERIENCE_CATEGORIES` (birthday,
-  proposal, bachelor, corporate, sunset, athlete, influencer, vacation).
+  proposal, bachelor, corporate, sunset, athlete, influencer, vacation,
+  family, vip).
 - `yachtSlug` should match a `slug` from `js/fleet-data.js` if the charter
   happened on a specific yacht (so it also appears on that yacht's page);
   leave it `null` for a car rental or a general charter.
@@ -310,10 +364,10 @@ The homepage "Trusted by Miami's Most Discerning Clientele" section has
 two parts, both driven by `js/clientele-data.js`:
 
 - **Category cards** (Professional Athletes, College Athletes, Influencers
-  & Creators, Luxury Travelers, Celebrities & Public Figures) — general
-  descriptions of the kinds of guests you serve, not tied to any named
-  individual. Edit `CLIENTELE_CATEGORIES` if you want to change the
-  wording or add another category.
+  & Creators, Luxury Travelers, Celebrities & Public Figures, Corporate
+  Clients) — general descriptions of the kinds of guests you serve, not
+  tied to any named individual. Edit `CLIENTELE_CATEGORIES` if you want to
+  change the wording or add another category.
 - **Endorsements** — real, named quotes from real clients or brands.
   `CLIENTELE_ENDORSEMENTS` is intentionally empty. **Only add an entry
   once that specific person or brand has explicitly agreed to be named and
@@ -324,6 +378,31 @@ two parts, both driven by `js/clientele-data.js`:
   message rather than fabricated social proof.
 
 After editing, re-minify `js/clientele-data.js`.
+
+---
+
+## Videos Section
+
+The homepage "Videos" section shows one card per video type — Yacht
+Walkthroughs, Drone Footage, Instagram Reels, TikTok Videos, Charter
+Highlights, and Client Videos — driven entirely by `js/videos.js`. This
+file doesn't hold its own content; it just looks for the first available
+real video in each category across three existing sources, in this order:
+
+- **Yacht Walkthroughs / Drone Footage / TikTok Videos**: the `videos`
+  object on each yacht/car entry in `js/fleet-data.js` (fields like
+  `videos.walkthrough`, `videos.tiktok` — same data that powers each
+  vehicle's own "Videos & Tours" tab).
+- **Instagram Reels**: `INSTAGRAM_REELS` in `js/instagram-data.js` first,
+  falling back to any yacht/car's `videos.reels`.
+- **Charter Highlights / Client Videos**: the `videos` array on each entry
+  in `js/experiences-data.js` (`platform: 'client'` for Client Videos).
+
+There is nothing to edit in `js/videos.js` itself — add a real video URL
+to whichever of those three files it actually belongs to (a yacht's
+walkthrough, an experience's highlight reel, an Instagram Reel), and it
+automatically appears here too. A category with no real video yet shows
+the same "coming soon" placeholder used everywhere else on the site.
 
 ---
 
@@ -747,6 +826,7 @@ npx terser js/experiences-data.js -o js/experiences-data.min.js --compress --man
 npx terser js/experiences.js -o js/experiences.min.js --compress --mangle
 npx terser js/clientele-data.js -o js/clientele-data.min.js --compress --mangle
 npx terser js/clientele.js -o js/clientele.min.js --compress --mangle
+npx terser js/videos.js -o js/videos.min.js --compress --mangle
 npx terser js/analytics.js -o js/analytics.min.js --compress --mangle
 ```
 

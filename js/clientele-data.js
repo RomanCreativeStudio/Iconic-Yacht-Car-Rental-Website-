@@ -45,6 +45,11 @@
       key: 'celebrity',
       label: 'Celebrities & Public Figures',
       description: 'Fully private arrangements, off the public booking trail, with no compromise on service.'
+    },
+    {
+      key: 'corporate',
+      label: 'Corporate Clients',
+      description: 'Client entertainment, incentive trips, and corporate events, booked and billed the way your business needs.'
     }
   ];
 

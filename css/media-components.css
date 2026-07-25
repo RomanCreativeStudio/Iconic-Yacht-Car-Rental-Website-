@@ -154,6 +154,15 @@
   color: var(--color-black);
 }
 
+/* Shared responsive grid for a set of video cards rendered via
+   IconicMedia.renderVideoGrid — used by the homepage Videos section and
+   the Instagram Reels row alike. */
+.media-video-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-3);
+}
+
 /* ==========================================================================
    Experience cards — yacht/car detail "Recent Experiences" panels and the
    homepage Luxury Experiences section share this same card markup.

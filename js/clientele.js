@@ -17,13 +17,15 @@
   var ICON_TROPHY = '<svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M7 4h10v4a5 5 0 0 1-10 0V4Z"/><path d="M7 5H4v1a4 4 0 0 0 4 4"/><path d="M17 5h3v1a4 4 0 0 1-4 4"/><path d="M12 13v4"/><path d="M8 21h8"/><path d="M9 21c0-2 1.3-3 3-3s3 1 3 3"/></svg>';
   var ICON_CAP = '<svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3 2 8l10 5 10-5-10-5Z"/><path d="M6 10.5V16c0 1.4 2.7 2.5 6 2.5s6-1.1 6-2.5v-5.5"/><path d="M22 8v6"/></svg>';
   var ICON_GLOBE = '<svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18 14 14 0 0 1 0-18Z"/></svg>';
+  var ICON_BRIEFCASE = '<svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 13h18"/></svg>';
 
   var CATEGORY_ICONS = {
     athlete: ICON_TROPHY,
     'college-athlete': ICON_CAP,
     influencer: ICON_CAMERA,
     'luxury-traveler': ICON_GLOBE,
-    celebrity: ICON_STAR
+    celebrity: ICON_STAR,
+    corporate: ICON_BRIEFCASE
   };
 
   var categoriesEl = document.getElementById('clienteleCategories');
