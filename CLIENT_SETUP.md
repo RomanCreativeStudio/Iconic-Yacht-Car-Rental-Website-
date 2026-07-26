@@ -761,6 +761,11 @@ part.
 
 1. **Choose a static host.** Popular options: Netlify, Vercel, Cloudflare
    Pages, GitHub Pages, or a traditional shared-hosting provider.
+   `netlify.toml` in the project root pre-configures cache headers
+   (long-lived caching for images/fonts/minified CSS/JS, always-
+   revalidate for HTML pages) and baseline security headers for
+   Netlify specifically — it's ignored by every other host and safe to
+   delete if you deploy elsewhere.
 2. **Upload the entire project folder** (everything in this repository)
    to your host, preserving the folder structure (`css/`, `js/`,
    `images/`, `fonts/`, `fleet/`, `admin/`, and `index.html` all need to

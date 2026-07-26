@@ -1,0 +1,48 @@
+# Netlify deployment config for the static site in this repository.
+# No build step is required — index.html, fleet/, css/, js/, images/,
+# and fonts/ are deployed as-is. See CLIENT_SETUP.md for the full
+# deployment guide (this site also works unchanged on any other static
+# host; this file only takes effect on Netlify).
+
+[build]
+  publish = "."
+
+# Long-lived, cache-friendly headers for the fingerprint-free static
+# assets referenced by filename (images, fonts, minified CSS/JS).
+# Content updates are shipped by changing the file at that same path, so
+# a long max-age is safe as long as the host's CDN revalidates on
+# redeploy (Netlify does this automatically).
+[[headers]]
+  for = "/images/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/fonts/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/css/*.min.css"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/js/*.min.js"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# HTML pages change without a filename change, so they should always be
+# revalidated rather than cached long-term.
+[[headers]]
+  for = "/*.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+# Baseline security headers.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "SAMEORIGIN"
+    Referrer-Policy = "strict-origin-when-cross-origin"
