@@ -396,6 +396,7 @@
   var lightboxGroup = [];
   var lightboxTrigger = null;
   var lightboxIndex = -1;
+  var lightboxFocusTimeout = null;
 
   function triggersInGroup(groupKey) {
     var all = Array.prototype.slice.call(document.querySelectorAll('[data-lightbox-src]'));
@@ -432,14 +433,23 @@
     lockBodyScroll();
     /* Deferred past the entrance transition: a clicked <button> reclaims
        focus as part of the browser's own post-click handling, which runs
-       later than a same-tick focus() call and would otherwise win the race. */
-    window.setTimeout(function () {
+       later than a same-tick focus() call and would otherwise win the race.
+       Tracked so closeLightbox can cancel it if the lightbox is closed
+       before it fires — otherwise it can steal focus back to the (by then
+       hidden) close button after closeLightbox has already correctly
+       returned focus to the trigger. */
+    lightboxFocusTimeout = window.setTimeout(function () {
+      lightboxFocusTimeout = null;
       lightboxClose.focus();
     }, 320);
   }
 
   function closeLightbox() {
     if (lightbox.hidden) return;
+    if (lightboxFocusTimeout) {
+      window.clearTimeout(lightboxFocusTimeout);
+      lightboxFocusTimeout = null;
+    }
     lightbox.classList.remove('is-open');
     unlockBodyScroll();
     window.setTimeout(function () {
