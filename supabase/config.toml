@@ -10,9 +10,18 @@
 # token, DB password) belong in a local, git-ignored .env — see
 # .env.example at the project root — and are referenced below via env().
 #
-# Foundation only, per Phase 6.0 scope: no new tables, storage buckets, or
-# auth providers are declared here yet. See supabase/SCHEMA_PROPOSAL.md
-# for what's planned next.
+# Phase 6.0 laid this file down with no tables/buckets declared. Phase 6.1
+# discovered the site owner had already created a set of storage buckets
+# directly in the dashboard — including fleet-images, fleet-videos,
+# experience-images, and experience-videos, which is what this phase
+# needs — so those are declared below for local dev parity rather than a
+# new bucket being invented. See supabase/migrations/
+# 20260726130400_storage_fleet_experience_buckets.sql for the actual
+# configuration step against the hosted project (those buckets already
+# existed there; this migration only added RLS policies and confirmed
+# `public = true`). logos, hero, gallery, instagram, documents, and
+# avatars also already exist on the hosted project — out of this phase's
+# scope, so left undeclared here too.
 
 project_id = "slokljslqyanbqabvzkk"
 
@@ -41,9 +50,22 @@ enable_signup = false
 
 [storage]
 enabled = true
-# No buckets declared yet — see supabase/SCHEMA_PROPOSAL.md, "Storage
-# buckets" for what's planned (fleet photography, experience photos/video)
-# once real migration to Supabase-hosted media begins.
+
+[storage.buckets.fleet-images]
+public = true
+
+[storage.buckets.fleet-videos]
+public = true
+
+[storage.buckets.experience-images]
+public = true
+
+[storage.buckets.experience-videos]
+public = true
+# Path convention: {slug}/{section}/{slot_key}.{ext} in the fleet-*
+# buckets, {experience_id}/{kind}-{n}.{ext} in the experience-* buckets —
+# see the storage migration for the full rationale. No files are seeded
+# here; this only gives local dev the same buckets the hosted project has.
 
 [edge_runtime]
 enabled = true

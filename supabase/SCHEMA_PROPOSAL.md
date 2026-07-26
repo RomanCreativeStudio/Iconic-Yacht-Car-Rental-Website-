@@ -1,13 +1,18 @@
 # Database Schema Proposal — Phase 6.0 Foundation
 
-**Status: proposal only. Nothing in this document has been created in the
-database.** It exists so the tables built in a future phase have an agreed
-shape before any `create table` runs, and so the mapping from today's
-static JS data files to tomorrow's tables is written down in one place.
+**Status, as of Phase 6.1: the core tables below are implemented and
+live** on the connected project (`booking_requests`, `profiles`,
+`fleet_items`, `fleet_media`, `experiences`, `experience_media`, plus RLS
+on all of them and the storage buckets in §5) — see §8 for exactly what
+changed and what's still just a proposal. `instagram_profile`,
+`instagram_posts`, `clientele_categories`, and `clientele_endorsements`
+(§2) remain proposal only; no table for them exists yet.
 
-The only table that actually exists — in `supabase/schema.sql` and now
-also `supabase/migrations/20260726120000_booking_requests_baseline.sql`
-— is `booking_requests`. Everything below is new.
+**No frontend code reads from any of this yet.** `fleet-data.js`,
+`experiences-data.js`, `instagram-data.js`, and `clientele-data.js` are
+still the live source of truth for every page — the tables existing is
+the foundation for a future, separately-scoped migration of the read
+path, not that migration itself.
 
 ---
 
@@ -39,7 +44,7 @@ Names are provisional. `jsonb` is used where the source data is already a
 free-form object (`specs`) rather than inventing more join tables than
 the data warrants.
 
-### `fleet_items`
+### `fleet_items` — ✅ implemented (Phase 6.1)
 Replaces the `FLEET_DATA` array's flat fields.
 
 | Column | Type | Notes |
@@ -59,7 +64,7 @@ Replaces the `FLEET_DATA` array's flat fields.
 | `sort_order` | integer, not null default `0` | Explicit control over fleet-grid ordering, since array order did this implicitly before |
 | `created_at` / `updated_at` | timestamptz | |
 
-### `fleet_media`
+### `fleet_media` — ✅ implemented (Phase 6.1)
 Replaces `gallery`, `galleries.{exterior,interior,lifestyle,drone}`, and
 `videos.{walkthrough,reels,tiktok,tours360}` — one flexible table instead
 of eight near-identical ones, since every one of those is "a labeled slot
@@ -73,7 +78,7 @@ that's either a real asset or `null`."
 | `section` | text, not null | `hero` \| `card` \| `gallery` \| `exterior` \| `interior` \| `lifestyle` \| `drone` \| `walkthrough` \| `reels` \| `tiktok` \| `tours360` |
 | `slot_key` | text | e.g. `bow`, `flybridge`, `full-walkthrough` — matches today's `key` field, kept for stable slot identity even while `storage_path` is null |
 | `label` | text | e.g. "Bow", "Flybridge" — shown in the "coming soon" placeholder today |
-| `storage_path` | text, nullable | Path into the `media` storage bucket (see below); **null is the expected default**, not implemented in this phase |
+| `storage_path` | text, nullable | Path into the `fleet-images` or `fleet-videos` storage bucket, per `kind` (see §5); **null is the expected default** — no files have been uploaded |
 | `platform` | text, nullable | For video rows: `video` \| `instagram` \| `tiktok` \| `tour360` |
 | `alt` | text | |
 | `sort_order` | integer, not null default `0` | |
@@ -82,7 +87,7 @@ A row with `storage_path is null` is exactly today's "coming soon"
 placeholder slot — the frontend's existing empty-state rendering needs no
 new concept, just a different data source.
 
-### `experiences`
+### `experiences` — ✅ implemented (Phase 6.1)
 Replaces `EXPERIENCES_DATA`.
 
 | Column | Type | Notes |
@@ -101,7 +106,7 @@ Replaces `EXPERIENCES_DATA`.
 | `featured` | boolean, not null default `false` | |
 | `created_at` | timestamptz | |
 
-### `experience_media`
+### `experience_media` — ✅ implemented (Phase 6.1)
 Replaces each experience's `photos` and `videos` arrays. Same shape
 philosophy as `fleet_media`.
 
@@ -116,7 +121,7 @@ philosophy as `fleet_media`.
 | `alt` | text, nullable | |
 | `sort_order` | integer, not null default `0` | |
 
-### `instagram_profile`
+### `instagram_profile` — proposal only, not implemented
 Replaces the `profile` object. Singleton table (one row) rather than a
 key/value settings table, so the shape stays obvious and typed.
 
@@ -132,7 +137,7 @@ key/value settings table, so the shape stays obvious and typed.
 | `post_count` | integer, nullable | |
 | `updated_at` | timestamptz | |
 
-### `instagram_posts`
+### `instagram_posts` — proposal only, not implemented
 Replaces `INSTAGRAM_POSTS` and `INSTAGRAM_REELS` (`is_reel` distinguishes
 them, rather than two tables, since they share every other field).
 
@@ -148,7 +153,7 @@ them, rather than two tables, since they share every other field).
 | `posted_at` | timestamptz, nullable | Maps to Graph API's `timestamp` |
 | `sort_order` | integer, not null default `0` | |
 
-### `clientele_categories`
+### `clientele_categories` — proposal only, not implemented
 Replaces `CLIENTELE_CATEGORIES`. Low-churn marketing copy — included for
 completeness/editability, but arguably the weakest case for migrating out
 of a static file of the four (see §4).
@@ -161,7 +166,7 @@ of a static file of the four (see §4).
 | `description` | text | |
 | `sort_order` | integer, not null default `0` | |
 
-### `clientele_endorsements`
+### `clientele_endorsements` — proposal only, not implemented
 Replaces `CLIENTELE_ENDORSEMENTS`. The `approved` gate that already exists
 in the JS file's own contract carries over unchanged.
 
@@ -221,63 +226,124 @@ an open question in §4, not decided here.
 
 ---
 
-## 5. Storage buckets
+## 5. Storage buckets — implemented (revised from the original proposal)
 
-One bucket, folder-organized by content type, rather than one bucket per
-table — simpler access-policy surface, and every folder shares the same
-trust model: this is all public marketing photography, exactly as public
-today as the files already sitting in `/images/` that anyone can already
-view directly.
+The original version of this section proposed one unified `media` bucket,
+folder-organized by content type. Phase 6.1 discovered that the site
+owner had already created a set of storage buckets directly in the
+Supabase dashboard *before* this document's tables existed — including
+`fleet-images`, `fleet-videos`, `experience-images`, and
+`experience-videos`, which map exactly to what this phase needed. Rather
+than layer a second, competing bucket on top, Phase 6.1 configured RLS on
+the real, pre-existing buckets instead. (A `media` bucket was briefly
+created in error mid-phase, then had its policies removed and its
+`public` flag reset to `false`, making it fully inert; it can't be
+deleted via SQL — Storage blocks direct row deletion — so it remains as
+an empty, unused, policy-less bucket until removed by hand in Dashboard >
+Storage, a one-click cleanup, not a functional issue.)
 
-**`media`** (public read)
+**Buckets in scope for this phase** (all `public = true`, all four
+sharing one RLS policy set):
 ```
-/fleet/{slug}/{section}/{slot_key}.{ext}
-/experiences/{experience_id}/{kind}-{n}.{ext}
-/clientele/{endorsement_id}/{photo|logo}.{ext}
-/instagram/{post_id}.{ext}
+fleet-images/{slug}/{section}/{slot_key}.{ext}
+fleet-videos/{slug}/{section}/{slot_key}.{ext}
+experience-images/{experience_id}/{kind}-{n}.{ext}
+experience-videos/{experience_id}/{kind}-{n}.{ext}
 ```
 
 - **Read:** public (`anon` and `authenticated`) — matches the existing
   `/images/*` folder's effective access today.
-- **Write:** `authenticated` only (staff, via a future admin upload flow)
-  — no `anon` write policy, mirroring `booking_requests`' insert-only
-  model in spirit (public can submit forms, never write files or rows
-  outside their own submission).
-- Not created in this phase. Declaring `[storage.buckets.media]` in
-  `supabase/config.toml` is the actual creation step, deferred to when
-  the `fleet_media`/`experience_media` tables that reference it exist.
+- **Write:** `authenticated` **and** `profiles.role = 'admin'` (the
+  `is_admin()` check from §6) — no `anon` write policy, mirroring
+  `booking_requests`' insert-only model in spirit (public can submit
+  forms, never write files).
+- No files are uploaded by this phase — every bucket is empty. Uploading
+  real photography and wiring `fleet_media.storage_path` /
+  `experience_media.storage_path` to point at real objects is separately
+  scoped, later work.
+
+**Buckets the owner already created but outside this phase's scope:**
+`logos`, `hero`, `gallery`, `instagram`, `documents`, `avatars`. None of
+these were touched — no policies added, no `public` flag changed. A
+later phase should decide their access rules deliberately rather than
+inheriting whatever this phase happened to configure for a different set
+of buckets.
 
 ---
 
-## 6. Authentication roles
+## 6. Authentication roles — implemented, with one addition
 
-No new roles — reuses the two Supabase already provides and that
-`supabase/schema.sql` already relies on for `booking_requests`:
+Phase 6.0 proposed reusing Supabase's two built-in roles unchanged.
+Phase 6.1 implemented that for `booking_requests` (genuinely unchanged)
+but added one thing this section didn't originally call for: a
+`profiles` table (one row per Supabase Auth user, `role` = `'admin'` or
+`'staff'`) and an `is_admin()` helper function, so the new content
+tables' "authenticated admin: full CRUD" requirement is actually role-
+gated rather than granted to any signed-in user. See
+`supabase/migrations/20260726130000_profiles_and_roles.sql` for the full
+design, including the auto-provisioning trigger and the backfill that
+grants any pre-existing staff account `admin` by default.
 
-| Role | Access once the tables above exist |
+| Role | Access, as implemented |
 |---|---|
-| `anon` (public website) | `SELECT` on every content table (`fleet_items`, `fleet_media`, `experiences`, `experience_media`, `instagram_profile`, `instagram_posts`, `clientele_categories`, and `clientele_endorsements` filtered to `approved = true`); `INSERT`-only on `booking_requests`, unchanged from today. No `anon` write access to any content table or to Storage. |
-| `authenticated` (staff, via `admin/`) | Full read/write on every content table, plus the existing `SELECT`/`UPDATE` on `booking_requests`. Whether that includes `DELETE` per table is an open question — see §4. |
-| `service_role` | Not used by any browser-loaded code, today or in this proposal — reserved for trusted server-side tooling only (e.g. a future scheduled Edge Function syncing the real Instagram Graph API, which `js/instagram-data.js`'s own migration-path comment already notes has to run server-side because it needs a long-lived access token). |
+| `anon` (public website) | `SELECT` on `fleet_items`/`experiences` where `published = true` (and their `fleet_media`/`experience_media` rows, via a join back to the parent's `published` flag); `INSERT`-only on `booking_requests`, unchanged from before this phase. No `anon` write access to any content table or to Storage. `instagram_profile`, `instagram_posts`, `clientele_categories`, `clientele_endorsements` remain proposal-only — not implemented. |
+| `authenticated`, non-admin (`profiles.role = 'staff'`, the default for any new account) | Same read access as `anon` on the new content tables — no elevated read tier for non-admin staff was implemented, since nothing in this phase called for one. Retains the existing `SELECT`/`UPDATE` on `booking_requests` (that policy checks `authenticated`, not role, unchanged). |
+| `authenticated`, admin (`profiles.role = 'admin'`) | Full read (including unpublished drafts) and full `INSERT`/`UPDATE`/`DELETE` on `fleet_items`, `fleet_media`, `experiences`, `experience_media`, and the four storage buckets in §5, via `is_admin()`. Whether content tables should have a `DELETE` policy at all long-term is still the open question from §4 — this phase granted it via the blanket `for all` admin policy, which does include delete. |
+| `service_role` | Not used by any browser-loaded code — reserved for trusted server-side tooling only (e.g. a future scheduled Edge Function syncing the real Instagram Graph API, which `js/instagram-data.js`'s own migration-path comment already notes has to run server-side). |
 
-This keeps the security model identical to the one already documented in
-CLIENT_SETUP.md for `booking_requests`: RLS is the actual boundary, not
-which key is or isn't visible in a browser's network tab.
+This keeps the security model identical in spirit to the one already
+documented in CLIENT_SETUP.md for `booking_requests`: RLS is the actual
+boundary, not which key is or isn't visible in a browser's network tab.
 
 ---
 
-## 7. What Phase 6.0 Part 1 deliberately did not do
+## 7. What remains proposal-only after Phase 6.1
 
-- No `create table` statements beyond the pre-existing `booking_requests`
-  baseline migration.
-- No storage buckets declared or created.
+- `instagram_profile`, `instagram_posts`, `clientele_categories`,
+  `clientele_endorsements` — no tables created.
 - No frontend code was changed to read from Supabase — `fleet-data.js`,
   `experiences-data.js`, `instagram-data.js`, and `clientele-data.js` are
   still the live source of truth for every page.
-- No admin dashboard changes.
+- No admin dashboard changes — staff still manage bookings the same way;
+  there is no UI yet for editing `fleet_items`/`experiences` or for
+  promoting a user to `admin` (that's a one-off SQL Editor statement for
+  now, per §6 / the profiles migration).
+- No files uploaded to any storage bucket.
+- The `booking_requests.fleet_item` free-text-vs-FK question (§4) and
+  the `clientele_categories`-as-a-table question (§4) remain open.
 
-A later phase, scoped separately, should pick one table from §2 (`fleet_
-items` is the natural first candidate — it's the most-used data file and
-already has the clearest 1:1 field mapping), write its migration, and
-migrate exactly one page's read path over — proving the pattern before
-repeating it three more times.
+A later phase, scoped separately, should pick one table (`fleet_items` is
+the natural first candidate — the most-used data file, with the clearest
+1:1 field mapping), build the admin UI to manage it, and migrate exactly
+one page's read path over — proving the pattern before repeating it.
+
+---
+
+## 8. Phase 6.1 implementation log
+
+Applied directly to the connected project (`slokljslqyanbqabvzkk`) via
+the migrations listed below, each idempotent and safe to re-run:
+
+| Migration | What it did |
+|---|---|
+| `20260726120000_booking_requests_baseline.sql` | Applied for the first time in this phase — it existed as a file since Phase 6.0 but had never actually been run against this project. |
+| `20260726130000_profiles_and_roles.sql` | `profiles` table, auto-provisioning trigger, `is_admin()`, RLS on `profiles` itself. |
+| `20260726130100_fleet_items.sql` | `fleet_items` table, indexes, RLS. |
+| `20260726130200_fleet_media.sql` | `fleet_media` table, indexes, RLS (join-based, follows parent `published`). |
+| `20260726130300_experiences.sql` | `experiences` + `experience_media` tables, indexes, RLS. |
+| `20260726130400_storage_fleet_experience_buckets.sql` | RLS + `public = true` on the four pre-existing buckets in §5 (see that section for the `media`-bucket correction story). |
+
+Verified directly against the live project (not just locally) after
+applying:
+- `anon` can read a `published = true` row and cannot read an
+  `published = false` one, on `fleet_items`.
+- `anon` cannot `INSERT` into `fleet_items` (RLS rejects it,
+  `42501`).
+- `anon` cannot `SELECT` from `profiles` (empty result — no blanket
+  policy exists).
+- `anon` can still `INSERT` into `booking_requests` — the pre-existing
+  public booking flow is unaffected.
+- All temporary rows used for the above were deleted immediately after;
+  every table was confirmed empty again afterward. No seed/example data
+  was left in place — verifying directly against the real (empty) tables
+  and cleaning up made a committed seed file unnecessary for this phase.
