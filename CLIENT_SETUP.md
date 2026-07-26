@@ -64,20 +64,22 @@ apple touch icon, and social share image) — see
 2. [Brand Logo](#brand-logo)
 3. [Replacing Images](#replacing-images)
 4. [Adding or Editing Fleet Items](#adding-or-editing-fleet-items)
-5. [Updating Business Information](#updating-business-information)
-6. [Instagram Section](#instagram-section)
-7. [Luxury Experiences & Recent Charters](#luxury-experiences--recent-charters)
-8. [Clientele / Social Proof Section](#clientele--social-proof-section)
-9. [Videos Section](#videos-section)
-10. [How Booking Requests Work](#how-booking-requests-work)
-11. [Database Setup](#database-setup)
-12. [Environment Variables](#environment-variables)
-13. [Email Configuration](#email-configuration)
-14. [Analytics & Tracking](#analytics--tracking)
-15. [Structured Data & SEO](#structured-data--seo)
-16. [Future CMS Integration](#future-cms-integration)
-17. [How Deployment Works](#how-deployment-works)
-18. [Making Code Changes — the Minified Files](#making-code-changes--the-minified-files)
+5. [Fleet Manager (Admin CMS)](#fleet-manager-admin-cms)
+6. [Media Manager (Admin CMS)](#media-manager-admin-cms)
+7. [Updating Business Information](#updating-business-information)
+8. [Instagram Section](#instagram-section)
+9. [Luxury Experiences & Recent Charters](#luxury-experiences--recent-charters)
+10. [Clientele / Social Proof Section](#clientele--social-proof-section)
+11. [Videos Section](#videos-section)
+12. [How Booking Requests Work](#how-booking-requests-work)
+13. [Database Setup](#database-setup)
+14. [Environment Variables](#environment-variables)
+15. [Email Configuration](#email-configuration)
+16. [Analytics & Tracking](#analytics--tracking)
+17. [Structured Data & SEO](#structured-data--seo)
+18. [Future CMS Integration](#future-cms-integration)
+19. [How Deployment Works](#how-deployment-works)
+20. [Making Code Changes — the Minified Files](#making-code-changes--the-minified-files)
 
 ---
 
@@ -299,10 +301,12 @@ its pictures.
 
 Two things have to both be true before the public site can safely switch
 from `fleet-data.js` to this database: every vehicle's real photography
-needs to exist in Supabase Storage (media upload isn't built yet), and
-the frontend templates need to be pointed at the new data source. Neither
-has happened yet, on purpose — see "Future CMS Integration" below for the
-exact mechanism already prepared for when that switch happens.
+needs to exist in Supabase Storage (the Media Manager below can now do
+that part — see [Media Manager (Admin CMS)](#media-manager-admin-cms)),
+and the frontend templates need to be pointed at the new data source.
+That second part hasn't happened yet, on purpose — see "Future CMS
+Integration" below for the exact mechanism already prepared for when
+that switch happens.
 
 Who can use it: the same sign-in as the booking dashboard (see "Admin
 Dashboard Access" above) — both `admin` and `staff` accounts can sign in
@@ -310,6 +314,137 @@ and use the Fleet Manager today; only `admin` accounts can actually save
 changes (create, edit, duplicate, or delete a vehicle). A `staff` account
 attempting to save sees a clear "you may not have permission" message
 rather than a silent failure.
+
+---
+
+## Media Manager (Admin CMS)
+
+`admin/media.html` (linked from the "Media" tab in the admin dashboard
+header, and from a "Media" button on each vehicle card / a "Open Media
+Manager" button inside the Fleet Editor) is where real photos and videos
+actually get uploaded to Supabase Storage and attached to a vehicle or
+experience. Like the Fleet Manager, this is real — every upload, replace,
+and delete here happens against the live database and Storage buckets
+immediately.
+
+**The Fleet Manager itself never uploads files.** Editing a vehicle's
+name, pricing, or specs happens in the Fleet Editor; attaching its
+photos and videos always happens here, in the Media Manager.
+
+### Uploading media
+
+1. Click **+ Upload Media**.
+2. Choose what the file(s) attach to — a **Vehicle** (pick it from the
+   dropdown, then a media kind and section/slot) or an **Experience**
+   (pick it from the dropdown — this stays empty until an experience
+   exists to attach media to; documenting a charter in
+   `js/experiences-data.js` today doesn't create a database row yet, so
+   there's nothing to select until a later phase adds an Experience
+   Manager).
+3. For vehicles, most sections (Exterior, Interior, Lifestyle, Drone,
+   and all four video categories) are made of fixed slots — Bow, Master
+   Cabin, Full Walkthrough, and so on — so you upload one file per slot.
+   **Gallery** is the exception: it's an open list, so drag in as many
+   photos as you like at once.
+4. Drag files onto the dropzone, or click **Browse Files**. Each file
+   gets its own progress bar; you can **Cancel** an in-flight upload or
+   **Retry** one that failed (wrong file type, too large, a dropped
+   connection) without re-selecting everything else in the batch.
+5. Click **Upload All**.
+
+### Replacing media
+
+Every item in the Media Library has a **Replace** button. Pick a new
+file of the same kind (a photo slot only accepts another photo, a video
+slot only another video) and confirm — the old file is swapped out
+immediately; nothing needs to be deleted and re-uploaded separately.
+
+### Deleting media
+
+Click **Delete** on any item and confirm. This removes both the file in
+Storage and its database record together — Iconic Rentals' Media Manager
+never leaves one without the other, so there's nothing to clean up by
+hand afterward.
+
+### The Media Library
+
+The main view lists every uploaded item across every vehicle and
+experience, with:
+
+- **Filters** — Vehicle vs. Experience, Images vs. Videos, Published vs.
+  Draft (this follows the parent vehicle's/experience's own Published
+  toggle from the Fleet Editor — a media item has no separate published
+  state of its own).
+- **Search** — matches filename, the vehicle/experience name, or the
+  section/slot.
+- **Sort** — Newest, Oldest, or Filename.
+
+There's no pagination yet — fine for the current fleet size, worth
+revisiting if the library grows into the hundreds of items.
+
+### Storage buckets
+
+Four buckets, all pre-existing on the Supabase project and reused as-is
+(no new buckets were created for this):
+
+| Bucket | Holds |
+|---|---|
+| `fleet-images` | Vehicle photos (hero, card, gallery, exterior, interior, lifestyle, drone) |
+| `fleet-videos` | Vehicle videos (walkthrough, Reels, TikTok, 360° tours) |
+| `experience-images` | Experience cover photos and photo galleries |
+| `experience-videos` | Experience videos |
+
+All four are public-read (matching how `/images/*` already works on the
+public site today) with admin-only upload/replace/delete, enforced by
+Row Level Security on `storage.objects` — the same `is_admin()` check
+used everywhere else in the dashboard.
+
+### Supported formats
+
+- **Images:** JPG, JPEG, PNG, WEBP
+- **Videos:** MP4, MOV, WEBM
+
+Anything else is rejected before it uploads, both by the Media Manager
+itself and — as a second, server-side check that a direct API call
+can't bypass — by the Storage buckets' own `allowed_mime_types`
+configuration.
+
+### Maximum upload sizes
+
+- **Images:** 20 MB per file
+- **Videos:** 500 MB per file
+
+Also enforced twice (client-side and on the bucket itself), same
+reasoning as file types above. If you need larger video files than this,
+increase the relevant buckets' `file_size_limit` in **Supabase Dashboard
+> Storage** (or via
+`supabase/migrations/20260726220000_media_storage_constraints.sql`) —
+just confirm your Supabase plan's own per-file limit can accommodate it
+first.
+
+### Recommended image sizes
+
+For sharp results without unnecessarily large page weight:
+
+- **Hero / Card images:** 1600×1200px (4:3), optimized to roughly
+  200–500 KB.
+- **Gallery / Exterior / Interior / Lifestyle / Drone:** 1600×1200px
+  (4:3) is a good default; wider aerial/drone shots can go up to
+  1920×1080px (16:9).
+
+### Recommended video sizes
+
+- **Walkthrough videos:** 1080p (1920×1080), H.264 MP4, under ~2 minutes
+  where possible.
+- **Reels / TikTok:** vertical 1080×1920 (9:16), matching how they're
+  filmed for those platforms natively.
+- **360° tours:** whatever your tour provider exports — these are
+  usually embedded/linked rather than re-encoded.
+
+None of this is enforced by the Media Manager — they're recommendations
+for what looks good and loads quickly on the public site once the
+frontend migration in [Future CMS Integration](#future-cms-integration)
+happens.
 
 ---
 

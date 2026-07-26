@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en-US">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Media Manager | Iconic Rentals Admin</title>
+<meta name="robots" content="noindex, nofollow" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230a0a0b'/%3E%3Ctext x='50' y='68' font-family='Georgia,serif' font-size='58' fill='%23c6a15b' text-anchor='middle'%3EI%3C/text%3E%3C/svg%3E" />
+
+<link rel="preload" as="font" type="font/woff2" href="../fonts/cormorant-garamond-normal.woff2" crossorigin />
+<link rel="preload" as="font" type="font/woff2" href="../fonts/jost.woff2" crossorigin />
+<link rel="stylesheet" href="../css/fonts.min.css" />
+<link rel="stylesheet" href="../css/style.min.css" />
+<link rel="stylesheet" href="../css/admin.css" />
+</head>
+<body class="admin-body">
+
+<header class="admin-header">
+  <a href="../index.html" class="brand">Iconic <strong>Rentals</strong></a>
+  <nav class="admin-nav" aria-label="Admin sections">
+    <a href="index.html" class="admin-nav-link">Inquiries</a>
+    <a href="fleet.html" class="admin-nav-link">Fleet</a>
+    <a href="media.html" class="admin-nav-link is-active" aria-current="page">Media</a>
+  </nav>
+  <button type="button" class="btn btn-ghost admin-signout" id="signOutBtn" hidden>Sign Out</button>
+</header>
+
+<main class="admin-main">
+  <section class="admin-dashboard" id="mediaView" hidden>
+
+    <div class="fleet-toolbar">
+      <input type="search" class="fleet-search" id="mediaSearch" placeholder="Search by filename, label, or vehicle/experience…" aria-label="Search media" />
+
+      <div class="fleet-filter-group" role="group" aria-label="Filter by parent type">
+        <button type="button" class="admin-filter-tab is-active" data-filter="parentType" data-value="">All</button>
+        <button type="button" class="admin-filter-tab" data-filter="parentType" data-value="fleet">Vehicle</button>
+        <button type="button" class="admin-filter-tab" data-filter="parentType" data-value="experience">Experience</button>
+      </div>
+
+      <div class="fleet-filter-group" role="group" aria-label="Filter by media type">
+        <button type="button" class="admin-filter-tab is-active" data-filter="mediaType" data-value="">Any Type</button>
+        <button type="button" class="admin-filter-tab" data-filter="mediaType" data-value="image">Images</button>
+        <button type="button" class="admin-filter-tab" data-filter="mediaType" data-value="video">Videos</button>
+      </div>
+
+      <div class="fleet-filter-group" role="group" aria-label="Filter by publish status">
+        <button type="button" class="admin-filter-tab is-active" data-filter="published" data-value="">Any Status</button>
+        <button type="button" class="admin-filter-tab" data-filter="published" data-value="true">Published</button>
+        <button type="button" class="admin-filter-tab" data-filter="published" data-value="false">Draft</button>
+      </div>
+
+      <select class="fleet-sort" id="mediaSort" aria-label="Sort media">
+        <option value="newest">Sort: Newest</option>
+        <option value="oldest">Sort: Oldest</option>
+        <option value="filename">Sort: Filename</option>
+      </select>
+
+      <button type="button" class="btn btn-primary" id="openUploadBtn">+ Upload Media</button>
+    </div>
+
+    <div class="admin-banner" id="mediaBanner" role="alert" hidden></div>
+
+    <div class="media-grid" id="mediaGrid"></div>
+
+    <div class="fleet-empty" id="mediaEmpty" hidden>
+      <h3>No media yet</h3>
+      <p id="mediaEmptyText">Upload photos or videos to get started.</p>
+    </div>
+  </section>
+</main>
+
+<!-- ============ UPLOAD PANEL ============ -->
+<div class="admin-editor" id="uploadPanel" role="dialog" aria-modal="true" aria-labelledby="uploadPanelTitle" hidden>
+  <div class="admin-editor-backdrop" data-upload-close></div>
+  <div class="admin-editor-card">
+    <div class="admin-editor-header">
+      <div>
+        <span class="eyebrow">Media Manager</span>
+        <h2 id="uploadPanelTitle">Upload Media</h2>
+      </div>
+      <button type="button" class="quick-book-close" data-upload-close aria-label="Close upload panel">
+        <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+
+    <div class="admin-editor-body">
+      <div class="admin-banner" id="uploadBanner" role="alert" hidden></div>
+
+      <!-- Target -->
+      <div class="admin-editor-section">
+        <h3>Target</h3>
+        <div class="admin-editor-fieldgrid">
+          <div class="form-field full">
+            <label>Attach to</label>
+            <div class="fleet-filter-group" role="radiogroup" aria-label="Attach media to">
+              <button type="button" class="admin-filter-tab is-active" data-target-type="fleet">Vehicle</button>
+              <button type="button" class="admin-filter-tab" data-target-type="experience">Experience</button>
+            </div>
+          </div>
+
+          <div class="form-field full" data-target-group="fleet">
+            <label for="targetFleetItem">Vehicle</label>
+            <select id="targetFleetItem"></select>
+          </div>
+          <div class="form-field full" data-target-group="experience" hidden>
+            <label for="targetExperience">Experience</label>
+            <select id="targetExperience"></select>
+            <span class="admin-toggle-hint" id="noExperiencesHint" hidden>No experiences exist yet — media can be uploaded once one is created.</span>
+          </div>
+
+          <div class="form-field" data-target-group="fleet">
+            <label for="targetFleetKind">Media Kind</label>
+            <select id="targetFleetKind">
+              <option value="image">Image</option>
+              <option value="video">Video</option>
+            </select>
+          </div>
+          <div class="form-field" data-target-group="fleet">
+            <label for="targetFleetSection">Section</label>
+            <select id="targetFleetSection"></select>
+          </div>
+          <div class="form-field full" data-target-group="fleet" id="targetFleetSlotWrap" hidden>
+            <label for="targetFleetSlot">Slot</label>
+            <select id="targetFleetSlot"></select>
+          </div>
+
+          <div class="form-field" data-target-group="experience" hidden>
+            <label for="targetExperienceKind">Media Kind</label>
+            <select id="targetExperienceKind">
+              <option value="cover">Cover Photo</option>
+              <option value="photo">Photo</option>
+              <option value="video">Video</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Files -->
+      <div class="admin-editor-section">
+        <h3>Files</h3>
+        <div class="media-dropzone" id="mediaDropzone" tabindex="0" role="button" aria-label="Drag and drop files here, or browse">
+          <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M12 16V4M12 4l-4 4M12 4l4 4"/><path d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+          <p>Drag &amp; drop images or videos here</p>
+          <button type="button" class="btn btn-ghost" id="browseFilesBtn">Browse Files</button>
+          <input type="file" id="fileInput" multiple hidden accept=".jpg,.jpeg,.png,.webp,.mp4,.mov,.webm,image/jpeg,image/png,image/webp,video/mp4,video/quicktime,video/webm" />
+          <span class="media-dropzone-hint">JPG, PNG, WEBP up to 20 MB · MP4, MOV, WEBM up to 500 MB</span>
+        </div>
+
+        <div class="media-upload-list" id="uploadList"></div>
+      </div>
+    </div>
+
+    <div class="admin-editor-footer">
+      <button type="button" class="btn btn-ghost" id="uploadCancelBtn">Close</button>
+      <div class="admin-editor-footer-actions">
+        <button type="button" class="btn btn-primary" id="uploadStartBtn" data-label="Upload All" data-loading-label="Uploading…">Upload All</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ REPLACE (hidden file input, reused per-card) ============ -->
+<input type="file" id="replaceFileInput" hidden />
+
+<script src="../js/booking-config.js"></script>
+<script src="../js/vendor/supabase-js.min.js"></script>
+<script src="../js/supabase-client.js"></script>
+<script src="auth-guard.js"></script>
+<script src="ui-utils.js"></script>
+<script src="media-service.js"></script>
+<script src="media.js"></script>
+</body>
+</html>

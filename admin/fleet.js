@@ -139,6 +139,7 @@
       '<div class="fleet-card-actions">' +
       '<button type="button" class="btn btn-ghost" data-action="view" data-id="' + item.id + '">View</button>' +
       '<button type="button" class="btn btn-ghost" data-action="edit" data-id="' + item.id + '">Edit</button>' +
+      '<button type="button" class="btn btn-ghost" data-action="media" data-id="' + item.id + '">Media</button>' +
       '<button type="button" class="btn btn-ghost" data-action="duplicate" data-id="' + item.id + '">Duplicate</button>' +
       '<button type="button" class="btn btn-danger" data-action="delete" data-id="' + item.id + '">Delete</button>' +
       '</div></div></div>'
@@ -270,6 +271,8 @@
       openView(item);
     } else if (action === 'edit') {
       window.IconicFleetEditor.open('edit', item);
+    } else if (action === 'media') {
+      window.open('media.html?fleetItemId=' + encodeURIComponent(item.id), '_blank');
     } else if (action === 'duplicate') {
       var existingSlugs = allItems.map(function (i) { return i.slug; });
       var payload = window.IconicFleetService.duplicatePayload(item, existingSlugs);

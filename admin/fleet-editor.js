@@ -24,6 +24,7 @@
   var banner = document.getElementById('fleetEditorBanner');
   var saveBtn = document.getElementById('fleetEditorSaveBtn');
   var cancelBtn = document.getElementById('fleetEditorCancelBtn');
+  var mediaBtn = document.getElementById('fleetEditorMediaBtn');
 
   var fieldType = document.getElementById('fieldType');
   var fieldName = document.getElementById('fieldName');
@@ -366,6 +367,10 @@
     populate(item);
     eyebrow.textContent = mode === 'duplicate' ? 'Duplicate Vehicle' : 'Edit Vehicle';
     titleEl.textContent = item.name || (mode === 'duplicate' ? 'New Vehicle' : 'Vehicle');
+    // Media Manager needs a saved row to attach files to — hidden for
+    // 'duplicate' (not saved yet) the same way a blank-slate "create" flow
+    // would have nothing to link to either.
+    mediaBtn.hidden = mode !== 'edit';
     overlay.hidden = false;
     requestAnimationFrame(function () { overlay.classList.add('is-open'); });
     fieldName.focus();
@@ -395,6 +400,9 @@
     el.addEventListener('click', requestClose);
   });
   cancelBtn.addEventListener('click', requestClose);
+  mediaBtn.addEventListener('click', function () {
+    if (currentId) window.open('media.html?fleetItemId=' + encodeURIComponent(currentId), '_blank');
+  });
 
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape' && overlay.classList.contains('is-open')) requestClose();
