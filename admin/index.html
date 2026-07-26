@@ -23,29 +23,9 @@
 
 <main class="admin-main">
 
-  <!-- ============ LOGIN VIEW ============ -->
-  <section class="admin-login" id="loginView">
-    <div class="admin-login-card">
-      <span class="eyebrow">Staff Access</span>
-      <h1>Sign In</h1>
-      <p>This dashboard is for authorized staff only. See CLIENT_SETUP.md, "Admin Dashboard Access" to create your login.</p>
-
-      <form id="loginForm" novalidate>
-        <div class="form-field full">
-          <label for="loginEmail">Email</label>
-          <input type="email" id="loginEmail" name="loginEmail" autocomplete="username" required />
-          <span class="form-error" role="alert" aria-live="polite"></span>
-        </div>
-        <div class="form-field full">
-          <label for="loginPassword">Password</label>
-          <input type="password" id="loginPassword" name="loginPassword" autocomplete="current-password" required />
-          <span class="form-error" role="alert" aria-live="polite"></span>
-        </div>
-        <div class="form-banner form-banner--error" id="loginBanner" role="alert" hidden></div>
-        <button type="submit" class="btn btn-primary btn-block" data-label="Sign In" data-loading-label="Signing In…">Sign In</button>
-      </form>
-    </div>
-  </section>
+  <!-- Sign-in now lives at admin/login.html — dashboard.js checks the
+       session + role (see admin/auth-guard.js) before this section is
+       ever shown, and redirects to login.html otherwise. -->
 
   <!-- ============ DASHBOARD VIEW ============ -->
   <section class="admin-dashboard" id="dashboardView" hidden>
@@ -112,6 +92,8 @@
 
 <script src="../js/booking-config.js"></script>
 <script src="../js/vendor/supabase-js.min.js"></script>
+<script src="../js/supabase-client.js"></script>
+<script src="auth-guard.js"></script>
 <script src="dashboard.js"></script>
 </body>
 </html>

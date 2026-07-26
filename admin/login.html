@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en-US">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Sign In | Iconic Rentals Admin</title>
+<meta name="robots" content="noindex, nofollow" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230a0a0b'/%3E%3Ctext x='50' y='68' font-family='Georgia,serif' font-size='58' fill='%23c6a15b' text-anchor='middle'%3EI%3C/text%3E%3C/svg%3E" />
+
+<link rel="preload" as="font" type="font/woff2" href="../fonts/cormorant-garamond-normal.woff2" crossorigin />
+<link rel="preload" as="font" type="font/woff2" href="../fonts/jost.woff2" crossorigin />
+<link rel="stylesheet" href="../css/fonts.min.css" />
+<link rel="stylesheet" href="../css/style.min.css" />
+<link rel="stylesheet" href="../css/admin.css" />
+</head>
+<body class="admin-body">
+
+<header class="admin-header">
+  <a href="../index.html" class="brand">Iconic <strong>Rentals</strong></a>
+</header>
+
+<main class="admin-main">
+  <section class="admin-login" id="loginView">
+    <div class="admin-login-card">
+      <span class="eyebrow">Staff Access</span>
+      <h1>Sign In</h1>
+      <p>This dashboard is for authorized staff only. See CLIENT_SETUP.md, "Admin Dashboard Access" to create your login.</p>
+
+      <form id="loginForm" novalidate>
+        <div class="form-field full">
+          <label for="loginEmail">Email</label>
+          <input type="email" id="loginEmail" name="loginEmail" autocomplete="username" required />
+          <span class="form-error" role="alert" aria-live="polite"></span>
+        </div>
+        <div class="form-field full">
+          <label for="loginPassword">Password</label>
+          <input type="password" id="loginPassword" name="loginPassword" autocomplete="current-password" required />
+          <span class="form-error" role="alert" aria-live="polite"></span>
+        </div>
+        <div class="form-banner form-banner--error" id="loginBanner" role="alert" hidden></div>
+        <button type="submit" class="btn btn-primary btn-block" data-label="Sign In" data-loading-label="Signing In…">Sign In</button>
+      </form>
+    </div>
+  </section>
+</main>
+
+<script src="../js/booking-config.js"></script>
+<script src="../js/vendor/supabase-js.min.js"></script>
+<script src="../js/supabase-client.js"></script>
+<script src="auth-guard.js"></script>
+<script src="login.js"></script>
+</body>
+</html>

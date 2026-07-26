@@ -7,26 +7,22 @@
  * correctly, and this page is an internal tool, not part of the public
  * site's performance budget.
  *
- * Access control is enforced by the database (see supabase/schema.sql RLS
- * policies: "authenticated" role can SELECT/UPDATE, "anon" cannot), not by
- * this file — treat this JS as a convenience UI, not the security boundary.
+ * Sign-in itself lives at admin/login.html; this file's job on load is
+ * only to confirm the visitor already has a valid session *and* dashboard
+ * access (profiles.role is 'admin' or 'staff', per admin/auth-guard.js),
+ * redirecting to login.html otherwise. Access control is still ultimately
+ * enforced by the database (Row Level Security — see
+ * supabase/migrations), not by this file: treat this JS as a convenience
+ * UI, not the security boundary.
  */
 (function () {
   'use strict';
 
-  var cfg = window.IconicBookingConfig;
-  var configured = !!(
-    cfg &&
-    cfg.SUPABASE_URL &&
-    cfg.SUPABASE_ANON_KEY &&
-    cfg.SUPABASE_URL.indexOf('YOUR-PROJECT-REF') === -1 &&
-    cfg.SUPABASE_ANON_KEY.indexOf('YOUR-SUPABASE-ANON-KEY') === -1
-  );
+  var auth = window.IconicAdminAuth;
+  var supabase = auth && auth.requireClient();
+  if (!supabase) return;
 
-  var loginView = document.getElementById('loginView');
   var dashboardView = document.getElementById('dashboardView');
-  var loginForm = document.getElementById('loginForm');
-  var loginBanner = document.getElementById('loginBanner');
   var signOutBtn = document.getElementById('signOutBtn');
   var dashboardBanner = document.getElementById('dashboardBanner');
   var tableBody = document.getElementById('inquiriesTableBody');
@@ -62,83 +58,28 @@
     }
   }
 
-  function showFatalError(title, message) {
-    document.body.innerHTML =
-      '<main style="display:block;max-width:520px;margin:15vh auto;padding:2rem;text-align:center;font-family:sans-serif;color:#eee;">' +
-      '<h1 style="font-family:serif;">' + title + '</h1>' +
-      '<p>' + message + '</p>' +
-      '</main>';
-  }
-
-  if (!configured) {
-    showFatalError(
-      'Not Configured Yet',
-      'This admin dashboard needs your Supabase project URL and anon key in <code>js/booking-config.js</code> before it can sign in or load inquiries. See CLIENT_SETUP.md, "Environment Variables".'
-    );
-    return;
-  }
-
-  if (!window.supabase || typeof window.supabase.createClient !== 'function') {
-    showFatalError(
-      'Couldn’t Load the Dashboard',
-      'A required script (js/vendor/supabase-js.min.js) failed to load. Try refreshing the page — if this keeps happening, check that the file exists and your connection is stable.'
-    );
-    return;
-  }
-
-  // @ts-ignore -- global from the self-hosted Supabase UMD bundle
-  var supabase = window.supabase.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY);
-
   function showDashboard() {
-    loginView.hidden = true;
     dashboardView.hidden = false;
     signOutBtn.hidden = false;
     loadInquiries();
   }
 
-  function showLogin() {
-    loginView.hidden = false;
-    dashboardView.hidden = true;
-    signOutBtn.hidden = true;
-  }
-
-  /* Restore an existing session on reload, so staff aren't logged out every visit */
-  supabase.auth.getSession().then(function (result) {
-    if (result.data && result.data.session) {
-      showDashboard();
-    } else {
-      showLogin();
+  /* Every load starts here: no session, or a session without dashboard
+     access, goes straight to login.html rather than showing any part of
+     the dashboard — including its markup, which stays `hidden` in the
+     HTML until this resolves. */
+  auth.getSessionAndRole(supabase).then(function (result) {
+    if (!result.session || !auth.hasDashboardAccess(result.role)) {
+      window.location.replace('login.html');
+      return;
     }
-  });
-
-  loginForm.addEventListener('submit', function (e) {
-    e.preventDefault();
-    hideBanner(loginBanner);
-    var email = document.getElementById('loginEmail').value.trim();
-    var password = document.getElementById('loginPassword').value;
-    var submitBtn = loginForm.querySelector('button[type="submit"]');
-    setButtonLoading(submitBtn, true);
-
-    supabase.auth
-      .signInWithPassword({ email: email, password: password })
-      .then(function (result) {
-        if (result.error) {
-          showBanner(loginBanner, 'Incorrect email or password. Contact your administrator if you need access.');
-          return;
-        }
-        loginForm.reset();
-        showDashboard();
-      })
-      .catch(function () {
-        showBanner(loginBanner, 'Couldn’t reach the sign-in service. Check your connection and try again.');
-      })
-      .then(function () {
-        setButtonLoading(submitBtn, false);
-      });
+    showDashboard();
   });
 
   signOutBtn.addEventListener('click', function () {
-    supabase.auth.signOut().then(showLogin);
+    supabase.auth.signOut().then(function () {
+      window.location.replace('login.html');
+    });
   });
 
   function statusBadgeClass(status) {

@@ -519,25 +519,86 @@ edge functions, all on a generous free tier for a business this size.
 ### Admin Dashboard Access
 
 The dashboard at `admin/index.html` requires a Supabase Auth login —
-there's no separate username/password system to manage.
+there's no separate username/password system to manage. Signing in
+happens on its own page, `admin/login.html`; `admin/index.html` itself
+checks for a valid, authorized session the moment it loads and sends
+anyone without one to the login page instead of showing any inquiry
+data.
 
-1. In your Supabase dashboard, go to **Authentication > Users > Add
-   user** and create an account for each staff member who needs access
-   (email + password). Do this for every person individually — Supabase
-   supports as many users as you need to add this way.
-2. **Turn off public sign-ups** so a stranger can't create their own
-   account: **Authentication > Providers > Email**, disable "Allow new
-   users to sign up." Staff accounts are added by you, from the
-   dashboard, not by anyone signing up themselves.
-3. Staff sign in at `yourdomain.com/admin/` with the email/password you
-   created for them.
+#### How you (the owner) log in
 
-The dashboard lets staff view every inquiry, filter by status, open one
-for full details, and update its status as they work it — new inquiry →
-contacted → confirmed → completed (or cancelled). This page is marked
-`noindex` so search engines won't list it, but that alone doesn't secure
-it — the Supabase Auth login and the RLS policies above are what actually
-protect customer data, and both are already in place.
+1. Go to `yourdomain.com/admin/` (or `admin/login.html` directly). If
+   you're not already signed in, you'll land on the sign-in form
+   automatically.
+2. Enter the email and password for your account (see below for creating
+   one if you haven't yet).
+3. On success you're taken straight to the inquiries dashboard. Your
+   session is remembered across visits — you won't need to sign in again
+   on the same browser until you sign out or the session naturally
+   expires.
+4. Click **Sign Out** in the top-right corner when you're done on a
+   shared or public computer. This ends the session and returns you to
+   the sign-in page.
+
+#### Creating another admin or staff account
+
+There's no self-service sign-up (deliberately — see the security notes
+below), so every account is created by hand, once, in the Supabase
+dashboard:
+
+1. Go to **Authentication > Users > Add user** and create an account
+   (email + password) for the person who needs access. Repeat for each
+   person individually.
+2. That's enough for **staff-level** access on its own — a newly created
+   account defaults to the `staff` role automatically and can already
+   sign in and use the dashboard.
+3. To grant **admin** instead of staff (there's no functional difference
+   between the two yet — see "Roles today vs. later" below, but the
+   distinction exists for tables added in a future phase), open
+   **SQL Editor > New query** and run, filling in the new user's ID from
+   the Users list:
+   ```sql
+   update profiles set role = 'admin' where id = '<the-user-id>';
+   ```
+4. **Turn off public sign-ups** once, the first time you set this up, so
+   a stranger can never create their own account: **Authentication >
+   Providers > Email**, disable "Allow new users to sign up." Staff
+   accounts are only ever added by you, from the dashboard.
+
+Removing someone's access: delete their row in **Authentication > Users**
+— their profile record and dashboard access go with it.
+
+#### Roles today vs. later
+
+Every account is one of two roles, tracked in a `profiles` table:
+
+- **`staff`** — the default for a brand-new account. Can sign in and use
+  the booking inquiries dashboard exactly like an admin can today.
+- **`admin`** — the same access today, plus it's the role that will gate
+  full content-management (fleet, experiences) once that's built in a
+  future phase. Granting `admin` now to whoever should eventually manage
+  that content saves a step later.
+
+Both roles are allowed into the dashboard as it exists today — the
+distinction is groundwork for later, not a restriction you'll notice yet.
+
+#### Security notes
+
+- **Row Level Security (RLS), not this login screen, is what actually
+  protects the data.** The sign-in form and the role check are a
+  convenience UI — even if someone found a way around them, the database
+  itself refuses to hand back `booking_requests` rows (or the other
+  tables) to anyone who isn't signed in with a valid session, no matter
+  what request they send.
+- **Only the anon key is ever in the site's code**, never the
+  `service_role` key — the anon key is meant to be public (see
+  "Environment Variables" below) and RLS is what makes that safe.
+- A signed-in session with no matching `profiles` row (or a role outside
+  `admin`/`staff`) is treated as **no access** and sent back to the login
+  page — access fails closed, not open, if anything about a user's
+  profile is missing or unexpected.
+- This page is marked `noindex` so search engines won't list it, but
+  that alone doesn't secure it — the points above are what do.
 
 ---
 
