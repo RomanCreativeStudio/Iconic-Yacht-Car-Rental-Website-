@@ -78,6 +78,7 @@
   var uploadQueue = []; // { uid, file, mediaType, status, progress, error, controller }
   var uploadQueueCounter = 0;
   var replaceContext = null; // the media-row object currently being replaced
+  var canWrite = true; // narrowed once the session's role is known (read_only)
 
   function showBanner(el, message) {
     el.textContent = message;
@@ -108,6 +109,8 @@
       window.location.replace('login.html');
       return;
     }
+    canWrite = result.role === 'admin';
+    openUploadBtn.hidden = !canWrite;
     mediaView.hidden = false;
     signOutBtn.hidden = false;
     if (linkedFleetItemId) applyFleetItemDeepLink();
@@ -129,6 +132,7 @@
   }
 
   signOutBtn.addEventListener('click', function () {
+    if (window.IconicActivityLog) window.IconicActivityLog.log('logout', 'session', null, null);
     supabase.auth.signOut().then(function () {
       window.location.replace('login.html');
     });
@@ -241,10 +245,13 @@
       '<h4 class="media-card-title">' + escapeHtml(row.parentName) + '</h4>' +
       '<span class="media-card-meta">' + escapeHtml(slotLabel) + '</span>' +
       '<span class="media-card-filename">' + escapeHtml(basename(row.storage_path) || 'No file uploaded') + '</span>' +
-      '<div class="media-card-actions">' +
-      '<button type="button" class="btn btn-ghost" data-action="replace" data-id="' + row.id + '">Replace</button>' +
-      '<button type="button" class="btn btn-danger" data-action="delete" data-id="' + row.id + '">Delete</button>' +
-      '</div></div></div>'
+      (canWrite ? (
+        '<div class="media-card-actions">' +
+        '<button type="button" class="btn btn-ghost" data-action="replace" data-id="' + row.id + '">Replace</button>' +
+        '<button type="button" class="btn btn-danger" data-action="delete" data-id="' + row.id + '">Delete</button>' +
+        '</div>'
+      ) : '') +
+      '</div></div>'
     );
   }
 
@@ -370,6 +377,7 @@
           if (rm.error) console.error('Old file cleanup failed (replace still succeeded):', rm.error);
         });
       }
+      if (window.IconicActivityLog) window.IconicActivityLog.log('update', 'media', row.id, { parentType: row.parentType, filename: file.name });
       window.IconicAdminUI.showToast('File replaced.', 'success');
       loadLibrary();
     }).catch(function (err) {
@@ -381,6 +389,7 @@
     if (!row.storage_path) {
       rowDbFns(row).del(row.id).then(function (result) {
         if (result.error) { window.IconicAdminUI.showToast('Couldn’t delete: ' + result.error.message, 'error'); return; }
+        if (window.IconicActivityLog) window.IconicActivityLog.log('media_delete', 'media', row.id, { parentType: row.parentType });
         window.IconicAdminUI.showToast('Media deleted.', 'success');
         loadLibrary();
       });
@@ -396,6 +405,7 @@
           window.IconicAdminUI.showToast('File removed, but the record couldn’t be deleted: ' + result.error.message, 'error');
           return;
         }
+        if (window.IconicActivityLog) window.IconicActivityLog.log('media_delete', 'media', row.id, { parentType: row.parentType });
         window.IconicAdminUI.showToast('Media deleted.', 'success');
         loadLibrary();
       });
@@ -696,6 +706,9 @@
         svc.removeFromStorage(bucket, [existing.storage_path]).then(function (rm) {
           if (rm.error) console.error('Old file cleanup failed (replace still succeeded):', rm.error);
         });
+      }
+      if (window.IconicActivityLog) {
+        window.IconicActivityLog.log('media_upload', 'media', result.data && result.data.id, { parentType: target.parentType, filename: item.file.name });
       }
       item.status = 'done';
       item.progress = 1;

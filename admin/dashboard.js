@@ -58,10 +58,14 @@
     }
   }
 
+  var canWrite = true; // narrowed once the session's role is known (read_only)
+
   function showDashboard() {
     dashboardView.hidden = false;
     signOutBtn.hidden = false;
     loadInquiries();
+    loadSummary();
+    loadRecentActivity();
   }
 
   /* Every load starts here: no session, or a session without dashboard
@@ -73,14 +77,101 @@
       window.location.replace('login.html');
       return;
     }
+    canWrite = result.role === 'admin';
+    detailSaveBtn.hidden = !canWrite;
     showDashboard();
   });
 
   signOutBtn.addEventListener('click', function () {
+    if (window.IconicActivityLog) window.IconicActivityLog.log('logout', 'session', null, null);
     supabase.auth.signOut().then(function () {
       window.location.replace('login.html');
     });
   });
+
+  /* -------------------------------------------------------------------
+     Summary cards (task 8) — Fleet / Experiences / Media / Pending
+     Bookings / Published / Draft / Storage Usage. Each count is its own
+     small, independent query rather than one giant join, since the
+     underlying tables (fleet_items, experiences, fleet_media,
+     experience_media, booking_requests) have no relationships to join on
+     for this purpose — simplicity over a single round trip here.
+  ------------------------------------------------------------------- */
+  function setSummary(id, value) {
+    var el = document.getElementById(id);
+    if (el) el.textContent = value;
+  }
+
+  function formatBytes(bytes) {
+    if (!bytes) return '0 MB';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(0) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  }
+
+  function loadSummary() {
+    supabase.from('fleet_items').select('published').then(function (r) {
+      var rows = r.data || [];
+      setSummary('summaryFleet', rows.length);
+      return rows;
+    });
+    supabase.from('experiences').select('published').then(function (r) {
+      var rows = r.data || [];
+      setSummary('summaryExperiences', rows.length);
+      return rows;
+    });
+    Promise.all([
+      supabase.from('fleet_media').select('id'),
+      supabase.from('experience_media').select('id')
+    ]).then(function (results) {
+      var total = (results[0].data || []).length + (results[1].data || []).length;
+      setSummary('summaryMedia', total);
+    });
+    supabase.from('booking_requests').select('id').eq('status', 'New').then(function (r) {
+      setSummary('summaryPending', (r.data || []).length);
+    });
+    Promise.all([
+      supabase.from('fleet_items').select('published'),
+      supabase.from('experiences').select('published')
+    ]).then(function (results) {
+      var rows = (results[0].data || []).concat(results[1].data || []);
+      var published = rows.filter(function (r) { return r.published; }).length;
+      var draft = rows.length - published;
+      setSummary('summaryPublished', published);
+      setSummary('summaryDraft', draft);
+    });
+    supabase.rpc('get_storage_usage').then(function (r) {
+      if (r.error) { setSummary('summaryStorage', '—'); return; }
+      var total = (r.data || []).reduce(function (sum, row) { return sum + Number(row.bytes || 0); }, 0);
+      setSummary('summaryStorage', formatBytes(total));
+    });
+  }
+
+  /* -------------------------------------------------------------------
+     Recent Activity (task 9) — plain table, admin-only per activity_log's
+     RLS (a non-admin session's select simply returns zero rows, which
+     renders as the same empty state as "nothing logged yet").
+  ------------------------------------------------------------------- */
+  function loadRecentActivity() {
+    var body = document.getElementById('activityTableBody');
+    if (!body) return;
+    supabase.from('activity_log').select('*').order('created_at', { ascending: false }).limit(25).then(function (result) {
+      if (result.error || !result.data || !result.data.length) {
+        body.innerHTML = '<tr><td colspan="5" class="admin-table-empty">No activity recorded yet.</td></tr>';
+        return;
+      }
+      body.innerHTML = result.data.map(function (row) {
+        return (
+          '<tr>' +
+          '<td>' + formatDateTime(row.created_at) + '</td>' +
+          '<td>' + escapeHtml(row.user_email || '—') + '</td>' +
+          '<td>' + escapeHtml(row.action) + '</td>' +
+          '<td>' + escapeHtml(row.entity) + (row.entity_id ? ' <span class="admin-muted">(' + escapeHtml(String(row.entity_id).slice(0, 8)) + ')</span>' : '') + '</td>' +
+          '<td>' + escapeHtml(row.details ? JSON.stringify(row.details) : '—') + '</td>' +
+          '</tr>'
+        );
+      }).join('');
+    });
+  }
 
   function statusBadgeClass(status) {
     return 'admin-badge admin-badge--' + status.toLowerCase();
@@ -232,8 +323,10 @@
           showBanner(dashboardBanner, 'Couldn’t update status: ' + result.error.message);
           return;
         }
+        if (window.IconicActivityLog) window.IconicActivityLog.log('update', 'booking_request', activeDetailId, { status: detailStatusSelect.value });
         closeDetail();
         loadInquiries();
+        loadSummary();
       });
   });
 })();

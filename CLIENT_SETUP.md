@@ -66,20 +66,23 @@ apple touch icon, and social share image) — see
 4. [Adding or Editing Fleet Items](#adding-or-editing-fleet-items)
 5. [Fleet Manager (Admin CMS)](#fleet-manager-admin-cms)
 6. [Media Manager (Admin CMS)](#media-manager-admin-cms)
-7. [Updating Business Information](#updating-business-information)
-8. [Instagram Section](#instagram-section)
-9. [Luxury Experiences & Recent Charters](#luxury-experiences--recent-charters)
-10. [Clientele / Social Proof Section](#clientele--social-proof-section)
-11. [Videos Section](#videos-section)
-12. [How Booking Requests Work](#how-booking-requests-work)
-13. [Database Setup](#database-setup)
-14. [Environment Variables](#environment-variables)
-15. [Email Configuration](#email-configuration)
-16. [Analytics & Tracking](#analytics--tracking)
-17. [Structured Data & SEO](#structured-data--seo)
-18. [Future CMS Integration](#future-cms-integration)
-19. [How Deployment Works](#how-deployment-works)
-20. [Making Code Changes — the Minified Files](#making-code-changes--the-minified-files)
+7. [Experience Manager (Admin CMS)](#experience-manager-admin-cms)
+8. [Homepage CMS (Admin CMS)](#homepage-cms-admin-cms)
+9. [Settings (Admin CMS)](#settings-admin-cms)
+10. [Updating Business Information](#updating-business-information)
+11. [Instagram Section](#instagram-section)
+12. [Luxury Experiences & Recent Charters](#luxury-experiences--recent-charters)
+13. [Clientele / Social Proof Section](#clientele--social-proof-section)
+14. [Videos Section](#videos-section)
+15. [How Booking Requests Work](#how-booking-requests-work)
+16. [Database Setup](#database-setup)
+17. [Environment Variables](#environment-variables)
+18. [Email Configuration](#email-configuration)
+19. [Analytics & Tracking](#analytics--tracking)
+20. [Structured Data & SEO](#structured-data--seo)
+21. [Future CMS Integration](#future-cms-integration)
+22. [How Deployment Works](#how-deployment-works)
+23. [Making Code Changes — the Minified Files](#making-code-changes--the-minified-files)
 
 ---
 
@@ -271,20 +274,35 @@ ground for a CMS the site will eventually run on, not a live editor yet.
   this part is real, not a mockup. What it isn't connected to yet is the
   public site.
 
-### Publishing, Availability, and Featured — three separate switches
+### Publishing, Availability, Featured, and Pricing
 
 - **Published** — whether this vehicle is meant to be public at all.
   Turning this on today does **not** make it appear on the live site
   (see "Why the public site doesn't read from here yet" below) — it's
   groundwork for when it does.
-- **Available** — whether it's currently bookable, independent of
-  whether it's published. A published yacht getting serviced can be
-  marked unavailable without hiding it from the site entirely — once the
-  frontend migration below happens, this is how a temporary "currently
-  unavailable" state would work without unpublishing anything.
+- **Availability** — a four-state field, independent of Published:
+  **Available**, **Unavailable**, **Maintenance**, or **Reserved**. A
+  published yacht getting serviced can be marked "Maintenance" without
+  hiding it from the site entirely — once the frontend migration below
+  happens, this is how a temporary unavailable state would work without
+  unpublishing anything. There's no booking calendar behind "Reserved"
+  yet — it's a manual status an admin sets, not something tied to an
+  actual reservation record.
 - **Featured** — surfaces a vehicle first wherever "featured" vehicles
   are shown. Has no visible effect on the public site today, for the
   same reason as Published.
+- **Public Pricing** — whether Starting Price should be shown publicly
+  once the frontend migration happens, or stay "available upon request."
+  Defaults off, matching the site's current quote-personally policy.
+- **Starting Price / Deposit / Duration Options** — as before.
+  **Seasonal Notes** is free text for pricing caveats (e.g. "Holiday
+  weekends carry a premium"). **Internal Notes** is staff-only
+  commentary that's never shown publicly, no matter what — it's stored
+  in a separate, admin-only-readable table specifically so it can't leak
+  through even after the frontend migration (see
+  `supabase/migrations/20260727000000_phase_6_4_cms_extensions.sql`'s
+  comment on `fleet_item_private_notes` for why a column wouldn't have
+  been safe).
 
 ### How new vehicles will be added later
 
@@ -309,11 +327,13 @@ Integration" below for the exact mechanism already prepared for when
 that switch happens.
 
 Who can use it: the same sign-in as the booking dashboard (see "Admin
-Dashboard Access" above) — both `admin` and `staff` accounts can sign in
-and use the Fleet Manager today; only `admin` accounts can actually save
-changes (create, edit, duplicate, or delete a vehicle). A `staff` account
-attempting to save sees a clear "you may not have permission" message
-rather than a silent failure.
+Dashboard Access" above) — `admin`, `staff`, and `read_only` accounts can
+all sign in and view the Fleet Manager today; only `admin` accounts can
+actually save changes (create, edit, duplicate, or delete a vehicle). A
+`read_only` account doesn't even see the write buttons (Edit, Duplicate,
+Delete); a `staff` account attempting to save some other way sees a
+clear "you may not have permission" message rather than a silent
+failure.
 
 ---
 
@@ -445,6 +465,105 @@ None of this is enforced by the Media Manager — they're recommendations
 for what looks good and loads quickly on the public site once the
 frontend migration in [Future CMS Integration](#future-cms-integration)
 happens.
+
+---
+
+## Experience Manager (Admin CMS)
+
+`admin/experiences.html` (linked from the "Experiences" tab) manages the
+`experiences` table the same way Fleet Manager manages `fleet_items` —
+real database CRUD, not yet connected to the public site (which still
+reads `js/experiences-data.js`).
+
+### What it does today
+
+- Lists every documented experience with search, filters (published,
+  draft, featured, archived), and sorting (sort order, title, recently
+  updated).
+- **View** opens a read-only summary. **Edit** opens the full editor —
+  title, category, an optional linked vehicle, date (free text),
+  description, Instagram post/Reel links, client review, sort order, and
+  three status toggles. **Duplicate** copies an existing experience into
+  a new, unpublished draft. **Publish**/**Unpublish** and
+  **Archive**/**Unarchive** are one-click toggles right on each card, not
+  buried in the editor. **Delete** removes an experience permanently.
+- **+ Add Experience** creates a genuinely blank one — unlike Fleet
+  Manager, Experience Manager doesn't need real photography to exist
+  first before a row can be created, so there's no Duplicate-only
+  workaround here.
+
+### Published, Featured, and Archived
+
+- **Published** — same meaning as Fleet Manager's: visible on the public
+  site once the frontend migration happens, not before.
+- **Featured** — surfaces an experience first in the homepage Luxury
+  Experiences section, once that section reads from here.
+- **Archived** — for an experience that was live before and is being
+  retired (e.g. a one-time charter that won't repeat), as opposed to
+  "draft" (never published yet). Checking Archived automatically
+  unchecks Published in the editor — an archived experience can't stay
+  marked as currently live.
+
+Who can use it: same three roles as everywhere else in the dashboard —
+see "Roles today vs. later" under [Admin Dashboard
+Access](#admin-dashboard-access).
+
+---
+
+## Homepage CMS (Admin CMS)
+
+`admin/homepage.html` (linked from the "Homepage" tab) is a staging
+ground for the copy currently hardcoded directly in `index.html`: Hero,
+About, Trust section, Statistics, FAQ, Instagram profile, the Videos
+section's intro copy, Clientele categories, and Luxury Experience
+categories. Saving here writes to a `site_content` table — **it does
+not edit `index.html`, and the public homepage does not read from this
+table yet.**
+
+Each section has its own tab and its own small form — some are a few
+text fields (Hero, About, Videos section intro, Instagram profile), some
+are a reorderable list of small entries (Trust pillars, Statistics
+counters, FAQ questions, Clientele categories, Experience categories).
+Every list supports adding, removing, and drag-to-reorder, the same
+interaction as Fleet Manager's Specifications/Features/Amenities lists.
+
+This exists so that, whenever a future phase does wire the homepage up
+to read from the database, the content is already there waiting rather
+than needing to be entered for the first time under deadline pressure.
+
+Who can use it: `admin` accounts can edit and save; `staff` and
+`read_only` accounts can view every section's current saved content but
+the form fields are disabled — see "Roles today vs. later" under
+[Admin Dashboard Access](#admin-dashboard-access).
+
+---
+
+## Settings (Admin CMS)
+
+`admin/settings.html` (linked from the "Settings" tab) holds business-
+wide values — currently duplicated across `js/booking-config.js`,
+`index.html`'s structured data, and this document's own "Updating
+Business Information" section — in one `site_settings` database row.
+**Saving here does not update those files** — it's the future source of
+truth for a later phase to actually read from, not a live editor of the
+current site yet.
+
+Covers:
+
+- **Business Information** — name, phone, public email, booking
+  notification email, address, Google Maps URL.
+- **Social Links** — Instagram, Facebook, TikTok, YouTube URLs, and a
+  WhatsApp number.
+- **Logo** — upload replaces the file at a fixed path in the `logos`
+  Storage bucket (now RLS-enabled: public read, admin-only write, same
+  pattern as the Media Manager's buckets) and updates the saved path
+  immediately, no separate "Save" click needed for the logo specifically.
+- **SEO Defaults** — a default title and description for pages that
+  don't set their own.
+
+Who can use it: `admin` accounts can edit and save (including
+uploading a new logo); `staff` and `read_only` accounts can view the
+current saved settings with the form disabled.
 
 ---
 
@@ -759,13 +878,13 @@ dashboard:
 2. That's enough for **staff-level** access on its own — a newly created
    account defaults to the `staff` role automatically and can already
    sign in and use the dashboard.
-3. To grant **admin** instead of staff (there's no functional difference
-   between the two yet — see "Roles today vs. later" below, but the
-   distinction exists for tables added in a future phase), open
+3. To grant **admin** or **read_only** instead of staff (see "Roles
+   today vs. later" below for what each one can actually do), open
    **SQL Editor > New query** and run, filling in the new user's ID from
    the Users list:
    ```sql
    update profiles set role = 'admin' where id = '<the-user-id>';
+   -- or: update profiles set role = 'read_only' where id = '<the-user-id>';
    ```
 4. **Turn off public sign-ups** once, the first time you set this up, so
    a stranger can never create their own account: **Authentication >
@@ -777,17 +896,27 @@ Removing someone's access: delete their row in **Authentication > Users**
 
 #### Roles today vs. later
 
-Every account is one of two roles, tracked in a `profiles` table:
+Every account is one of three roles, tracked in a `profiles` table:
 
-- **`staff`** — the default for a brand-new account. Can sign in and use
-  the booking inquiries dashboard exactly like an admin can today.
-- **`admin`** — the same access today, plus it's the role that will gate
-  full content-management (fleet, experiences) once that's built in a
-  future phase. Granting `admin` now to whoever should eventually manage
-  that content saves a step later.
+- **`staff`** — the default for a brand-new account. Can sign in, view
+  every CMS page (Fleet, Media, Experiences, Homepage, Settings), and
+  see published content plus anything they're viewing in the editors —
+  but every save is rejected by the database (Row Level Security, not
+  just the UI) unless the account is `admin`.
+- **`read_only`** — same read access as `staff`. The only difference is
+  in the UI: `read_only` sessions don't even see the write buttons
+  (Edit, Duplicate, Delete, Upload, Save) that `staff` sessions do see
+  and then get rejected from using. Both are equally unable to write —
+  `read_only` exists so you can hand someone a truly read-only view
+  without the "why can't I click Save" confusion.
+- **`admin`** — full read/write on every content table (fleet_items,
+  fleet_media, experiences, experience_media, site_content,
+  site_settings) and the four/five CMS Storage buckets. This is the role
+  that can actually use the Fleet Manager, Media Manager, Experience
+  Manager, Homepage CMS, and Settings pages to make changes.
 
-Both roles are allowed into the dashboard as it exists today — the
-distinction is groundwork for later, not a restriction you'll notice yet.
+All three roles are allowed into the dashboard itself — the distinction
+is entirely about what each one can change once inside.
 
 #### Security notes
 
@@ -801,11 +930,25 @@ distinction is groundwork for later, not a restriction you'll notice yet.
   `service_role` key — the anon key is meant to be public (see
   "Environment Variables" below) and RLS is what makes that safe.
 - A signed-in session with no matching `profiles` row (or a role outside
-  `admin`/`staff`) is treated as **no access** and sent back to the login
-  page — access fails closed, not open, if anything about a user's
-  profile is missing or unexpected.
+  `admin`/`staff`/`read_only`) is treated as **no access** and sent back
+  to the login page — access fails closed, not open, if anything about a
+  user's profile is missing or unexpected.
 - This page is marked `noindex` so search engines won't list it, but
   that alone doesn't secure it — the points above are what do.
+
+#### Dashboard summary and Activity Log
+
+The Inquiries page (`admin/index.html`) now opens with a row of summary
+cards — Fleet Vehicles, Experiences, Media Items, Pending Bookings,
+Published Items, Draft Items, and Storage Used — each a live count from
+the database, not a cached or estimated number.
+
+Below the inquiries table is a **Recent Activity** table: the last 25
+entries from an `activity_log` table that every CMS page writes to on
+create, update, delete, publish/unpublish, login, logout, and media
+upload/delete. It's deliberately just a plain table, admin-only (the
+same RLS pattern as everything else) — there's no filtering, export, or
+per-entity history view yet, just a record of who did what and when.
 
 ---
 

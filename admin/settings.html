@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en-US">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Settings | Iconic Rentals Admin</title>
+<meta name="robots" content="noindex, nofollow" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230a0a0b'/%3E%3Ctext x='50' y='68' font-family='Georgia,serif' font-size='58' fill='%23c6a15b' text-anchor='middle'%3EI%3C/text%3E%3C/svg%3E" />
+
+<link rel="preload" as="font" type="font/woff2" href="../fonts/cormorant-garamond-normal.woff2" crossorigin />
+<link rel="preload" as="font" type="font/woff2" href="../fonts/jost.woff2" crossorigin />
+<link rel="stylesheet" href="../css/fonts.min.css" />
+<link rel="stylesheet" href="../css/style.min.css" />
+<link rel="stylesheet" href="../css/admin.css" />
+</head>
+<body class="admin-body">
+
+<header class="admin-header">
+  <a href="../index.html" class="brand">Iconic <strong>Rentals</strong></a>
+  <nav class="admin-nav" aria-label="Admin sections">
+    <a href="index.html" class="admin-nav-link">Inquiries</a>
+    <a href="fleet.html" class="admin-nav-link">Fleet</a>
+    <a href="media.html" class="admin-nav-link">Media</a>
+    <a href="experiences.html" class="admin-nav-link">Experiences</a>
+    <a href="homepage.html" class="admin-nav-link">Homepage</a>
+    <a href="settings.html" class="admin-nav-link is-active" aria-current="page">Settings</a>
+  </nav>
+  <button type="button" class="btn btn-ghost admin-signout" id="signOutBtn" hidden>Sign Out</button>
+</header>
+
+<main class="admin-main">
+  <section class="admin-dashboard" id="settingsView" hidden>
+    <p class="admin-muted" style="margin-bottom:var(--space-4);max-width:60ch;">
+      Becomes the future source of truth for what <code>js/booking-config.js</code>,
+      the structured data in <code>index.html</code>, and CLIENT_SETUP.md's
+      "Updating Business Information" section currently hold as static values.
+      Saving here updates the database only — nothing on the public site reads
+      it yet.
+    </p>
+
+    <div class="admin-banner" id="settingsBanner" role="alert" hidden></div>
+    <div class="admin-banner" id="settingsSuccessBanner" role="status" style="background:rgba(120,190,130,0.12);border-color:rgba(120,190,130,0.4);color:#8fd39a;" hidden></div>
+
+    <form id="settingsForm">
+      <div class="admin-editor-section">
+        <h3>Business Information</h3>
+        <div class="admin-editor-fieldgrid">
+          <div class="form-field">
+            <label for="settingBusinessName">Business Name</label>
+            <input type="text" id="settingBusinessName" maxlength="160" />
+          </div>
+          <div class="form-field">
+            <label for="settingPhone">Phone</label>
+            <input type="text" id="settingPhone" maxlength="40" />
+          </div>
+          <div class="form-field">
+            <label for="settingEmail">Public Email</label>
+            <input type="email" id="settingEmail" maxlength="160" />
+          </div>
+          <div class="form-field">
+            <label for="settingBookingEmail">Booking Notification Email</label>
+            <input type="email" id="settingBookingEmail" maxlength="160" />
+          </div>
+          <div class="form-field full">
+            <label for="settingAddress">Address</label>
+            <input type="text" id="settingAddress" maxlength="300" />
+          </div>
+          <div class="form-field full">
+            <label for="settingGoogleMaps">Google Maps URL</label>
+            <input type="text" id="settingGoogleMaps" maxlength="500" />
+          </div>
+        </div>
+      </div>
+
+      <div class="admin-editor-section">
+        <h3>Social Links</h3>
+        <div class="admin-editor-fieldgrid">
+          <div class="form-field">
+            <label for="settingInstagram">Instagram URL</label>
+            <input type="text" id="settingInstagram" maxlength="300" />
+          </div>
+          <div class="form-field">
+            <label for="settingFacebook">Facebook URL</label>
+            <input type="text" id="settingFacebook" maxlength="300" />
+          </div>
+          <div class="form-field">
+            <label for="settingTiktok">TikTok URL</label>
+            <input type="text" id="settingTiktok" maxlength="300" />
+          </div>
+          <div class="form-field">
+            <label for="settingYoutube">YouTube URL</label>
+            <input type="text" id="settingYoutube" maxlength="300" />
+          </div>
+          <div class="form-field">
+            <label for="settingWhatsapp">WhatsApp Number</label>
+            <input type="text" id="settingWhatsapp" maxlength="40" placeholder="13055550198" />
+          </div>
+        </div>
+      </div>
+
+      <div class="admin-editor-section">
+        <h3>Logo</h3>
+        <div class="admin-editor-fieldgrid">
+          <div class="form-field full" id="logoPreviewWrap" hidden>
+            <label>Current Logo</label>
+            <img id="logoPreview" alt="Current logo" style="max-height:80px;max-width:200px;display:block;background:rgba(255,255,255,0.04);padding:0.5rem;border-radius:var(--radius-sm);" />
+          </div>
+          <div class="form-field full">
+            <label for="logoFileInput">Replace Logo</label>
+            <input type="file" id="logoFileInput" accept=".png,.jpg,.jpeg,.webp,.svg,image/png,image/jpeg,image/webp,image/svg+xml" />
+            <span class="admin-toggle-hint">PNG, JPG, WEBP, or SVG, up to 5 MB. Uploads immediately.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="admin-editor-section">
+        <h3>SEO Defaults</h3>
+        <div class="admin-editor-fieldgrid">
+          <div class="form-field full">
+            <label for="settingSeoTitle">Default SEO Title</label>
+            <input type="text" id="settingSeoTitle" maxlength="200" />
+          </div>
+          <div class="form-field full">
+            <label for="settingSeoDescription">Default SEO Description</label>
+            <textarea id="settingSeoDescription" rows="3" maxlength="400"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary" id="settingsSaveBtn" data-label="Save Settings" data-loading-label="Saving…">Save Settings</button>
+    </form>
+  </section>
+</main>
+
+<script src="../js/booking-config.js"></script>
+<script src="../js/vendor/supabase-js.min.js"></script>
+<script src="../js/supabase-client.js"></script>
+<script src="auth-guard.js"></script>
+<script src="ui-utils.js"></script>
+<script src="activity-log.js"></script>
+<script src="media-service.js"></script>
+<script src="settings.js"></script>
+</body>
+</html>

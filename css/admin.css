@@ -1167,3 +1167,77 @@
     justify-content: flex-end;
   }
 }
+
+/* ==========================================================================
+   Homepage CMS — Phase 6.4. The generic object-list editor (multiple named
+   fields per reorderable row) extends .dynamic-list-row's single-input
+   layout from Fleet Manager to N inputs, laid out in their own grid.
+   ========================================================================== */
+.dynamic-object-row {
+  align-items: flex-start;
+}
+
+.dynamic-object-fields {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.dynamic-object-fields input,
+.dynamic-object-fields textarea {
+  width: 100%;
+  background: rgba(250, 249, 247, 0.04);
+  border: 1px solid rgba(250, 249, 247, 0.16);
+  border-radius: var(--radius-sm);
+  color: var(--color-white);
+  padding: 0.5rem 0.7rem;
+  font-size: 0.85rem;
+  font-family: inherit;
+}
+
+.dynamic-object-fields input:focus,
+.dynamic-object-fields textarea:focus {
+  outline: none;
+  border-color: var(--color-gold);
+}
+
+@media (max-width: 640px) {
+  .dynamic-object-fields {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ==========================================================================
+   Dashboard summary cards — Phase 6.4 task 8.
+   ========================================================================== */
+.admin-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+}
+
+.admin-summary-card {
+  background: var(--surface-glass);
+  border: 1px solid var(--surface-glass-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.admin-summary-value {
+  font-size: 1.8rem;
+  font-family: var(--font-serif, serif);
+  color: var(--color-gold-light);
+}
+
+.admin-summary-label {
+  font-size: 0.74rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-white-dim);
+}
