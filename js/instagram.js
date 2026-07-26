@@ -44,7 +44,12 @@
         var caption = post.caption || 'Instagram post';
         return (
           '<a class="instagram-tile" href="' + escapeHtml(post.permalink || profile.url) + '" target="_blank" rel="noopener" aria-label="View on Instagram: ' + escapeHtml(caption) + '">' +
-          '<picture>' + (post.media_url_webp ? '<source srcset="' + post.media_url_webp + '" type="image/webp" />' : '') + '<img src="' + post.media_url + '" alt="' + escapeHtml(caption) + '" loading="lazy" /></picture>' +
+          /* alt="" here: the link's aria-label and the visible
+             .instagram-tile-caption span (below) already carry this same
+             caption text, so the image itself is decorative — giving it
+             real alt text would make screen readers announce the same
+             caption three times over. */
+          '<picture>' + (post.media_url_webp ? '<source srcset="' + post.media_url_webp + '" type="image/webp" />' : '') + '<img src="' + post.media_url + '" alt="" loading="lazy" /></picture>' +
           '<span class="instagram-tile-icon">' + ICONS.instagram + '</span>' +
           '<span class="instagram-tile-caption">' + escapeHtml(caption) + '</span>' +
           '</a>'
