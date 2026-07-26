@@ -239,6 +239,78 @@ After any edit to `fleet-data.js`, re-minify it (see
 [Making Code Changes](#making-code-changes--the-minified-files)) —
 `index.html` and `fleet/vehicle.html` both load the minified copy.
 
+**This is still the only way to change what visitors actually see.** A
+Fleet Manager now exists in the admin dashboard (below) backed by a real
+database — but the public site doesn't read from that database yet, on
+purpose (see "Fleet Manager" below for why). Editing `fleet-data.js` the
+way this section describes remains the real, live editing path today.
+
+---
+
+## Fleet Manager (Admin CMS)
+
+`admin/fleet.html` (linked from the "Fleet" tab in the admin dashboard
+header) is a database-backed fleet management tool, separate from — and
+not yet connected to — the public website. Think of it as the staging
+ground for a CMS the site will eventually run on, not a live editor yet.
+
+### What it does today
+
+- Lists every vehicle stored in the database, grouped into Yachts and
+  Cars, with search, filters (type, published, draft, featured,
+  available), and sorting (name, category, recently updated).
+- **View** opens a read-only summary. **Edit** opens the full editor —
+  name, slug, category, tagline, description, pricing, capacity,
+  specifications, features, and amenities, plus three independent status
+  toggles (see below). **Duplicate** opens the editor pre-filled from an
+  existing vehicle, saved as a new one once you save. **Delete** removes
+  a vehicle permanently, after a confirmation prompt.
+- Everything you change here is saved to the real database immediately —
+  this part is real, not a mockup. What it isn't connected to yet is the
+  public site.
+
+### Publishing, Availability, and Featured — three separate switches
+
+- **Published** — whether this vehicle is meant to be public at all.
+  Turning this on today does **not** make it appear on the live site
+  (see "Why the public site doesn't read from here yet" below) — it's
+  groundwork for when it does.
+- **Available** — whether it's currently bookable, independent of
+  whether it's published. A published yacht getting serviced can be
+  marked unavailable without hiding it from the site entirely — once the
+  frontend migration below happens, this is how a temporary "currently
+  unavailable" state would work without unpublishing anything.
+- **Featured** — surfaces a vehicle first wherever "featured" vehicles
+  are shown. Has no visible effect on the public site today, for the
+  same reason as Published.
+
+### How new vehicles will be added later
+
+There's no "Add Vehicle from scratch" button in this phase — **Duplicate**
+is the only way to create a new database row today, by starting from an
+existing vehicle and changing every field. A dedicated blank-slate
+"Add Vehicle" flow is planned for a later phase, deliberately paired with
+photo/video upload (not yet built either) — a brand-new vehicle needs
+real photography before it makes sense to publish, so the two are being
+built together rather than shipping a vehicle record with no way to add
+its pictures.
+
+### Why the public site doesn't read from here yet
+
+Two things have to both be true before the public site can safely switch
+from `fleet-data.js` to this database: every vehicle's real photography
+needs to exist in Supabase Storage (media upload isn't built yet), and
+the frontend templates need to be pointed at the new data source. Neither
+has happened yet, on purpose — see "Future CMS Integration" below for the
+exact mechanism already prepared for when that switch happens.
+
+Who can use it: the same sign-in as the booking dashboard (see "Admin
+Dashboard Access" above) — both `admin` and `staff` accounts can sign in
+and use the Fleet Manager today; only `admin` accounts can actually save
+changes (create, edit, duplicate, or delete a vehicle). A `staff` account
+attempting to save sees a clear "you may not have permission" message
+rather than a silent failure.
+
 ---
 
 ## Updating Business Information
@@ -766,27 +838,34 @@ using your live URL once deployed.
 ## Future CMS Integration
 
 This site is intentionally structured so that hooking it up to a CMS
-later is a data change, not a rebuild:
+later is a data change, not a rebuild — and as of the Fleet Manager
+(above), the database half of that CMS already exists:
 
 - Every fleet item (yacht or car) is a single JavaScript object in
   `js/fleet-data.js`, with a flat, predictable shape (`slug`, `type`,
   `name`, `category`, `description`, `specs`, `amenities`, `gallery`,
-  etc.). A CMS (Contentful, Sanity, WordPress via REST/GraphQL, etc.)
-  would just need a content model matching those same field names.
+  etc.). The `fleet_items` / `fleet_media` tables in Supabase (see
+  `supabase/SCHEMA_PROPOSAL.md`) already use that same shape — that
+  wasn't a coincidence, it was designed this way from the start.
 - All rendering logic (`js/fleet-render.js` for cards,
   `js/fleet-detail.js` for the detail page) reads from `js/fleet-data.js`
   through a small set of functions (`getFleetItem`, `getFleetByType`,
   `getRelatedFleet`) — it never reaches into the data array directly.
   That indirection is what makes the swap possible.
-- The exact migration steps (replacing the static array with a `fetch()`
-  call, and the one event-based signal needed so the page waits for data
-  to arrive) are documented directly in the comment block at the bottom
-  of `js/fleet-data.js`.
+- `js/fleet-supabase-adapter.js` already implements the Supabase side of
+  that swap — same function names, same data shape, built to satisfy the
+  exact migration steps documented in the comment block at the bottom of
+  `js/fleet-data.js`. It is **not loaded by any page yet.**
 
-A developer doing this migration would only need to change
-`js/fleet-data.js` and add a short "wait for data" wrapper around the
-existing render calls — the HTML templates, CSS, and card markup stay
-untouched.
+A developer doing this migration would: (1) make sure every vehicle
+meant to go live has `published = true` and real photos uploaded to the
+`fleet-images`/`fleet-videos` Storage buckets, (2) swap the `<script
+src="js/fleet-data.js">` tag for `js/fleet-supabase-adapter.js` plus a
+call to its `.load()` method, and (3) move the existing render calls in
+`fleet-render.js`/`fleet-detail.js` inside a listener for the
+`iconic:fleet-ready` event that `.load()` dispatches, instead of running
+at the bottom of the script as they do today. The HTML templates, CSS,
+and card markup stay untouched either way.
 
 ---
 

@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en-US">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Fleet Manager | Iconic Rentals Admin</title>
+<meta name="robots" content="noindex, nofollow" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230a0a0b'/%3E%3Ctext x='50' y='68' font-family='Georgia,serif' font-size='58' fill='%23c6a15b' text-anchor='middle'%3EI%3C/text%3E%3C/svg%3E" />
+
+<link rel="preload" as="font" type="font/woff2" href="../fonts/cormorant-garamond-normal.woff2" crossorigin />
+<link rel="preload" as="font" type="font/woff2" href="../fonts/jost.woff2" crossorigin />
+<link rel="stylesheet" href="../css/fonts.min.css" />
+<link rel="stylesheet" href="../css/style.min.css" />
+<link rel="stylesheet" href="../css/admin.css" />
+</head>
+<body class="admin-body">
+
+<header class="admin-header">
+  <a href="../index.html" class="brand">Iconic <strong>Rentals</strong></a>
+  <nav class="admin-nav" aria-label="Admin sections">
+    <a href="index.html" class="admin-nav-link">Inquiries</a>
+    <a href="fleet.html" class="admin-nav-link is-active" aria-current="page">Fleet</a>
+  </nav>
+  <button type="button" class="btn btn-ghost admin-signout" id="signOutBtn" hidden>Sign Out</button>
+</header>
+
+<main class="admin-main">
+  <section class="admin-dashboard" id="fleetView" hidden>
+
+    <div class="fleet-toolbar">
+      <input type="search" class="fleet-search" id="fleetSearch" placeholder="Search by name, category, or slug…" aria-label="Search fleet" />
+
+      <div class="fleet-filter-group" role="group" aria-label="Filter by type">
+        <button type="button" class="admin-filter-tab is-active" data-filter="type" data-value="">All</button>
+        <button type="button" class="admin-filter-tab" data-filter="type" data-value="yacht">Yachts</button>
+        <button type="button" class="admin-filter-tab" data-filter="type" data-value="car">Cars</button>
+      </div>
+
+      <div class="fleet-filter-group" role="group" aria-label="Filter by published status">
+        <button type="button" class="admin-filter-tab is-active" data-filter="published" data-value="">Any Status</button>
+        <button type="button" class="admin-filter-tab" data-filter="published" data-value="true">Published</button>
+        <button type="button" class="admin-filter-tab" data-filter="published" data-value="false">Draft</button>
+      </div>
+
+      <div class="fleet-filter-group" role="group" aria-label="Filter by featured / availability">
+        <button type="button" class="admin-filter-tab" data-filter="featured" data-value="true">Featured</button>
+        <button type="button" class="admin-filter-tab" data-filter="available" data-value="false">Unavailable</button>
+      </div>
+
+      <select class="fleet-sort" id="fleetSort" aria-label="Sort fleet">
+        <option value="category">Sort: Category</option>
+        <option value="name">Sort: Name</option>
+        <option value="updated">Sort: Recently Updated</option>
+      </select>
+    </div>
+
+    <div class="admin-banner" id="fleetBanner" role="alert" hidden></div>
+
+    <div id="fleetGroups"></div>
+
+    <div class="fleet-empty" id="fleetEmpty" hidden>
+      <h3>No vehicles found</h3>
+      <p id="fleetEmptyText">Try a different search term or filter.</p>
+    </div>
+  </section>
+</main>
+
+<!-- ============ VIEW PANEL (read-only) ============ -->
+<div class="admin-detail" id="fleetViewPanel" role="dialog" aria-modal="true" aria-labelledby="fleetViewTitle" hidden>
+  <div class="admin-detail-backdrop" data-view-close></div>
+  <div class="admin-detail-card">
+    <button type="button" class="quick-book-close" data-view-close aria-label="Close details">
+      <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+    <span class="eyebrow" id="fleetViewEyebrow">Motor Yacht</span>
+    <h2 id="fleetViewTitle">Name</h2>
+    <dl class="admin-detail-grid" id="fleetViewBody"></dl>
+    <button type="button" class="btn btn-primary btn-block" id="fleetViewEditBtn">Edit This Vehicle</button>
+  </div>
+</div>
+
+<!-- ============ EDITOR PANEL ============ -->
+<div class="admin-editor" id="fleetEditor" role="dialog" aria-modal="true" aria-labelledby="fleetEditorTitle" hidden>
+  <div class="admin-editor-backdrop" data-editor-close></div>
+  <div class="admin-editor-card">
+    <div class="admin-editor-header">
+      <div>
+        <span class="eyebrow" id="fleetEditorEyebrow">Edit Vehicle</span>
+        <h2 id="fleetEditorTitle">Vehicle</h2>
+      </div>
+      <button type="button" class="quick-book-close" data-editor-close aria-label="Close editor">
+        <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+
+    <form id="fleetEditorForm" novalidate>
+      <div class="admin-editor-body">
+        <div class="admin-banner" id="fleetEditorBanner" role="alert" hidden></div>
+
+        <!-- General -->
+        <div class="admin-editor-section">
+          <h3>General</h3>
+          <div class="admin-editor-fieldgrid">
+            <div class="form-field full">
+              <label for="fieldType">Type</label>
+              <select id="fieldType" required>
+                <option value="yacht">Yacht</option>
+                <option value="car">Car</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label for="fieldName">Name</label>
+              <input type="text" id="fieldName" required maxlength="120" />
+              <span class="form-error" role="alert" aria-live="polite"></span>
+            </div>
+            <div class="form-field">
+              <label for="fieldSlug">Slug</label>
+              <input type="text" id="fieldSlug" required maxlength="120" pattern="[a-z0-9]+(-[a-z0-9]+)*" />
+              <span class="form-error" role="alert" aria-live="polite"></span>
+            </div>
+            <div class="form-field">
+              <label for="fieldCategory">Category</label>
+              <input type="text" id="fieldCategory" required maxlength="80" list="fleetCategoryOptions" />
+              <datalist id="fleetCategoryOptions"></datalist>
+              <span class="form-error" role="alert" aria-live="polite"></span>
+            </div>
+            <div class="form-field">
+              <label for="fieldTagline">Tagline</label>
+              <input type="text" id="fieldTagline" maxlength="160" />
+            </div>
+            <div class="form-field full">
+              <label for="fieldDescription">Description</label>
+              <textarea id="fieldDescription" rows="4" maxlength="2000"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pricing -->
+        <div class="admin-editor-section">
+          <h3>Pricing</h3>
+          <div class="admin-editor-fieldgrid">
+            <div class="form-field">
+              <label for="fieldStartingPrice">Starting Price (USD)</label>
+              <input type="number" id="fieldStartingPrice" min="0" step="1" placeholder="Leave blank for “available upon request”" />
+            </div>
+            <div class="form-field">
+              <label for="fieldDeposit">Deposit (USD)</label>
+              <input type="number" id="fieldDeposit" min="0" step="1" />
+            </div>
+            <div class="form-field">
+              <label for="fieldCapacity">Capacity (guests / seats)</label>
+              <input type="number" id="fieldCapacity" min="0" step="1" />
+            </div>
+            <div class="form-field full">
+              <label>Duration Options</label>
+              <div class="dynamic-list" id="durationList"></div>
+              <button type="button" class="btn btn-ghost dynamic-list-add" data-add="duration">+ Add Duration Option</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Status -->
+        <div class="admin-editor-section">
+          <h3>Status</h3>
+          <div class="admin-toggle-row">
+            <span>
+              <span class="admin-toggle-label">Published</span>
+              <span class="admin-toggle-hint">Visible on the public site once the frontend migration is complete.</span>
+            </span>
+            <label class="admin-toggle">
+              <input type="checkbox" id="fieldPublished" />
+              <span class="admin-toggle-track"></span>
+            </label>
+          </div>
+          <div class="admin-toggle-row">
+            <span>
+              <span class="admin-toggle-label">Featured</span>
+              <span class="admin-toggle-hint">Surfaced first in featured groupings.</span>
+            </span>
+            <label class="admin-toggle">
+              <input type="checkbox" id="fieldFeatured" />
+              <span class="admin-toggle-track"></span>
+            </label>
+          </div>
+          <div class="admin-toggle-row">
+            <span>
+              <span class="admin-toggle-label">Available</span>
+              <span class="admin-toggle-hint">Currently bookable — turn off during maintenance without unpublishing.</span>
+            </span>
+            <label class="admin-toggle">
+              <input type="checkbox" id="fieldAvailable" />
+              <span class="admin-toggle-track"></span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Specifications -->
+        <div class="admin-editor-section">
+          <h3>Specifications</h3>
+          <div class="dynamic-list" id="specsList"></div>
+          <button type="button" class="btn btn-ghost dynamic-list-add" data-add="specs">+ Add Specification</button>
+        </div>
+
+        <!-- Features -->
+        <div class="admin-editor-section">
+          <h3>Features <span class="admin-toggle-hint">(short highlights shown on the fleet card)</span></h3>
+          <div class="dynamic-list" id="featuresList"></div>
+          <button type="button" class="btn btn-ghost dynamic-list-add" data-add="features">+ Add Feature</button>
+        </div>
+
+        <!-- Amenities -->
+        <div class="admin-editor-section">
+          <h3>Amenities</h3>
+          <div class="dynamic-list" id="amenitiesList"></div>
+          <button type="button" class="btn btn-ghost dynamic-list-add" data-add="amenities">+ Add Amenity</button>
+        </div>
+      </div>
+
+      <div class="admin-editor-footer">
+        <button type="button" class="btn btn-ghost" id="fleetEditorCancelBtn">Cancel</button>
+        <div class="admin-editor-footer-actions">
+          <button type="submit" class="btn btn-primary" id="fleetEditorSaveBtn" data-label="Save Changes" data-loading-label="Saving…">Save Changes</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="../js/booking-config.js"></script>
+<script src="../js/vendor/supabase-js.min.js"></script>
+<script src="../js/supabase-client.js"></script>
+<script src="auth-guard.js"></script>
+<script src="ui-utils.js"></script>
+<script src="fleet-service.js"></script>
+<script src="fleet-editor.js"></script>
+<script src="fleet.js"></script>
+</body>
+</html>
