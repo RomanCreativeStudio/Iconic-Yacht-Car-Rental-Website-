@@ -296,14 +296,6 @@
       e.preventDefault();
       hideFormBanner(bookingBanner);
 
-      if (window.IconicBookingAPI && window.IconicBookingAPI.isLikelySpam(form, pageLoadedAt)) {
-        // Silently "succeed" for bots — never reveal the honeypot to whoever/whatever tripped it.
-        form.classList.add('is-hidden');
-        successPanel.classList.add('is-visible');
-        form.reset();
-        return;
-      }
-
       var fields = form.querySelectorAll('input, select, textarea');
       var isValid = true;
       fields.forEach(function (field) {
@@ -317,6 +309,21 @@
       if (!isValid) {
         var firstError = form.querySelector('.has-error input, .has-error select, .has-error textarea');
         if (firstError) firstError.focus();
+        return;
+      }
+
+      /* Spam check runs only once every field has passed real validation —
+         never before it — so a fast, empty, or incomplete submission
+         (a visitor testing the button, a keyboard user tabbing through)
+         always gets real validation feedback instead of a silent fake
+         "success" that would drop a legitimate inquiry on the floor.
+         Only a submission that already looks genuinely filled out can
+         reach the honeypot/timing check below. */
+      if (window.IconicBookingAPI && window.IconicBookingAPI.isLikelySpam(form, pageLoadedAt)) {
+        // Silently "succeed" for bots — never reveal the honeypot to whoever/whatever tripped it.
+        form.classList.add('is-hidden');
+        successPanel.classList.add('is-visible');
+        form.reset();
         return;
       }
 
@@ -688,11 +695,6 @@
       e.preventDefault();
       hideFormBanner(qbBanner);
 
-      if (window.IconicBookingAPI && window.IconicBookingAPI.isLikelySpam(qbForm, modalOpenedAt)) {
-        finishQbSuccess();
-        return;
-      }
-
       var fields = qbForm.querySelectorAll('input, select, textarea');
       var isValid = true;
       fields.forEach(function (field) {
@@ -705,6 +707,15 @@
       if (!isValid) {
         var firstError = qbForm.querySelector('.has-error input, .has-error select, .has-error textarea');
         if (firstError) firstError.focus();
+        return;
+      }
+
+      /* Spam check runs only once every field has passed real validation —
+         never before it — so a fast, empty, or incomplete submission
+         always gets real validation feedback instead of a silent fake
+         "success" that would drop a legitimate inquiry on the floor. */
+      if (window.IconicBookingAPI && window.IconicBookingAPI.isLikelySpam(qbForm, modalOpenedAt)) {
+        finishQbSuccess();
         return;
       }
 
