@@ -7,6 +7,14 @@
 --
 -- Safe to re-run: every statement below is idempotent (IF NOT EXISTS /
 -- OR REPLACE), so running this twice will not duplicate anything or error.
+--
+-- As of Phase 6.0, this exact table design also exists as a proper,
+-- CLI-managed migration at supabase/migrations/20260726120000_booking_
+-- requests_baseline.sql. Both are kept in sync intentionally: this file
+-- remains the copy-paste path for a non-technical client (per
+-- CLIENT_SETUP.md), the migration is the path for `supabase db push` and
+-- everything layered on top of it going forward. See
+-- supabase/SCHEMA_PROPOSAL.md for what's planned next.
 -- ============================================================================
 
 -- Status values are constrained at the database level, not just in the UI,

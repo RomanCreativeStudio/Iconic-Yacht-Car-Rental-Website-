@@ -1,0 +1,13 @@
+# Secrets — never commit real credentials. Copy .env.example to .env and
+# fill in real values locally; .env itself stays untracked.
+.env
+.env.*
+!.env.example
+
+# Supabase CLI local state
+supabase/.branches
+supabase/.temp
+
+# OS / editor cruft
+.DS_Store
+*.log

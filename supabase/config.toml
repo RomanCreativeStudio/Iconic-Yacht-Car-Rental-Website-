@@ -1,0 +1,56 @@
+# Iconic Rentals — Supabase CLI project configuration
+#
+# Generated as part of Phase 6.0 (Supabase backend foundation). This lets
+# the Supabase CLI (`supabase link`, `supabase db push`, `supabase
+# functions deploy`, `supabase start` for local dev) operate on this
+# project instead of every change going through the dashboard's SQL
+# Editor by hand, the way supabase/schema.sql was originally applied.
+#
+# This file holds non-secret configuration only. Real secrets (access
+# token, DB password) belong in a local, git-ignored .env — see
+# .env.example at the project root — and are referenced below via env().
+#
+# Foundation only, per Phase 6.0 scope: no new tables, storage buckets, or
+# auth providers are declared here yet. See supabase/SCHEMA_PROPOSAL.md
+# for what's planned next.
+
+project_id = "slokljslqyanbqabvzkk"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public"]
+extra_search_path = ["public"]
+max_rows = 1000
+
+[db]
+port = 54322
+major_version = 17
+
+[studio]
+enabled = true
+port = 54323
+
+[auth]
+enabled = true
+# Public sign-ups stay off — admin dashboard accounts are created directly
+# in the Supabase dashboard by the site owner, per CLIENT_SETUP.md's
+# "Admin Dashboard Access" section. Mirrors that same setting on the
+# hosted project so local dev behaves the same way as production.
+enable_signup = false
+
+[storage]
+enabled = true
+# No buckets declared yet — see supabase/SCHEMA_PROPOSAL.md, "Storage
+# buckets" for what's planned (fleet photography, experience photos/video)
+# once real migration to Supabase-hosted media begins.
+
+[edge_runtime]
+enabled = true
+policy = "oneshot"
+
+# Used by `supabase functions serve` for the existing send-booking-emails
+# function's local secrets (RESEND_API_KEY, OWNER_EMAIL, FROM_EMAIL — see
+# CLIENT_SETUP.md, "Email Configuration"). That file is not created by
+# this phase; create supabase/functions/.env locally if you need to run
+# the function against local secrets.
