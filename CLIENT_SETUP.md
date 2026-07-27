@@ -244,20 +244,22 @@ After any edit to `fleet-data.js`, re-minify it (see
 [Making Code Changes](#making-code-changes--the-minified-files)) —
 `index.html` and `fleet/vehicle.html` both load the minified copy.
 
-**This is still the only way to change what visitors actually see.** A
-Fleet Manager now exists in the admin dashboard (below) backed by a real
-database — but the public site doesn't read from that database yet, on
-purpose (see "Fleet Manager" below for why). Editing `fleet-data.js` the
-way this section describes remains the real, live editing path today.
+**As of Phase 6.5, this is the fallback path, not the only path.** A
+Fleet Manager exists in the admin dashboard (below), backed by a real
+database the public site now reads from first — see [Live Data &
+Automatic Fallback](#live-data--automatic-fallback). Editing
+`fleet-data.js` the way this section describes still works and is what
+the public site shows for any vehicle not published in the database yet.
 
 ---
 
 ## Fleet Manager (Admin CMS)
 
 `admin/fleet.html` (linked from the "Fleet" tab in the admin dashboard
-header) is a database-backed fleet management tool, separate from — and
-not yet connected to — the public website. Think of it as the staging
-ground for a CMS the site will eventually run on, not a live editor yet.
+header) is a database-backed fleet management tool. As of Phase 6.5, it's
+connected to the public website — see [Live Data & Automatic
+Fallback](#live-data--automatic-fallback) — a vehicle you publish here
+with real photos uploaded shows live on the public site automatically.
 
 ### What it does today
 
@@ -270,16 +272,17 @@ ground for a CMS the site will eventually run on, not a live editor yet.
   toggles (see below). **Duplicate** opens the editor pre-filled from an
   existing vehicle, saved as a new one once you save. **Delete** removes
   a vehicle permanently, after a confirmation prompt.
-- Everything you change here is saved to the real database immediately —
-  this part is real, not a mockup. What it isn't connected to yet is the
-  public site.
+- Everything you change here is saved to the real database immediately,
+  and — as of Phase 6.5 — the public site reads from it directly (with
+  automatic fallback to `fleet-data.js` for anything not published here).
 
 ### Publishing, Availability, Featured, and Pricing
 
 - **Published** — whether this vehicle is meant to be public at all.
-  Turning this on today does **not** make it appear on the live site
-  (see "Why the public site doesn't read from here yet" below) — it's
-  groundwork for when it does.
+  Turning this on makes it appear on the live site the next time a
+  visitor loads the page (see [The public site now reads from here,
+  automatically](#the-public-site-now-reads-from-here-automatically)
+  below) — real photos should already be uploaded before publishing.
 - **Availability** — a four-state field, independent of Published:
   **Available**, **Unavailable**, **Maintenance**, or **Reserved**. A
   published yacht getting serviced can be marked "Maintenance" without
@@ -523,18 +526,20 @@ section's intro copy, Clientele categories, and Luxury Experience
 categories. Saving here writes to a `site_content` table — **it does
 not edit `index.html` directly.**
 
-Two of these sections — Instagram profile and Clientele categories — are
-wired for live reads on the public site the same way Fleet Manager and
-Experience Manager are (see [Live Data & Automatic
-Fallback](#live-data--automatic-fallback)), but won't actually go live
-until `site_content`'s Row Level Security is opened to public (`anon`)
-reads in a future phase; today that table is readable only by signed-in
-staff, on purpose, since nothing public consumed it before this phase.
-Until that RLS change happens, those two sections keep showing their
-`js/clientele-data.js` / `js/instagram-data.js` content, same as before.
-The rest of this page's sections (Hero, About, Trust, Statistics, FAQ,
-Videos intro copy) have no public-facing read path yet at all — saving
-here stages that content for whenever a future phase wires it up.
+As of Phase 6.6, every section here except **Luxury Experience
+categories** is wired for live reads on the public site (see [Live Data &
+Automatic Fallback](#live-data--automatic-fallback)) — `site_content` is
+now readable by anyone (`anon`), not just signed-in staff, so saving Hero,
+About, Trust, Statistics, FAQ, Instagram profile, Videos intro copy, or
+Clientele categories here takes effect on the public homepage the next
+time a visitor loads it (subject to the same live-first-with-fallback
+behavior as everything else, and — for the five list-shaped sections —
+subject to the live count matching `index.html`'s markup exactly; see
+[Live Data & Automatic Fallback](#live-data--automatic-fallback) for what
+that means in practice). **Luxury Experience categories is the one
+remaining section with no public read path** — saving it here stages the
+content for whenever a future phase wires the Experiences section's
+category filter up to read from here instead of its own hardcoded list.
 
 Each section has its own tab and its own small form — some are a few
 text fields (Hero, About, Videos section intro, Instagram profile), some
@@ -653,6 +658,16 @@ for the exact steps.
 After editing, re-minify `js/instagram-data.js` (see
 [Making Code Changes](#making-code-changes--the-minified-files)).
 
+**A live database path also exists as of Phase 6.6** — the
+`instagram_posts` and `instagram_reels` tables (`published = true` rows
+only) take priority over this file on the public site the moment they
+have real rows in them, exactly like Fleet Manager's `fleet_items`. There
+is no admin UI for these two tables yet, though — populating them today
+means inserting rows directly in the Supabase dashboard's Table Editor
+(`published`, `sort_order`, and the same fields as the shapes above,
+snake_cased). Editing `js/instagram-data.js` remains the practical way to
+update this section until that admin UI is built.
+
 ---
 
 ## Luxury Experiences & Recent Charters
@@ -720,6 +735,18 @@ two parts, both driven by `js/clientele-data.js`:
   message rather than fabricated social proof.
 
 After editing, re-minify `js/clientele-data.js`.
+
+**A live database path also exists for endorsements as of Phase 6.6** —
+the `clientele_endorsements` table (`approved = true` rows only) takes
+priority over `CLIENTELE_ENDORSEMENTS` the moment it has real rows,
+exactly like Fleet Manager's `fleet_items`. Category cards are wired
+through Homepage CMS instead (see [Homepage CMS](#homepage-cms-admin-cms)).
+There is no admin UI for the endorsements table yet — populating it today
+means inserting rows directly in the Supabase dashboard's Table Editor,
+with the same "never invent a name, quote, or logo" rule applying there
+exactly as it does in `js/clientele-data.js`. Editing that file remains
+the practical way to add an endorsement until an admin UI is built for
+this table.
 
 ---
 
@@ -1132,15 +1159,18 @@ using your live URL once deployed.
 ## Live Data & Automatic Fallback
 
 The public site tries Supabase first for fleet vehicles, luxury
-experiences, Instagram profile info, and clientele categories — falling
-back automatically to the original static `js/*-data.js` files whenever
-live data isn't available or isn't usable yet. This is handled by one
-file, `js/data-service.js`, loaded on every public page alongside the
-static data files it can fall back to.
+experiences, clientele categories and endorsements, Instagram profile
+info/posts/Reels, and (as of Phase 6.6) the homepage's Hero, About,
+Trust, Statistics, FAQ, and Videos-section intro copy — falling back
+automatically to the original static `js/*-data.js` files (or, for the
+homepage copy, to `index.html`'s own existing markup) whenever live data
+isn't available or isn't usable yet. This is handled by one file,
+`js/data-service.js`, loaded on every public page alongside the static
+data files it can fall back to.
 
 ### How the fallback decides what to show
 
-For each of the four data types, in order:
+For every data type, in order:
 
 1. **Is Supabase even configured?** If `js/booking-config.js` still has
    its placeholder values (see [Environment
@@ -1153,39 +1183,67 @@ For each of the four data types, in order:
    it falls back the moment the timeout fires, the same as if the
    request had failed outright.
 3. **Did the live request actually return usable content?** A vehicle
-   with `published = false`, an experience that isn't published, or a
-   `site_content` row blocked by Row Level Security all count as "no
-   usable data," and fall back to static — the same as a hard error
-   would. An empty section is never shown just because a query
-   technically succeeded with zero rows; the static file's real content
+   with `published = false`, an experience that isn't published, an
+   unapproved endorsement, an unpublished Instagram post/Reel, or an
+   empty/missing `site_content` row all count as "no usable data," and
+   fall back to static — the same as a hard error would. An empty
+   section is never shown just because a query technically succeeded
+   with zero rows; the static file's (or index.html's own) real content
    is always the fallback of last resort.
 4. **Either way, the page renders.** Once a domain's data is settled
    (live or static), `js/data-service.js` fires an `iconic:<domain>-ready`
    event (`iconic:fleet-ready`, `iconic:experiences-ready`,
-   `iconic:clientele-ready`, `iconic:instagram-ready`) and every script
-   that renders that section — `main.js`, `fleet-render.js`,
+   `iconic:clientele-ready`, `iconic:instagram-ready`, `iconic:hero-ready`,
+   `iconic:about-ready`, `iconic:trust-ready`, `iconic:statistics-ready`,
+   `iconic:faq-ready`, `iconic:videos-intro-ready`) and every script that
+   renders that section — `main.js`, `fleet-render.js`,
    `fleet-detail.js`, `experiences.js`, `clientele.js`, `instagram.js`,
-   `videos.js` — renders from whichever source ended up populated. Those
-   scripts don't know or care whether the data came from Supabase or from
-   a static file; they read the same `window.Iconic*` globals either way.
+   `videos.js`, `homepage-content.js` — renders from whichever source
+   ended up populated. Those scripts don't know or care whether the data
+   came from Supabase or from a static file; they read the same
+   `window.Iconic*` globals either way.
 
-**What's live-capable today, and what isn't yet:**
+**What's live-capable today:**
 
 | Data | Live source | Falls back to |
 |---|---|---|
 | Fleet vehicles | `fleet_items` + `fleet_media` (published only) | `js/fleet-data.js` |
 | Luxury Experiences | `experiences` + `experience_media` (published, not archived) | `js/experiences-data.js` |
 | Clientele categories | `site_content` (`clientele_categories` section) | `js/clientele-data.js` |
+| Clientele endorsements | `clientele_endorsements` table (approved only) | `js/clientele-data.js` |
 | Instagram profile fields | `site_content` (`instagram_profile` section) | `js/instagram-data.js` |
-| Clientele endorsements | *(no database table yet)* | `js/clientele-data.js` — always |
-| Instagram posts & Reels | *(no database table yet)* | `js/instagram-data.js` — always |
-| Hero, About, Trust, Stats, FAQ, Videos intro copy | *(staged in Homepage CMS, no public read path yet)* | hardcoded in `index.html` — always |
+| Instagram posts | `instagram_posts` table (published only) | `js/instagram-data.js` |
+| Instagram Reels | `instagram_reels` table (published only) | `js/instagram-data.js` |
+| Hero copy + stats | `site_content` (`hero` section) | `index.html`'s existing markup |
+| About copy + pillars | `site_content` (`about` section) | `index.html`'s existing markup |
+| Trust title + pillars | `site_content` (`trust` section) | `index.html`'s existing markup |
+| Trust statistics counters | `site_content` (`statistics` section) | `index.html`'s existing markup |
+| FAQ questions | `site_content` (`faq` section) | `index.html`'s existing markup |
+| Videos section intro copy | `site_content` (`videos_section` section) | `index.html`'s existing markup |
 
-The clientele-categories and Instagram-profile rows also won't actually
-go live until `site_content`'s Row Level Security is opened to public
-(`anon`) reads — see the Homepage CMS section above. Until then they
-report "no usable data" (step 3 above) and fall back, by design, even
-though the code path to read them live is already wired.
+Every row above is reachable by `anon` today — Phase 6.6 widened
+`site_content`'s Phase 6.4 authenticated-only read policy to public, and
+`clientele_endorsements`/`instagram_posts`/`instagram_reels` were created
+with the same public-read-when-approved-or-published pattern already used
+by `fleet_items`/`experiences`. Nothing here is waiting on a future RLS
+change anymore.
+
+**List-shaped homepage content (hero stats, about/trust pillars,
+statistics counters, FAQ questions) only patches in place when the live
+count matches what `index.html` already has** — e.g. exactly 4 About
+pillars, exactly 7 FAQ questions. This is intentional, not a bug: these
+sections have scroll-reveal animations and (for the statistics counters)
+a count-up animation bound to the specific DOM elements already on the
+page at load time, and `js/homepage-content.js` only ever retexts those
+existing elements — it never adds, removes, or replaces one, which is
+what keeps every animation working unmodified. Adding or removing an
+item in the Homepage CMS (so the live count no longer matches
+`index.html`) makes that one list fall back to its static content until
+a developer updates `index.html`'s own markup to match the new count —
+see that file's header comment for the full reasoning. Icons on pillar
+entries are accepted from the CMS but not yet rendered on the public
+site (only inline SVGs are used today); only each pillar's text updates
+live.
 
 ### Disabling the fallback later (going "live-only")
 
@@ -1202,25 +1260,32 @@ have two options, from least to most permanent:
   instead of masking the problem with old content.
 - **Remove the fallback path entirely.** In `js/data-service.js`, each
   `load*()` function (`loadFleet`, `loadExperiences`, `loadClientele`,
-  `loadInstagram`) would need its `.catch()` block changed to surface the
-  error instead of quietly falling back — e.g. showing an error state in
-  the relevant grid rather than calling `dispatch()` with the old data
-  still in place. This is a deliberate future step, not something to do
-  casually — it trades resilience (the site staying up during a brief
-  Supabase hiccup) for correctness (never showing outdated content), and
-  should only be done once the team's comfortable relying on Supabase's
-  uptime for the public site, not just the admin dashboard.
+  `loadInstagram`, `loadHero`, `loadAbout`, `loadTrust`, `loadStatistics`,
+  `loadFaq`, `loadVideosIntro`) would need its `.catch()` block changed to
+  surface the error instead of quietly falling back — e.g. showing an
+  error state in the relevant grid rather than calling `dispatch()` with
+  the old data still in place. This is a deliberate future step, not
+  something to do casually — it trades resilience (the site staying up
+  during a brief Supabase hiccup) for correctness (never showing outdated
+  content), and should only be done once the team's comfortable relying
+  on Supabase's uptime for the public site, not just the admin dashboard.
 
 ### Removing the static files entirely (future phase)
 
-The static `js/*-data.js` files can eventually be deleted altogether once
-(a) every data domain above is fully live-capable — including opening up
-`site_content` for the Homepage CMS sections that don't have a public
-read path yet, and giving Clientele endorsements and Instagram
-posts/Reels their own tables — and (b) the team is comfortable with the
-"live-only" behavior described above, since a static file is what makes
-today's graceful fallback possible at all. Until then, keep editing the
-static files as documented throughout this guide ([Adding or Editing
+The static `js/*-data.js` files (and `index.html`'s own hardcoded
+Hero/About/Trust/Statistics/FAQ/Videos-intro copy) can eventually be
+retired altogether now that every data domain is live-capable, once the
+team is comfortable with the "live-only" behavior described above — a
+static file (or hardcoded markup) is what makes today's graceful fallback
+possible at all, so removing one is a deliberate tradeoff, not cleanup.
+One real gap remains first: the list-shaped homepage sections (hero
+stats, about/trust pillars, statistics counters, FAQ items) only patch
+live when the count matches `index.html`'s markup exactly (see above) —
+going fully live-only for those would mean generating that markup from
+the CMS data instead of only ever retexting a fixed number of existing
+elements, which is a real (if modest) frontend change, not just a
+flag flip. Until any of this happens, keep editing the static files and
+`index.html` as documented throughout this guide ([Adding or Editing
 Fleet Items](#adding-or-editing-fleet-items), [Instagram
 Section](#instagram-section), [Luxury Experiences & Recent
 Charters](#luxury-experiences--recent-charters), [Clientele / Social
@@ -1336,6 +1401,7 @@ npx terser js/videos.js -o js/videos.min.js --compress --mangle
 npx terser js/analytics.js -o js/analytics.min.js --compress --mangle
 npx terser js/fleet-supabase-adapter.js -o js/fleet-supabase-adapter.min.js --compress --mangle
 npx terser js/data-service.js -o js/data-service.min.js --compress --mangle
+npx terser js/homepage-content.js -o js/homepage-content.min.js --compress --mangle
 ```
 
 Re-run only the command for the file(s) you actually changed. If you'd
