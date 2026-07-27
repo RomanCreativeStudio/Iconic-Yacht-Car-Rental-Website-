@@ -80,7 +80,7 @@ apple touch icon, and social share image) — see
 18. [Email Configuration](#email-configuration)
 19. [Analytics & Tracking](#analytics--tracking)
 20. [Structured Data & SEO](#structured-data--seo)
-21. [Future CMS Integration](#future-cms-integration)
+21. [Live Data & Automatic Fallback](#live-data--automatic-fallback)
 22. [How Deployment Works](#how-deployment-works)
 23. [Making Code Changes — the Minified Files](#making-code-changes--the-minified-files)
 
@@ -315,16 +315,17 @@ real photography before it makes sense to publish, so the two are being
 built together rather than shipping a vehicle record with no way to add
 its pictures.
 
-### Why the public site doesn't read from here yet
+### The public site now reads from here, automatically
 
-Two things have to both be true before the public site can safely switch
-from `fleet-data.js` to this database: every vehicle's real photography
-needs to exist in Supabase Storage (the Media Manager below can now do
-that part — see [Media Manager (Admin CMS)](#media-manager-admin-cms)),
-and the frontend templates need to be pointed at the new data source.
-That second part hasn't happened yet, on purpose — see "Future CMS
-Integration" below for the exact mechanism already prepared for when
-that switch happens.
+The public site tries this database first and falls back to
+`fleet-data.js` if a vehicle isn't published here yet, or if Supabase is
+briefly unreachable — see [Live Data & Automatic
+Fallback](#live-data--automatic-fallback) for exactly how that works. In
+practice, that means: a vehicle you publish here with real photos
+uploaded (via [Media Manager](#media-manager-admin-cms)) starts showing
+live data on the public site immediately, with nothing else to
+configure; a vehicle left unpublished (or with no photos yet) keeps
+showing its `fleet-data.js` entry until you publish it.
 
 Who can use it: the same sign-in as the booking dashboard (see "Admin
 Dashboard Access" above) — `admin`, `staff`, and `read_only` accounts can
@@ -472,8 +473,11 @@ happens.
 
 `admin/experiences.html` (linked from the "Experiences" tab) manages the
 `experiences` table the same way Fleet Manager manages `fleet_items` —
-real database CRUD, not yet connected to the public site (which still
-reads `js/experiences-data.js`).
+real database CRUD, and (as of the frontend migration — see [Live Data &
+Automatic Fallback](#live-data--automatic-fallback)) connected to the
+public site: a published, non-archived experience here shows up live on
+the homepage and its linked yacht's page, with `js/experiences-data.js`
+as the automatic fallback if none are published yet.
 
 ### What it does today
 
@@ -495,9 +499,9 @@ reads `js/experiences-data.js`).
 ### Published, Featured, and Archived
 
 - **Published** — same meaning as Fleet Manager's: visible on the public
-  site once the frontend migration happens, not before.
+  site (and archived experiences excluded from it).
 - **Featured** — surfaces an experience first in the homepage Luxury
-  Experiences section, once that section reads from here.
+  Experiences section.
 - **Archived** — for an experience that was live before and is being
   retired (e.g. a one-time charter that won't repeat), as opposed to
   "draft" (never published yet). Checking Archived automatically
@@ -517,8 +521,20 @@ ground for the copy currently hardcoded directly in `index.html`: Hero,
 About, Trust section, Statistics, FAQ, Instagram profile, the Videos
 section's intro copy, Clientele categories, and Luxury Experience
 categories. Saving here writes to a `site_content` table — **it does
-not edit `index.html`, and the public homepage does not read from this
-table yet.**
+not edit `index.html` directly.**
+
+Two of these sections — Instagram profile and Clientele categories — are
+wired for live reads on the public site the same way Fleet Manager and
+Experience Manager are (see [Live Data & Automatic
+Fallback](#live-data--automatic-fallback)), but won't actually go live
+until `site_content`'s Row Level Security is opened to public (`anon`)
+reads in a future phase; today that table is readable only by signed-in
+staff, on purpose, since nothing public consumed it before this phase.
+Until that RLS change happens, those two sections keep showing their
+`js/clientele-data.js` / `js/instagram-data.js` content, same as before.
+The rest of this page's sections (Hero, About, Trust, Statistics, FAQ,
+Videos intro copy) have no public-facing read path yet at all — saving
+here stages that content for whenever a future phase wires it up.
 
 Each section has its own tab and its own small form — some are a few
 text fields (Hero, About, Videos section intro, Instagram profile), some
@@ -1113,37 +1129,104 @@ using your live URL once deployed.
 
 ---
 
-## Future CMS Integration
+## Live Data & Automatic Fallback
 
-This site is intentionally structured so that hooking it up to a CMS
-later is a data change, not a rebuild — and as of the Fleet Manager
-(above), the database half of that CMS already exists:
+The public site tries Supabase first for fleet vehicles, luxury
+experiences, Instagram profile info, and clientele categories — falling
+back automatically to the original static `js/*-data.js` files whenever
+live data isn't available or isn't usable yet. This is handled by one
+file, `js/data-service.js`, loaded on every public page alongside the
+static data files it can fall back to.
 
-- Every fleet item (yacht or car) is a single JavaScript object in
-  `js/fleet-data.js`, with a flat, predictable shape (`slug`, `type`,
-  `name`, `category`, `description`, `specs`, `amenities`, `gallery`,
-  etc.). The `fleet_items` / `fleet_media` tables in Supabase (see
-  `supabase/SCHEMA_PROPOSAL.md`) already use that same shape — that
-  wasn't a coincidence, it was designed this way from the start.
-- All rendering logic (`js/fleet-render.js` for cards,
-  `js/fleet-detail.js` for the detail page) reads from `js/fleet-data.js`
-  through a small set of functions (`getFleetItem`, `getFleetByType`,
-  `getRelatedFleet`) — it never reaches into the data array directly.
-  That indirection is what makes the swap possible.
-- `js/fleet-supabase-adapter.js` already implements the Supabase side of
-  that swap — same function names, same data shape, built to satisfy the
-  exact migration steps documented in the comment block at the bottom of
-  `js/fleet-data.js`. It is **not loaded by any page yet.**
+### How the fallback decides what to show
 
-A developer doing this migration would: (1) make sure every vehicle
-meant to go live has `published = true` and real photos uploaded to the
-`fleet-images`/`fleet-videos` Storage buckets, (2) swap the `<script
-src="js/fleet-data.js">` tag for `js/fleet-supabase-adapter.js` plus a
-call to its `.load()` method, and (3) move the existing render calls in
-`fleet-render.js`/`fleet-detail.js` inside a listener for the
-`iconic:fleet-ready` event that `.load()` dispatches, instead of running
-at the bottom of the script as they do today. The HTML templates, CSS,
-and card markup stay untouched either way.
+For each of the four data types, in order:
+
+1. **Is Supabase even configured?** If `js/booking-config.js` still has
+   its placeholder values (see [Environment
+   Variables](#environment-variables)), or the Supabase library failed to
+   load, the site skips straight to the static file — no network request
+   is attempted, so an un-configured site never shows a console error or
+   a failed request for this.
+2. **Is the live request fast enough?** A live request gets 3 seconds.
+   If Supabase is slow or unreachable, the page doesn't hang waiting —
+   it falls back the moment the timeout fires, the same as if the
+   request had failed outright.
+3. **Did the live request actually return usable content?** A vehicle
+   with `published = false`, an experience that isn't published, or a
+   `site_content` row blocked by Row Level Security all count as "no
+   usable data," and fall back to static — the same as a hard error
+   would. An empty section is never shown just because a query
+   technically succeeded with zero rows; the static file's real content
+   is always the fallback of last resort.
+4. **Either way, the page renders.** Once a domain's data is settled
+   (live or static), `js/data-service.js` fires an `iconic:<domain>-ready`
+   event (`iconic:fleet-ready`, `iconic:experiences-ready`,
+   `iconic:clientele-ready`, `iconic:instagram-ready`) and every script
+   that renders that section — `main.js`, `fleet-render.js`,
+   `fleet-detail.js`, `experiences.js`, `clientele.js`, `instagram.js`,
+   `videos.js` — renders from whichever source ended up populated. Those
+   scripts don't know or care whether the data came from Supabase or from
+   a static file; they read the same `window.Iconic*` globals either way.
+
+**What's live-capable today, and what isn't yet:**
+
+| Data | Live source | Falls back to |
+|---|---|---|
+| Fleet vehicles | `fleet_items` + `fleet_media` (published only) | `js/fleet-data.js` |
+| Luxury Experiences | `experiences` + `experience_media` (published, not archived) | `js/experiences-data.js` |
+| Clientele categories | `site_content` (`clientele_categories` section) | `js/clientele-data.js` |
+| Instagram profile fields | `site_content` (`instagram_profile` section) | `js/instagram-data.js` |
+| Clientele endorsements | *(no database table yet)* | `js/clientele-data.js` — always |
+| Instagram posts & Reels | *(no database table yet)* | `js/instagram-data.js` — always |
+| Hero, About, Trust, Stats, FAQ, Videos intro copy | *(staged in Homepage CMS, no public read path yet)* | hardcoded in `index.html` — always |
+
+The clientele-categories and Instagram-profile rows also won't actually
+go live until `site_content`'s Row Level Security is opened to public
+(`anon`) reads — see the Homepage CMS section above. Until then they
+report "no usable data" (step 3 above) and fall back, by design, even
+though the code path to read them live is already wired.
+
+### Disabling the fallback later (going "live-only")
+
+Once you're confident every vehicle and experience you want published is
+published in Supabase with real photos, and you'd rather see a loud
+failure than a silent fallback to (by then stale) static content, you
+have two options, from least to most permanent:
+
+- **Delete the static content, keep the mechanism.** Empty out the
+  arrays in `js/fleet-data.js` / `js/experiences-data.js` / etc. (or
+  reduce them to a single "please check back soon" placeholder entry).
+  The fallback logic itself doesn't change — it just has nothing useful
+  to fall back to, so a Supabase outage would show a real empty state
+  instead of masking the problem with old content.
+- **Remove the fallback path entirely.** In `js/data-service.js`, each
+  `load*()` function (`loadFleet`, `loadExperiences`, `loadClientele`,
+  `loadInstagram`) would need its `.catch()` block changed to surface the
+  error instead of quietly falling back — e.g. showing an error state in
+  the relevant grid rather than calling `dispatch()` with the old data
+  still in place. This is a deliberate future step, not something to do
+  casually — it trades resilience (the site staying up during a brief
+  Supabase hiccup) for correctness (never showing outdated content), and
+  should only be done once the team's comfortable relying on Supabase's
+  uptime for the public site, not just the admin dashboard.
+
+### Removing the static files entirely (future phase)
+
+The static `js/*-data.js` files can eventually be deleted altogether once
+(a) every data domain above is fully live-capable — including opening up
+`site_content` for the Homepage CMS sections that don't have a public
+read path yet, and giving Clientele endorsements and Instagram
+posts/Reels their own tables — and (b) the team is comfortable with the
+"live-only" behavior described above, since a static file is what makes
+today's graceful fallback possible at all. Until then, keep editing the
+static files as documented throughout this guide ([Adding or Editing
+Fleet Items](#adding-or-editing-fleet-items), [Instagram
+Section](#instagram-section), [Luxury Experiences & Recent
+Charters](#luxury-experiences--recent-charters), [Clientele / Social
+Proof Section](#clientele--social-proof-section)) — they're not legacy
+files being phased out on their own; they're the safety net every public
+page still depends on.
 
 ---
 
@@ -1251,6 +1334,8 @@ npx terser js/clientele-data.js -o js/clientele-data.min.js --compress --mangle
 npx terser js/clientele.js -o js/clientele.min.js --compress --mangle
 npx terser js/videos.js -o js/videos.min.js --compress --mangle
 npx terser js/analytics.js -o js/analytics.min.js --compress --mangle
+npx terser js/fleet-supabase-adapter.js -o js/fleet-supabase-adapter.min.js --compress --mangle
+npx terser js/data-service.js -o js/data-service.min.js --compress --mangle
 ```
 
 Re-run only the command for the file(s) you actually changed. If you'd

@@ -9,10 +9,25 @@
  * No content is invented here: this file only decides, for each category,
  * which single real video (if any) to surface first, falling back to the
  * shared "coming soon" placeholder card otherwise.
+ *
+ * Depends on all three of fleet, experiences, and instagram (Phase 6.5) —
+ * waits for all three ready events before aggregating, since any one of
+ * them might still be deciding between live Supabase data and its static
+ * fallback when this script first executes.
  */
 (function () {
   'use strict';
 
+  var readyCount = 0;
+  function onDomainReady() {
+    readyCount += 1;
+    if (readyCount >= 3) render();
+  }
+  document.addEventListener('iconic:fleet-ready', onDomainReady);
+  document.addEventListener('iconic:experiences-ready', onDomainReady);
+  document.addEventListener('iconic:instagram-ready', onDomainReady);
+
+  function render() {
   if (!window.IconicMedia) return;
 
   var gridEl = document.getElementById('videosGrid');
@@ -94,4 +109,5 @@
     }
     return window.IconicMedia.renderVideoCard({ label: cat.label, platform: cat.platform, url: null }, {});
   }).join('');
+  } // end render()
 })();

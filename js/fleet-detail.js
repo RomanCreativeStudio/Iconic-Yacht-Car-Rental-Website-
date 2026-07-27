@@ -2,13 +2,35 @@
  * Populates the fleet detail template (fleet/vehicle.html) from
  * js/fleet-data.js based on the ?slug= query parameter.
  *
- * Runs synchronously before main.js, so by the time main.js's
- * lightbox/reveal-scroll wiring executes, the gallery and related
- * fleet grid it needs to find are already in the DOM.
+ * Waits for 'iconic:fleet-ready' (and 'iconic:experiences-ready', for the
+ * Recent Experiences panel below) before rendering — Phase 6.5's
+ * js/data-service.js may still be deciding between live Supabase data and
+ * the static fallback when this script first executes, so
+ * window.IconicFleet.data/window.IconicExperiences.data aren't guaranteed
+ * to hold their final content until those events fire. Still runs before
+ * main.js's lightbox/reveal-scroll wiring either way, since that wiring
+ * itself only activates once the gallery/related-fleet markup this
+ * produces actually exists in the DOM.
  */
 (function () {
   'use strict';
 
+  var fleetReady = false;
+  var experiencesReady = false;
+
+  function tryRender() {
+    if (!fleetReady) return;
+    // Only wait on experiences if this page actually loaded that module —
+    // fleet/vehicle.html always does today, but render() must not hang
+    // forever on an event that will never fire if that ever changes.
+    if (window.IconicExperiences && !experiencesReady) return;
+    render();
+  }
+
+  document.addEventListener('iconic:fleet-ready', function () { fleetReady = true; tryRender(); });
+  document.addEventListener('iconic:experiences-ready', function () { experiencesReady = true; tryRender(); });
+
+  function render() {
   if (!window.IconicFleet || !window.IconicFleetRender || !window.IconicMedia) return;
 
   var params = new URLSearchParams(window.location.search);
@@ -339,4 +361,5 @@
   } else {
     document.getElementById('relatedFleetSection').style.display = 'none';
   }
+  } // end render()
 })();

@@ -2,13 +2,19 @@
   'use strict';
 
   /* Render homepage fleet grids from the shared fleet data module.
-     No-op on pages (e.g. fleet detail) that don't have these containers. */
-  if (window.IconicFleet && window.IconicFleetRender) {
+     No-op on pages (e.g. fleet detail) that don't have these containers.
+     Deferred to 'iconic:fleet-ready' (Phase 6.5) rather than run inline
+     here: js/data-service.js may still be deciding between live Supabase
+     data and this static fallback when main.js first executes, so
+     window.IconicFleet.data isn't guaranteed final yet at this point —
+     see js/data-service.js's header comment for the full mechanism. */
+  document.addEventListener('iconic:fleet-ready', function () {
+    if (!(window.IconicFleet && window.IconicFleetRender)) return;
     var yachtGrid = document.getElementById('yachtFleetGrid');
     var carGrid = document.getElementById('carFleetGrid');
     if (yachtGrid) window.IconicFleetRender.renderFleetGrid(yachtGrid, window.IconicFleet.getFleetByType('yacht'));
     if (carGrid) window.IconicFleetRender.renderFleetGrid(carGrid, window.IconicFleet.getFleetByType('car'));
-  }
+  });
 
   /* Header scroll state */
   var header = document.querySelector('.site-header');
@@ -172,13 +178,6 @@
     var yachtSelectValues = [];
     var carSelectValues = [];
 
-    document.querySelectorAll('[data-book-yacht]').forEach(function (btn) {
-      yachtSelectValues.push(btn.getAttribute('data-book-yacht'));
-    });
-    document.querySelectorAll('[data-book-car]').forEach(function (btn) {
-      carSelectValues.push(btn.getAttribute('data-book-car'));
-    });
-
     var populateSelectionOptions = function (type) {
       var list = type === 'Yacht Rental' ? yachtSelectValues : carSelectValues;
       selectionField.innerHTML = '<option value="" disabled selected>Select ' + (type === 'Yacht Rental' ? 'a yacht' : 'a vehicle') + '</option>';
@@ -213,21 +212,33 @@
       toggleGuestsField();
     });
 
-    document.querySelectorAll('[data-book-yacht], [data-book-car]').forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        var isYacht = btn.hasAttribute('data-book-yacht');
-        var value = isYacht ? btn.getAttribute('data-book-yacht') : btn.getAttribute('data-book-car');
-        selectFleetItem(isYacht, value);
-        bookingSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      });
-    });
-
     toggleGuestsField();
 
-    /* Cross-page prefill: a fleet detail page's "Book Now" links here as
-       index.html?book=<slug>#booking. Resolve the slug via the shared
-       fleet data module and prefill the same way an on-page card would. */
-    (function () {
+    /* Fleet "Book" buttons live inside the dynamically-rendered fleet grid
+       (Phase 6.5: rendered on 'iconic:fleet-ready', not inline — see the
+       render block above), so collecting their values and wiring their
+       click handlers must wait for that same event; querying for them
+       here at parse time would find none yet. Cross-page prefill (a fleet
+       detail page's "Book Now" links here as index.html?book=<slug>#booking)
+       is resolved in the same handler for the same reason —
+       window.IconicFleet.data isn't guaranteed to hold its final
+       (live-or-fallback) content until then. */
+    document.addEventListener('iconic:fleet-ready', function () {
+      document.querySelectorAll('[data-book-yacht]').forEach(function (btn) {
+        yachtSelectValues.push(btn.getAttribute('data-book-yacht'));
+      });
+      document.querySelectorAll('[data-book-car]').forEach(function (btn) {
+        carSelectValues.push(btn.getAttribute('data-book-car'));
+      });
+      document.querySelectorAll('[data-book-yacht], [data-book-car]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var isYacht = btn.hasAttribute('data-book-yacht');
+          var value = isYacht ? btn.getAttribute('data-book-yacht') : btn.getAttribute('data-book-car');
+          selectFleetItem(isYacht, value);
+          bookingSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+      });
+
       var bookSlug = new URLSearchParams(window.location.search).get('book');
       if (!bookSlug || !window.IconicFleet) return;
       var item = window.IconicFleet.getFleetItem(bookSlug);
@@ -236,7 +247,7 @@
       window.setTimeout(function () {
         bookingSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }, 300);
-    })();
+    });
 
     /* Booking form validation + submit */
     var setError = function (field, message) {

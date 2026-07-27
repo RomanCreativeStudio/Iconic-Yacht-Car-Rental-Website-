@@ -4,8 +4,13 @@
  * always renders; the endorsements row only ever shows entries with
  * approved: true, and falls back to an honest empty state otherwise — see
  * the "do not fabricate" note at the top of js/clientele-data.js.
+ *
+ * Waits for 'iconic:clientele-ready' (Phase 6.5) — js/data-service.js may
+ * still be deciding between live category data and this static fallback
+ * when this script first executes (endorsements are always static; see
+ * js/data-service.js's header comment for why).
  */
-(function () {
+document.addEventListener('iconic:clientele-ready', function () {
   'use strict';
 
   if (!window.IconicClientele || !window.IconicMedia) return;
@@ -67,4 +72,4 @@
       endorsementsEmptyEl.hidden = false;
     }
   }
-})();
+});

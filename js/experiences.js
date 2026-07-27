@@ -4,8 +4,12 @@
  * (.fd-experience-card, in css/media-components.css) as each yacht page's
  * "Recent Experiences on this yacht" panel, so both look and behave
  * identically — see js/fleet-detail.js for that consumer.
+ *
+ * Waits for 'iconic:experiences-ready' (Phase 6.5) — js/data-service.js
+ * may still be deciding between live Supabase data and this static
+ * fallback when this script first executes.
  */
-(function () {
+document.addEventListener('iconic:experiences-ready', function () {
   'use strict';
 
   if (!window.IconicExperiences || !window.IconicMedia) return;
@@ -105,4 +109,4 @@
   }
 
   render('all');
-})();
+});
