@@ -40,9 +40,49 @@
     Cache-Control = "public, max-age=0, must-revalidate"
 
 # Baseline security headers.
+#
+# Content-Security-Policy (Phase 7.2) is scoped to exactly what this site
+# loads today, verified against every HTML page and the analytics/booking
+# JS — see CLIENT_SETUP.md's "Content Security Policy" section for the
+# reasoning behind each allowance and what to update if you add a new
+# integration:
+#   - script-src / connect-src / img-src allow googletagmanager.com,
+#     google-analytics.com, and facebook.com/connect.facebook.net because
+#     index.html and fleet/vehicle.html already ship commented-out GA4/Meta
+#     Pixel snippets (see "Analytics & Tracking") — inert today, but the
+#     policy is ready the moment a real ID replaces the placeholder so
+#     activating analytics never means also having to debug a CSP block.
+#   - connect-src/img-src allow *.supabase.co (not a single hardcoded
+#     project ref) because this project ships as a template — swapping in
+#     a different Supabase project only ever requires editing
+#     js/booking-config.js, never this file too. Scoped to Supabase's own
+#     domain, not a general wildcard.
+#   - style-src allows 'unsafe-inline' for the inline style="" attributes
+#     already used across the admin dashboard's upload-preview widgets;
+#     script-src has no such exception and needs none (no inline <script>
+#     currently executes anywhere — the analytics snippets above are
+#     HTML-commented-out, and the JSON-LD block is a non-executable
+#     application/ld+json script, which CSP's script-src doesn't govern).
+#   - frame-src allows google.com for the Google Maps embed in the
+#     homepage Contact section.
 [[headers]]
   for = "/*"
   [headers.values]
     X-Content-Type-Options = "nosniff"
     X-Frame-Options = "SAMEORIGIN"
     Referrer-Policy = "strict-origin-when-cross-origin"
+    Strict-Transport-Security = "max-age=63072000; includeSubDomains; preload"
+    Content-Security-Policy = """\
+      default-src 'self'; \
+      script-src 'self' https://www.googletagmanager.com https://connect.facebook.net; \
+      style-src 'self' 'unsafe-inline'; \
+      img-src 'self' data: https://*.supabase.co https://www.facebook.com; \
+      font-src 'self'; \
+      connect-src 'self' https://*.supabase.co https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://connect.facebook.net https://www.facebook.com; \
+      frame-src https://www.google.com; \
+      object-src 'none'; \
+      base-uri 'self'; \
+      form-action 'self'; \
+      frame-ancestors 'self'; \
+      upgrade-insecure-requests\
+      """

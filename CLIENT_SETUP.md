@@ -433,6 +433,20 @@ directly from their own editor; see [Clientele
 Manager](#clientele-manager-admin-cms) and [Instagram
 Manager](#instagram-manager-admin-cms).
 
+**Unused buckets (Phase 7.2 audit):** the Supabase project also has four
+other Storage buckets — `documents`, `gallery`, `hero`, and `media` —
+that predate this project's admin CMS and were never wired up: private,
+empty (zero objects, confirmed as of this audit), no Row Level Security
+policies, and no size/type limits. Nothing in this codebase references
+them. With RLS enabled and no policy granting access, they're
+inaccessible to anyone but the project owner directly in the Supabase
+dashboard — not a live exposure, just unused. They're left in place
+rather than deleted, since removing Storage infrastructure isn't this
+codebase's call to make unilaterally; delete them yourself in **Supabase
+Dashboard → Storage** if you're confident you'll never use them, or
+repurpose one the same way `avatars`/`instagram` were (configure
+public-read + admin-write RLS, wire it into the relevant admin page).
+
 ### Supported formats
 
 - **Images:** JPG, JPEG, PNG, WEBP
@@ -1521,6 +1535,46 @@ consider restricting the Edge Function's CORS header (currently `*` in
 `supabase/functions/send-booking-emails/index.ts`) to your real domain
 once you know it, and disabling public sign-ups in Supabase Auth so only
 staff you personally invite can access `admin/`.
+
+### Content Security Policy
+
+`netlify.toml`'s baseline security headers (Phase 7.2) include a
+`Content-Security-Policy` and `Strict-Transport-Security` on Netlify —
+like the other headers in that file, they only take effect there and are
+safe to leave in place (ignored) or delete if you deploy elsewhere. The
+policy is scoped to exactly what this site loads today, not a generic
+template:
+
+- **Supabase** (`connect-src`/`img-src`) is allowed as `https://*.supabase.co`
+  rather than one hardcoded project ref, so switching to a different
+  Supabase project only ever means editing `js/booking-config.js` —
+  never this file too.
+- **Google Analytics and the Meta Pixel** are allowed even though both
+  are commented out in `index.html`/`fleet/vehicle.html` by default (see
+  [Analytics & Tracking](#analytics--tracking)) — so activating either
+  one later is just deleting the comment markers and dropping in a real
+  ID, with nothing to debug in the security headers.
+- **Google Maps** (`frame-src`) is allowed for the embedded map in the
+  homepage Contact section.
+- `style-src` allows `'unsafe-inline'` because the admin dashboard's
+  upload-preview widgets use inline `style=""` attributes; `script-src`
+  does not need the same exception — no inline `<script>` executes
+  anywhere on the live site today.
+
+If you add a new third-party integration (a chat widget, a different
+analytics tool, an embedded video player, etc.), it will likely need its
+own domain added to the relevant directive here or the resource will be
+silently blocked — check your browser console for a CSP violation
+message naming exactly which directive and domain to add.
+
+**HSTS note:** `includeSubDomains` assumes every subdomain of your real
+domain serves HTTPS — confirm that's true before deploying (an HTTP-only
+subdomain, like an old mail or FTP service, would break under this
+header). The `preload` directive in the header alone does nothing by
+itself; submitting your domain to the browser-vendor HSTS preload list
+at [hstspreload.org](https://hstspreload.org) is a separate, deliberate
+step worth taking only once you're confident the domain will run HTTPS
+indefinitely — removal from that list can take months to propagate.
 
 ---
 
