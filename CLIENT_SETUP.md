@@ -67,22 +67,24 @@ apple touch icon, and social share image) — see
 5. [Fleet Manager (Admin CMS)](#fleet-manager-admin-cms)
 6. [Media Manager (Admin CMS)](#media-manager-admin-cms)
 7. [Experience Manager (Admin CMS)](#experience-manager-admin-cms)
-8. [Homepage CMS (Admin CMS)](#homepage-cms-admin-cms)
-9. [Settings (Admin CMS)](#settings-admin-cms)
-10. [Updating Business Information](#updating-business-information)
-11. [Instagram Section](#instagram-section)
-12. [Luxury Experiences & Recent Charters](#luxury-experiences--recent-charters)
-13. [Clientele / Social Proof Section](#clientele--social-proof-section)
-14. [Videos Section](#videos-section)
-15. [How Booking Requests Work](#how-booking-requests-work)
-16. [Database Setup](#database-setup)
-17. [Environment Variables](#environment-variables)
-18. [Email Configuration](#email-configuration)
-19. [Analytics & Tracking](#analytics--tracking)
-20. [Structured Data & SEO](#structured-data--seo)
-21. [Live Data & Automatic Fallback](#live-data--automatic-fallback)
-22. [How Deployment Works](#how-deployment-works)
-23. [Making Code Changes — the Minified Files](#making-code-changes--the-minified-files)
+8. [Clientele Manager (Admin CMS)](#clientele-manager-admin-cms)
+9. [Instagram Manager (Admin CMS)](#instagram-manager-admin-cms)
+10. [Homepage CMS (Admin CMS)](#homepage-cms-admin-cms)
+11. [Settings (Admin CMS)](#settings-admin-cms)
+12. [Updating Business Information](#updating-business-information)
+13. [Instagram Section](#instagram-section)
+14. [Luxury Experiences & Recent Charters](#luxury-experiences--recent-charters)
+15. [Clientele / Social Proof Section](#clientele--social-proof-section)
+16. [Videos Section](#videos-section)
+17. [How Booking Requests Work](#how-booking-requests-work)
+18. [Database Setup](#database-setup)
+19. [Environment Variables](#environment-variables)
+20. [Email Configuration](#email-configuration)
+21. [Analytics & Tracking](#analytics--tracking)
+22. [Structured Data & SEO](#structured-data--seo)
+23. [Live Data & Automatic Fallback](#live-data--automatic-fallback)
+24. [How Deployment Works](#how-deployment-works)
+25. [Making Code Changes — the Minified Files](#making-code-changes--the-minified-files)
 
 ---
 
@@ -517,6 +519,85 @@ Access](#admin-dashboard-access).
 
 ---
 
+## Clientele Manager (Admin CMS)
+
+`admin/clientele.html` (linked from the "Clientele" tab) manages the
+`clientele_endorsements` table — real, named testimonials from clients or
+brands who've explicitly agreed to be quoted. The public homepage's
+"Trusted by Miami's Most Discerning Clientele" endorsements row reads
+from here live (see [Live Data & Automatic
+Fallback](#live-data--automatic-fallback)), falling back to
+`js/clientele-data.js` whenever nothing is approved yet. Category cards
+(Professional Athletes, Influencers, etc.) are managed separately, in
+Homepage CMS's "Clientele Categories" tab.
+
+### What it does today
+
+- Lists every endorsement with search (name or quote), a status filter
+  (Any / Approved / Unapproved), and sort (sort order, name, recently
+  updated).
+- **+ Add Endorsement** opens a blank editor. **Edit** opens the same
+  editor pre-filled. **Approve**/**Unapprove** is a one-click toggle
+  right on each card. **Delete** removes an endorsement permanently.
+- The editor's own on-screen reminder repeats the rule that already
+  governs `js/clientele-data.js`: **only add a real, named endorsement
+  once that specific person or brand has explicitly agreed to be quoted
+  on the site — never invent a name, quote, or logo.**
+
+### Approved — the only status field
+
+Unlike Fleet Manager or Experience Manager, there's a single status
+toggle here, **Approved**, not a separate Published/Approved pair — the
+database has one gate column (`approved`), and the admin UI matches it
+exactly rather than inventing a second toggle that would do the same
+thing. An endorsement only appears on the public site once Approved is
+checked.
+
+Who can use it: same three roles as everywhere else in the dashboard —
+`admin` accounts can edit and save; `staff` and `read_only` accounts can
+view every endorsement but don't see the write buttons (Edit, Approve/
+Unapprove, Delete, + Add Endorsement) — see "Roles today vs. later"
+under [Admin Dashboard Access](#admin-dashboard-access).
+
+---
+
+## Instagram Manager (Admin CMS)
+
+`admin/instagram.html` (linked from the "Instagram" tab) manages the
+`instagram_posts` and `instagram_reels` tables via two tabs, **Posts**
+and **Reels**, sharing one toolbar and grid. The public homepage's
+Instagram feed and Reels row both read from here live, falling back to
+`js/instagram-data.js` whenever nothing is published yet. The Instagram
+**profile** (handle, bio, avatar, follower/post counts) is managed
+separately, in Homepage CMS's "Instagram Profile" tab.
+
+### What it does today
+
+- Switch between the Posts and Reels tabs at the top of the toolbar —
+  each has its own search, publish-status filter, and sort, reset when
+  you switch tabs.
+- **+ Add Post** / **+ Add Reel** (the button's label follows the active
+  tab) opens a blank editor for that content type. **Edit** opens the
+  same editor pre-filled. **Publish**/**Unpublish** is a one-click toggle
+  on each card. **Delete** removes an entry permanently.
+- **Post** fields: media type (Image/Video/Carousel Album), media URL,
+  an optional WebP variant, permalink, caption, sort order.
+- **Reel** fields: permalink, thumbnail URL, an optional WebP variant,
+  caption, sort order — reels have no media type field, since they're
+  always video.
+- Media URLs and thumbnails are plain text (a path like
+  `/images/photo.jpg` or a full URL) — the same pattern
+  `js/instagram-data.js` already uses, not a Supabase Storage upload.
+  Upload the real file to your hosting the same way you would any other
+  site image, then paste its path or URL here.
+
+Who can use it: same three roles as everywhere else in the dashboard —
+`admin` accounts can edit and save; `staff` and `read_only` accounts can
+view every post and reel but don't see the write buttons — see "Roles
+today vs. later" under [Admin Dashboard Access](#admin-dashboard-access).
+
+---
+
 ## Homepage CMS (Admin CMS)
 
 `admin/homepage.html` (linked from the "Homepage" tab) is a staging
@@ -658,15 +739,16 @@ for the exact steps.
 After editing, re-minify `js/instagram-data.js` (see
 [Making Code Changes](#making-code-changes--the-minified-files)).
 
-**A live database path also exists as of Phase 6.6** — the
-`instagram_posts` and `instagram_reels` tables (`published = true` rows
-only) take priority over this file on the public site the moment they
-have real rows in them, exactly like Fleet Manager's `fleet_items`. There
-is no admin UI for these two tables yet, though — populating them today
-means inserting rows directly in the Supabase dashboard's Table Editor
-(`published`, `sort_order`, and the same fields as the shapes above,
-snake_cased). Editing `js/instagram-data.js` remains the practical way to
-update this section until that admin UI is built.
+**A live database path also exists as of Phase 6.6, with an admin UI as
+of Phase 6.7** — the `instagram_posts` and `instagram_reels` tables
+(`published = true` rows only) take priority over this file on the
+public site the moment they have real rows in them, exactly like Fleet
+Manager's `fleet_items`. Manage them from **Instagram Manager** in the
+admin dashboard — see [Instagram Manager
+(Admin CMS)](#instagram-manager-admin-cms) — rather than editing this
+file or the Supabase Table Editor directly. Editing
+`js/instagram-data.js` remains the fallback content shown whenever
+neither table has a published row.
 
 ---
 
@@ -736,17 +818,17 @@ two parts, both driven by `js/clientele-data.js`:
 
 After editing, re-minify `js/clientele-data.js`.
 
-**A live database path also exists for endorsements as of Phase 6.6** —
-the `clientele_endorsements` table (`approved = true` rows only) takes
-priority over `CLIENTELE_ENDORSEMENTS` the moment it has real rows,
-exactly like Fleet Manager's `fleet_items`. Category cards are wired
-through Homepage CMS instead (see [Homepage CMS](#homepage-cms-admin-cms)).
-There is no admin UI for the endorsements table yet — populating it today
-means inserting rows directly in the Supabase dashboard's Table Editor,
-with the same "never invent a name, quote, or logo" rule applying there
-exactly as it does in `js/clientele-data.js`. Editing that file remains
-the practical way to add an endorsement until an admin UI is built for
-this table.
+**A live database path also exists for endorsements as of Phase 6.6, with
+an admin UI as of Phase 6.7** — the `clientele_endorsements` table
+(`approved = true` rows only) takes priority over
+`CLIENTELE_ENDORSEMENTS` the moment it has real rows, exactly like Fleet
+Manager's `fleet_items`. Manage endorsements from **Clientele Manager**
+in the admin dashboard — see [Clientele Manager
+(Admin CMS)](#clientele-manager-admin-cms) — with the same "never invent
+a name, quote, or logo" rule enforced there as a reminder in the editor
+itself. Category cards are wired through Homepage CMS instead (see
+[Homepage CMS](#homepage-cms-admin-cms)). Editing `js/clientele-data.js`
+remains the fallback content shown whenever no endorsement is approved.
 
 ---
 
