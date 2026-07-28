@@ -1,7 +1,23 @@
 # Database Schema Proposal — Phase 6.0 Foundation
 
-**Status, as of Phase 6.1: the core tables below are implemented and
-live** on the connected project (`booking_requests`, `profiles`,
+> **⚠️ Superseded (Phase 8.0).** This is Phase 6.0/6.1 planning history,
+> kept for the design rationale — not a current reference. Everything
+> this document proposed has since shipped: `instagram_profile` lives in
+> `site_content`, and `instagram_posts`, `instagram_reels`, and
+> `clientele_endorsements` are all real, live tables with their own admin
+> Managers (Clientele Manager, Instagram Manager) and public read paths
+> since Phase 6.6–6.8. The public site has read from these tables live,
+> with automatic static-file fallback, since Phase 6.5. **For the actual,
+> current schema, use `supabase/migrations/` (source of truth) and
+> `CLIENT_SETUP.md`'s "Database Setup" and "Live Data & Automatic
+> Fallback" sections** — not the status notes below, which describe a
+> much earlier point in the project.
+
+---
+
+**Original status note, as of Phase 6.1 (superseded — see above):** the
+core tables below are implemented and live on the connected project
+(`booking_requests`, `profiles`,
 `fleet_items`, `fleet_media`, `experiences`, `experience_media`, plus RLS
 on all of them and the storage buckets in §5) — see §8 for exactly what
 changed and what's still just a proposal. `instagram_profile`,

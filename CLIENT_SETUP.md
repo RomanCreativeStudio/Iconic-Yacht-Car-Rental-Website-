@@ -1013,11 +1013,48 @@ edge functions, all on a generous free tier for a business this size.
 1. **Create a Supabase account and project** at
    [supabase.com](https://supabase.com/dashboard). Pick a region close to
    Miami (e.g. US East) for the best latency.
-2. **Run the schema.** In your project dashboard, go to **SQL Editor >
-   New query**, paste the entire contents of `supabase/schema.sql` from
-   this project, and click **Run**. This creates the `booking_requests`
-   table with the exact fields below, plus the security rules described
-   next. It's safe to re-run if you're ever unsure whether it applied.
+2. **Apply every migration in `supabase/migrations/`, in order.** This is
+   the complete, current schema — `booking_requests`, `profiles`,
+   `fleet_items`/`fleet_media`/`fleet_item_private_notes`,
+   `experiences`/`experience_media`, `site_content`, `site_settings`,
+   `clientele_endorsements`, `instagram_posts`/`instagram_reels`,
+   `activity_log`, every RLS policy, and the
+   `is_admin()`/`get_storage_usage()`/Team-management functions — not
+   just the original booking table. The reliable way to apply all of
+   them, in the right order, is the Supabase CLI:
+
+   ```bash
+   npm install -g supabase   # if you don't already have it
+   supabase login
+   supabase link --project-ref YOUR-PROJECT-REF
+   supabase db push
+   ```
+
+   `supabase/schema.sql` (the older copy-paste-into-SQL-Editor path) only
+   creates the original `booking_requests` table by itself — it
+   pre-dates the CMS and is not a substitute for the migrations above.
+   It's still there, and still correct for exactly what it does, but
+   running it alone on a fresh project will leave the admin dashboard and
+   every CMS page unable to load (their tables won't exist yet).
+3. **Create three Storage buckets by hand:** `logos`, `avatars`, and
+   `instagram` (**Storage > New bucket**, names must match exactly). Every
+   *other* bucket (`fleet-images`, `fleet-videos`, `experience-images`,
+   `experience-videos`) is created automatically by the migrations in
+   step 2 — but these three were originally set up directly in the
+   dashboard on this project rather than by a migration, so their
+   migrations only configure an *existing* bucket (public access, file
+   size/type limits, RLS) rather than create one. On a brand-new project,
+   create the bucket first, then re-run `supabase db push` (or just the
+   one migration file matching each bucket — see
+   `supabase/migrations/20260727000000_phase_6_4_cms_extensions.sql` for
+   `logos` and `20260728175925_phase_6_11_clientele_instagram_media_uploads.sql`
+   for `avatars`/`instagram`) so the configuration actually applies.
+4. **Verify the schema landed.** In **Table Editor**, you should see all
+   13 tables named above; in **Storage**, all 7 buckets. If something's
+   missing, re-run `supabase db push` — every migration here is written
+   to be safe to re-run.
+
+`booking_requests`' fields, for reference:
 
    | Field | Type | Notes |
    |---|---|---|
@@ -1036,9 +1073,10 @@ edge functions, all on a generous free tier for a business this size.
    | `status` | text | One of: New, Contacted, Confirmed, Completed, Cancelled |
    | `source` | text | "full_form" or "quick_form" — which form was used |
 
-3. **Row Level Security (RLS) is already configured by the schema** and
-   is the real security boundary for this data — not any secret key. In
-   plain terms:
+### Row Level Security
+
+RLS is already configured by the migrations above and is the real
+security boundary for this data — not any secret key. In plain terms:
    - Anyone on the public website can *submit* a new inquiry (that's the
      whole point of the form), but can never read, edit, or delete any
      inquiry — including their own — through the public API.
