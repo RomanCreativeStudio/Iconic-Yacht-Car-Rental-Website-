@@ -90,12 +90,15 @@
   });
 
   /* -------------------------------------------------------------------
-     Summary cards (task 8) — Fleet / Experiences / Media / Pending
-     Bookings / Published / Draft / Storage Usage. Each count is its own
-     small, independent query rather than one giant join, since the
-     underlying tables (fleet_items, experiences, fleet_media,
-     experience_media, booking_requests) have no relationships to join on
-     for this purpose — simplicity over a single round trip here.
+     Summary cards (task 8, extended Phase 6.9) — Fleet / Experiences /
+     Media / Endorsements / Instagram Content / Homepage Sections /
+     Pending Bookings / Published / Draft / Storage Usage. Each domain's
+     count is its own small, independent query rather than one giant
+     join (the underlying tables have no relationships to join on for
+     this purpose), but each query result is reused wherever it's needed
+     rather than re-fetched — e.g. fleet_items.published is fetched once
+     and used for both the Fleet Vehicles count and its contribution to
+     the sitewide Published/Draft rollup below.
   ------------------------------------------------------------------- */
   function setSummary(id, value) {
     var el = document.getElementById(id);
@@ -108,17 +111,26 @@
     return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
   }
 
+  // Kept in sync by hand with admin/homepage.js's SECTIONS array length —
+  // same "no shared constant" tradeoff already made for the category
+  // lists duplicated across admin/experience-editor.js and
+  // js/experiences-data.js, for a single small array that rarely changes.
+  var HOMEPAGE_SECTION_COUNT = 9;
+
   function loadSummary() {
-    supabase.from('fleet_items').select('published').then(function (r) {
-      var rows = r.data || [];
-      setSummary('summaryFleet', rows.length);
-      return rows;
+    var fleetItems = supabase.from('fleet_items').select('published').then(function (r) { return r.data || []; });
+    var experiences = supabase.from('experiences').select('published').then(function (r) { return r.data || []; });
+    var endorsements = supabase.from('clientele_endorsements').select('approved').then(function (r) { return r.data || []; });
+    var instagramPosts = supabase.from('instagram_posts').select('published').then(function (r) { return r.data || []; });
+    var instagramReels = supabase.from('instagram_reels').select('published').then(function (r) { return r.data || []; });
+
+    fleetItems.then(function (rows) { setSummary('summaryFleet', rows.length); });
+    experiences.then(function (rows) { setSummary('summaryExperiences', rows.length); });
+    endorsements.then(function (rows) { setSummary('summaryEndorsements', rows.length); });
+    Promise.all([instagramPosts, instagramReels]).then(function (results) {
+      setSummary('summaryInstagram', results[0].length + results[1].length);
     });
-    supabase.from('experiences').select('published').then(function (r) {
-      var rows = r.data || [];
-      setSummary('summaryExperiences', rows.length);
-      return rows;
-    });
+
     Promise.all([
       supabase.from('fleet_media').select('id'),
       supabase.from('experience_media').select('id')
@@ -126,19 +138,38 @@
       var total = (results[0].data || []).length + (results[1].data || []).length;
       setSummary('summaryMedia', total);
     });
+
+    supabase.from('site_content').select('section').then(function (r) {
+      setSummary('summaryHomepage', (r.data || []).length + ' / ' + HOMEPAGE_SECTION_COUNT);
+    });
+
     supabase.from('booking_requests').select('id').eq('status', 'New').then(function (r) {
       setSummary('summaryPending', (r.data || []).length);
     });
-    Promise.all([
-      supabase.from('fleet_items').select('published'),
-      supabase.from('experiences').select('published')
-    ]).then(function (results) {
-      var rows = (results[0].data || []).concat(results[1].data || []);
-      var published = rows.filter(function (r) { return r.published; }).length;
-      var draft = rows.length - published;
-      setSummary('summaryPublished', published);
-      setSummary('summaryDraft', draft);
+
+    // Sitewide Published/Draft rollup — every domain with a publish-style
+    // gate (fleet_items.published, experiences.published,
+    // clientele_endorsements.approved, instagram_posts/reels.published),
+    // reusing the same five queries already in flight above rather than
+    // fetching any of them twice.
+    Promise.all([fleetItems, experiences, endorsements, instagramPosts, instagramReels]).then(function (results) {
+      var isLive = [
+        function (r) { return r.published; },
+        function (r) { return r.published; },
+        function (r) { return r.approved; },
+        function (r) { return r.published; },
+        function (r) { return r.published; }
+      ];
+      var totalRows = 0;
+      var liveRows = 0;
+      results.forEach(function (rows, i) {
+        totalRows += rows.length;
+        liveRows += rows.filter(isLive[i]).length;
+      });
+      setSummary('summaryPublished', liveRows);
+      setSummary('summaryDraft', totalRows - liveRows);
     });
+
     supabase.rpc('get_storage_usage').then(function (r) {
       if (r.error) { setSummary('summaryStorage', '—'); return; }
       var total = (r.data || []).reduce(function (sum, row) { return sum + Number(row.bytes || 0); }, 0);

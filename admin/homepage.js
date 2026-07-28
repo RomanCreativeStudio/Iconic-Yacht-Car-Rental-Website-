@@ -11,9 +11,10 @@
  * hand-written form per section — the nine sections share exactly two
  * field shapes (a scalar value, or a reorderable list of small objects),
  * so a generic renderer avoids writing the same list-editor logic nine
- * times. Saving writes straight to site_content; the public homepage
- * (index.html) is not wired to read this table yet, per this phase's
- * scope.
+ * times. Saving writes straight to site_content; as of Phase 6.6 the
+ * public homepage (js/data-service.js + js/homepage-content.js) reads
+ * eight of these nine sections live — Luxury Experience categories is
+ * the one exception, with no public read path yet.
  */
 (function () {
   'use strict';

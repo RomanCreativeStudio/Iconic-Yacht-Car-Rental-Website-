@@ -1227,6 +1227,14 @@
   display: flex;
   flex-direction: column;
   gap: 0.3rem;
+  text-decoration: none;
+  transition: border-color var(--dur-fast) var(--ease-luxury);
+}
+
+/* Cards rendered as <a> (a quick link to that item's manager) get the
+   same hover affordance as .fleet-card — reused, not a new hover style. */
+a.admin-summary-card:hover {
+  border-color: rgba(198, 161, 91, 0.4);
 }
 
 .admin-summary-value {

@@ -70,7 +70,15 @@
    *   function's own "preserve current" restore once it does resolve.
    */
   function loadYachtOptions(selectValue) {
-    var supabase = global.IconicSupabase && global.IconicSupabase.getClient();
+    // Checked via isConfigured() first, not just a null-check on
+    // getClient()'s return value: getClient() itself logs a console.error
+    // when unconfigured (by design, for callers with no guard of their
+    // own — see js/supabase-client.js), and this page is always reached
+    // through admin/auth-guard.js's requireClient(), which already shows
+    // its own "Not Configured Yet" screen before any editor script runs.
+    // Calling getClient() anyway here logged a second, redundant error.
+    if (!global.IconicSupabase || !global.IconicSupabase.isConfigured()) return;
+    var supabase = global.IconicSupabase.getClient();
     if (!supabase) return;
     var toSelect = selectValue != null ? selectValue : fieldYacht.value;
     supabase.from('fleet_items').select('slug,name').order('name').then(function (result) {
