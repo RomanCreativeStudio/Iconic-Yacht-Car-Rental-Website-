@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Homepage CMS | Iconic Rentals Admin</title>
+<title>Team | Iconic Rentals Admin</title>
 <meta name="robots" content="noindex, nofollow" />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230a0a0b'/%3E%3Ctext x='50' y='68' font-family='Georgia,serif' font-size='58' fill='%23c6a15b' text-anchor='middle'%3EI%3C/text%3E%3C/svg%3E" />
 
@@ -24,35 +24,41 @@
     <a href="experiences.html" class="admin-nav-link">Experiences</a>
     <a href="clientele.html" class="admin-nav-link">Clientele</a>
     <a href="instagram.html" class="admin-nav-link">Instagram</a>
-    <a href="homepage.html" class="admin-nav-link is-active" aria-current="page">Homepage</a>
-    <a href="team.html" class="admin-nav-link">Team</a>
+    <a href="homepage.html" class="admin-nav-link">Homepage</a>
+    <a href="team.html" class="admin-nav-link is-active" aria-current="page">Team</a>
     <a href="settings.html" class="admin-nav-link">Settings</a>
   </nav>
   <button type="button" class="btn btn-ghost admin-signout" id="signOutBtn" hidden>Sign Out</button>
 </header>
 
 <main class="admin-main">
-  <section class="admin-dashboard" id="homepageView" hidden>
+  <section class="admin-dashboard" id="teamView" hidden>
     <p class="admin-muted" style="margin-bottom:var(--space-4);max-width:60ch;">
-      Manages the homepage copy the public site reads live (Hero, About, Trust,
-      Statistics, FAQ, Instagram profile, Videos section intro, Clientele
-      categories) — changes here appear the next time a visitor loads the page.
-      The one exception is Luxury Experience categories, which the Experiences
-      section doesn't read from here yet.
+      Everyone with dashboard access. Change a role or remove access here —
+      no SQL Editor needed. Creating someone's initial login still requires
+      Supabase Dashboard &gt; Authentication &gt; Users &gt; Add user (see
+      CLIENT_SETUP.md); once their account exists, it appears here
+      automatically the first time they sign in.
     </p>
 
-    <div class="fleet-filter-group" role="tablist" aria-label="Homepage section" id="sectionTabs" style="margin-bottom:var(--space-4);flex-wrap:wrap;"></div>
+    <div class="admin-banner" id="teamBanner" role="alert" hidden></div>
 
-    <div class="admin-banner" id="homepageBanner" role="alert" hidden></div>
-    <div class="admin-banner" id="homepageSuccessBanner" role="status" style="background:rgba(120,190,130,0.12);border-color:rgba(120,190,130,0.4);color:#8fd39a;" hidden></div>
-
-    <form id="sectionForm">
-      <div class="admin-editor-section">
-        <h3 id="sectionFormTitle">Section</h3>
-        <div class="admin-editor-fieldgrid" id="sectionFields"></div>
-      </div>
-      <button type="submit" class="btn btn-primary" id="sectionSaveBtn" data-label="Save Section" data-loading-label="Saving…" disabled>Save Section</button>
-    </form>
+    <div class="admin-table-wrap">
+      <table class="admin-table" id="teamTable">
+        <thead>
+          <tr>
+            <th scope="col">Email</th>
+            <th scope="col">Name</th>
+            <th scope="col">Role</th>
+            <th scope="col">Joined</th>
+            <th scope="col"><span class="sr-only">Actions</span></th>
+          </tr>
+        </thead>
+        <tbody id="teamTableBody">
+          <tr><td colspan="5" class="admin-table-empty">Loading team…</td></tr>
+        </tbody>
+      </table>
+    </div>
   </section>
 </main>
 
@@ -62,6 +68,7 @@
 <script src="auth-guard.js"></script>
 <script src="ui-utils.js"></script>
 <script src="activity-log.js"></script>
-<script src="homepage.js"></script>
+<script src="team-service.js"></script>
+<script src="team.js"></script>
 </body>
 </html>

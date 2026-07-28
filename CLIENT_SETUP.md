@@ -70,21 +70,22 @@ apple touch icon, and social share image) — see
 8. [Clientele Manager (Admin CMS)](#clientele-manager-admin-cms)
 9. [Instagram Manager (Admin CMS)](#instagram-manager-admin-cms)
 10. [Homepage CMS (Admin CMS)](#homepage-cms-admin-cms)
-11. [Settings (Admin CMS)](#settings-admin-cms)
-12. [Updating Business Information](#updating-business-information)
-13. [Instagram Section](#instagram-section)
-14. [Luxury Experiences & Recent Charters](#luxury-experiences--recent-charters)
-15. [Clientele / Social Proof Section](#clientele--social-proof-section)
-16. [Videos Section](#videos-section)
-17. [How Booking Requests Work](#how-booking-requests-work)
-18. [Database Setup](#database-setup)
-19. [Environment Variables](#environment-variables)
-20. [Email Configuration](#email-configuration)
-21. [Analytics & Tracking](#analytics--tracking)
-22. [Structured Data & SEO](#structured-data--seo)
-23. [Live Data & Automatic Fallback](#live-data--automatic-fallback)
-24. [How Deployment Works](#how-deployment-works)
-25. [Making Code Changes — the Minified Files](#making-code-changes--the-minified-files)
+11. [Team (Admin CMS)](#team-admin-cms)
+12. [Settings (Admin CMS)](#settings-admin-cms)
+13. [Updating Business Information](#updating-business-information)
+14. [Instagram Section](#instagram-section)
+15. [Luxury Experiences & Recent Charters](#luxury-experiences--recent-charters)
+16. [Clientele / Social Proof Section](#clientele--social-proof-section)
+17. [Videos Section](#videos-section)
+18. [How Booking Requests Work](#how-booking-requests-work)
+19. [Database Setup](#database-setup)
+20. [Environment Variables](#environment-variables)
+21. [Email Configuration](#email-configuration)
+22. [Analytics & Tracking](#analytics--tracking)
+23. [Structured Data & SEO](#structured-data--seo)
+24. [Live Data & Automatic Fallback](#live-data--automatic-fallback)
+25. [How Deployment Works](#how-deployment-works)
+26. [Making Code Changes — the Minified Files](#making-code-changes--the-minified-files)
 
 ---
 
@@ -640,6 +641,37 @@ the form fields are disabled — see "Roles today vs. later" under
 
 ---
 
+## Team (Admin CMS)
+
+`admin/team.html` (linked from the "Team" tab, **admin accounts only** —
+staff and read_only accounts don't see this tab at all) is where you
+manage who has dashboard access, without ever needing Supabase's SQL
+Editor. See [Creating another admin or staff
+account](#creating-another-admin-or-staff-account) above for the full
+step-by-step; in short: change anyone's role from the dropdown next to
+their name and click **Save Role**, or click **Remove Access** to
+immediately revoke someone's ability to sign in. Both actions log to
+Recent Activity on the main dashboard, same as every other change in the
+CMS.
+
+This page is deliberately admin-only, not "staff/read_only can view,
+admin can edit" like every other manager — it lists teammates' email
+addresses and access levels, which is more sensitive than fleet or
+experience content. You also can't change your own role or remove your
+own access from here — a deliberate safeguard so the last remaining
+admin can never accidentally lock themselves out.
+
+**Creating someone's initial login still requires the Supabase
+dashboard** (Authentication > Users > Add user) — this is a permanent,
+deliberate limitation, not a missing feature: doing that safely from the
+CMS itself would mean putting your project's privileged service key
+somewhere a browser could ever reach it, which is exactly what this
+project's whole security model refuses to do (see [Environment
+Variables](#environment-variables)). Once their account exists, they
+appear on this page automatically the first time they sign in.
+
+---
+
 ## Settings (Admin CMS)
 
 `admin/settings.html` (linked from the "Settings" tab) holds business-
@@ -994,30 +1026,42 @@ data.
 #### Creating another admin or staff account
 
 There's no self-service sign-up (deliberately — see the security notes
-below), so every account is created by hand, once, in the Supabase
-dashboard:
+below), so a new person's login itself is still created by hand, once,
+in the Supabase dashboard — but as of Phase 6.10, everything after that
+(setting their role, removing someone's access) happens in **Team**
+(`admin/team.html`, admin-only) instead of the SQL Editor:
 
 1. Go to **Authentication > Users > Add user** and create an account
    (email + password) for the person who needs access. Repeat for each
-   person individually.
+   person individually. This one step still requires the Supabase
+   dashboard — creating a login isn't something the CMS can safely do
+   itself (it would need your project's privileged service key exposed
+   somewhere it could ever be reached from a browser, which is exactly
+   what this project's whole security model refuses to do — see
+   "Environment Variables" below).
 2. That's enough for **staff-level** access on its own — a newly created
    account defaults to the `staff` role automatically and can already
-   sign in and use the dashboard.
+   sign in and use the dashboard. Their name and email appear in **Team**
+   automatically the first time they sign in.
 3. To grant **admin** or **read_only** instead of staff (see "Roles
-   today vs. later" below for what each one can actually do), open
-   **SQL Editor > New query** and run, filling in the new user's ID from
-   the Users list:
-   ```sql
-   update profiles set role = 'admin' where id = '<the-user-id>';
-   -- or: update profiles set role = 'read_only' where id = '<the-user-id>';
-   ```
+   today vs. later" below for what each one can actually do), sign in
+   yourself, open **Team**, and change their role from the dropdown next
+   to their name, then **Save Role**. No SQL Editor needed.
 4. **Turn off public sign-ups** once, the first time you set this up, so
    a stranger can never create their own account: **Authentication >
    Providers > Email**, disable "Allow new users to sign up." Staff
    accounts are only ever added by you, from the dashboard.
 
-Removing someone's access: delete their row in **Authentication > Users**
-— their profile record and dashboard access go with it.
+Removing someone's dashboard access: open **Team** and click **Remove
+Access** next to their name — takes effect immediately, no SQL Editor
+needed. This revokes their sign-in access to the *dashboard* without
+deleting their underlying login; to remove their account entirely (e.g.
+they'll never need any access again), also delete their row in
+**Authentication > Users** in the Supabase dashboard. An admin can't
+change their own role or remove their own access from Team — this is a
+deliberate safeguard so the last admin can never accidentally lock
+themselves out; use another admin's account, or the SQL Editor as a last
+resort, if that's ever genuinely needed.
 
 #### Roles today vs. later
 
