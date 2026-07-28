@@ -223,6 +223,8 @@
             return;
           }
           if (window.IconicActivityLog) window.IconicActivityLog.log('delete', kind.entity, item.id, { caption: item.caption });
+          if (activeKind === 'post') window.IconicImageUploadField.removeIfManaged('instagram', item.media_url);
+          else window.IconicImageUploadField.removeIfManaged('instagram', item.thumbnail_url);
           window.IconicAdminUI.showToast(kind.label + ' deleted.', 'success');
           loadItems();
         });

@@ -4,6 +4,17 @@
  * Owns the edit overlay (#igPostEditor). Mirrors admin/clientele-editor.js's
  * shape (open(mode, item) for 'edit'/'create', dispatches
  * 'iconic-admin:instagram-post-saved' on save).
+ *
+ * Media (Phase 6.11) is a real upload via admin/image-upload-field.js
+ * for IMAGE posts — the overwhelming majority of manually-curated posts,
+ * matching js/instagram-data.js's own static content, which is entirely
+ * photos. VIDEO/CAROUSEL_ALBUM posts keep the manual URL field: video
+ * upload/hosting is a materially bigger scope (a new video bucket, much
+ * larger files) this phase deliberately doesn't take on — see
+ * CLIENT_SETUP.md for that documented limitation. Both paths write to
+ * the same `media_url` column either way, so nothing downstream
+ * (js/data-service.js, js/instagram.js) needs to know which one was
+ * used.
  */
 (function (global) {
   'use strict';
@@ -19,6 +30,8 @@
   var cancelBtn = document.getElementById('igPostEditorCancelBtn');
 
   var fieldMediaType = document.getElementById('igPostFieldMediaType');
+  var mediaUploadWrap = document.getElementById('igPostMediaUploadWrap');
+  var mediaUrlWrap = document.getElementById('igPostMediaUrlWrap');
   var fieldMediaUrl = document.getElementById('igPostFieldMediaUrl');
   var fieldMediaUrlWebp = document.getElementById('igPostFieldMediaUrlWebp');
   var fieldPermalink = document.getElementById('igPostFieldPermalink');
@@ -26,11 +39,29 @@
   var fieldSortOrder = document.getElementById('igPostFieldSortOrder');
   var fieldPublished = document.getElementById('igPostFieldPublished');
 
+  var mediaField = global.IconicImageUploadField.create({
+    fileInput: document.getElementById('igPostMediaFileInput'),
+    previewImg: document.getElementById('igPostMediaPreview'),
+    previewWrap: document.getElementById('igPostMediaPreviewWrap'),
+    bucket: 'instagram',
+    pathPrefix: 'posts/media'
+  });
+
   var currentMode = null;
   var currentId = null;
   var isDirty = false;
 
   fieldMediaType.innerHTML = MEDIA_TYPES.map(function (t) { return '<option value="' + t + '">' + t + '</option>'; }).join('');
+
+  function isImageMode() { return fieldMediaType.value === 'IMAGE'; }
+
+  function syncMediaModeUI() {
+    var imageMode = isImageMode();
+    mediaUploadWrap.hidden = !imageMode;
+    mediaUrlWrap.hidden = imageMode;
+    document.getElementById('igPostMediaPreviewWrap').hidden = !imageMode || !mediaField.getUrl();
+  }
+  fieldMediaType.addEventListener('change', syncMediaModeUI);
 
   function showBanner(message) { banner.textContent = message; banner.hidden = false; }
   function hideBanner() { banner.hidden = true; banner.textContent = ''; }
@@ -64,14 +95,21 @@
     fieldCaption.value = item.caption || '';
     fieldSortOrder.value = item.sort_order != null ? item.sort_order : 0;
     fieldPublished.checked = !!item.published;
+    // Both the upload field and the manual URL field start from the same
+    // existing value — whichever mode is active at save time decides
+    // which one actually gets written, so switching media type mid-edit
+    // never silently drops the current media.
+    mediaField.reset(item.media_url);
+    syncMediaModeUI();
     isDirty = false;
   }
 
   function validate() {
     clearFieldErrors();
     var ok = true;
-    if (!fieldMediaUrl.value.trim()) {
-      setFieldError(fieldMediaUrl, 'Media URL is required.');
+    var hasMedia = isImageMode() ? !!mediaField.getUrl() : !!fieldMediaUrl.value.trim();
+    if (!hasMedia) {
+      setFieldError(fieldMediaUrl, isImageMode() ? 'Upload an image.' : 'Media URL is required.');
       ok = false;
     }
     if (!fieldPermalink.value.trim()) {
@@ -84,7 +122,7 @@
   function collectPayload() {
     return {
       media_type: fieldMediaType.value,
-      media_url: fieldMediaUrl.value.trim(),
+      media_url: isImageMode() ? mediaField.getUrl() : fieldMediaUrl.value.trim(),
       media_url_webp: fieldMediaUrlWebp.value.trim() || null,
       permalink: fieldPermalink.value.trim(),
       caption: fieldCaption.value.trim() || null,
@@ -102,7 +140,6 @@
     titleEl.textContent = item.caption || 'New Post';
     overlay.hidden = false;
     requestAnimationFrame(function () { overlay.classList.add('is-open'); });
-    fieldMediaUrl.focus();
   }
 
   function closeImmediately() {
@@ -118,7 +155,9 @@
       confirmLabel: 'Discard Changes',
       cancelLabel: 'Keep Editing'
     }).then(function (confirmed) {
-      if (confirmed) closeImmediately();
+      if (!confirmed) return;
+      mediaField.onAbandoned();
+      closeImmediately();
     });
   }
 
@@ -167,6 +206,7 @@
       if (global.IconicActivityLog) {
         global.IconicActivityLog.log(currentMode === 'edit' ? 'update' : 'create', 'instagram_post', result.data.id, { caption: result.data.caption });
       }
+      mediaField.onSaved();
       isDirty = false;
       closeImmediately();
       global.IconicAdminUI.showToast(currentMode === 'edit' ? 'Post updated.' : 'Post created.', 'success');

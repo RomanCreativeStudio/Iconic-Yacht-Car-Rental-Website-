@@ -7,6 +7,10 @@
  * different fields (no media_type) — keeps each form simple instead of
  * branching internally, matching how Fleet/Media/Experience each get
  * their own dedicated editor rather than one do-everything form.
+ *
+ * Thumbnail (Phase 6.11) is a real upload via admin/image-upload-field.js
+ * — always an image (a static preview frame), unlike a post's media_url,
+ * so there's no mode toggle needed here at all.
  */
 (function (global) {
   'use strict';
@@ -21,10 +25,17 @@
 
   var fieldCaption = document.getElementById('igReelFieldCaption');
   var fieldPermalink = document.getElementById('igReelFieldPermalink');
-  var fieldThumbnail = document.getElementById('igReelFieldThumbnail');
   var fieldThumbnailWebp = document.getElementById('igReelFieldThumbnailWebp');
   var fieldSortOrder = document.getElementById('igReelFieldSortOrder');
   var fieldPublished = document.getElementById('igReelFieldPublished');
+
+  var thumbnailField = global.IconicImageUploadField.create({
+    fileInput: document.getElementById('igReelThumbnailFileInput'),
+    previewImg: document.getElementById('igReelThumbnailPreview'),
+    previewWrap: document.getElementById('igReelThumbnailPreviewWrap'),
+    bucket: 'instagram',
+    pathPrefix: 'reels/thumbnail'
+  });
 
   var currentMode = null;
   var currentId = null;
@@ -57,7 +68,7 @@
   function populate(item) {
     fieldCaption.value = item.caption || '';
     fieldPermalink.value = item.permalink || '';
-    fieldThumbnail.value = item.thumbnail_url || '';
+    thumbnailField.reset(item.thumbnail_url);
     fieldThumbnailWebp.value = item.thumbnail_url_webp || '';
     fieldSortOrder.value = item.sort_order != null ? item.sort_order : 0;
     fieldPublished.checked = !!item.published;
@@ -78,7 +89,7 @@
     return {
       caption: fieldCaption.value.trim() || null,
       permalink: fieldPermalink.value.trim(),
-      thumbnail_url: fieldThumbnail.value.trim() || null,
+      thumbnail_url: thumbnailField.getUrl(),
       thumbnail_url_webp: fieldThumbnailWebp.value.trim() || null,
       sort_order: fieldSortOrder.value !== '' ? parseInt(fieldSortOrder.value, 10) : 0,
       published: fieldPublished.checked
@@ -110,7 +121,9 @@
       confirmLabel: 'Discard Changes',
       cancelLabel: 'Keep Editing'
     }).then(function (confirmed) {
-      if (confirmed) closeImmediately();
+      if (!confirmed) return;
+      thumbnailField.onAbandoned();
+      closeImmediately();
     });
   }
 
@@ -159,6 +172,7 @@
       if (global.IconicActivityLog) {
         global.IconicActivityLog.log(currentMode === 'edit' ? 'update' : 'create', 'instagram_reel', result.data.id, { caption: result.data.caption });
       }
+      thumbnailField.onSaved();
       isDirty = false;
       closeImmediately();
       global.IconicAdminUI.showToast(currentMode === 'edit' ? 'Reel updated.' : 'Reel created.', 'success');

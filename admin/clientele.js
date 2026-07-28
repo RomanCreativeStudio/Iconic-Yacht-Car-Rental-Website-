@@ -180,6 +180,8 @@
             return;
           }
           if (window.IconicActivityLog) window.IconicActivityLog.log('delete', 'clientele_endorsement', item.id, { name: item.name });
+          window.IconicImageUploadField.removeIfManaged('avatars', item.photo);
+          window.IconicImageUploadField.removeIfManaged('logos', item.logo);
           window.IconicAdminUI.showToast(item.name + ' deleted.', 'success');
           loadEndorsements();
         });

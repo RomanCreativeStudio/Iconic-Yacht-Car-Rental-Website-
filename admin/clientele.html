@@ -100,16 +100,32 @@
               <span class="form-error" role="alert" aria-live="polite"></span>
             </div>
             <div class="form-field">
-              <label for="clFieldPhoto">Photo URL (optional)</label>
-              <input type="text" id="clFieldPhoto" maxlength="300" placeholder="/images/... or full URL" />
-            </div>
-            <div class="form-field">
-              <label for="clFieldLogo">Logo URL (optional)</label>
-              <input type="text" id="clFieldLogo" maxlength="300" placeholder="/images/... or full URL" />
-            </div>
-            <div class="form-field">
               <label for="clFieldSortOrder">Sort Order</label>
               <input type="number" id="clFieldSortOrder" step="1" value="0" />
+            </div>
+          </div>
+        </div>
+
+        <div class="admin-editor-section">
+          <h3>Photo &amp; Logo (both optional)</h3>
+          <div class="admin-editor-fieldgrid">
+            <div class="form-field full" id="clPhotoPreviewWrap" hidden>
+              <label>Current Photo</label>
+              <img id="clPhotoPreview" alt="Current photo" style="max-height:100px;max-width:160px;display:block;background:rgba(255,255,255,0.04);padding:0.5rem;border-radius:var(--radius-sm);" />
+            </div>
+            <div class="form-field full">
+              <label for="clPhotoFileInput">Photo</label>
+              <input type="file" id="clPhotoFileInput" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" />
+              <span class="admin-toggle-hint">JPG, PNG, or WEBP, up to 20 MB. Uploads immediately.</span>
+            </div>
+            <div class="form-field full" id="clLogoPreviewWrap" hidden>
+              <label>Current Logo</label>
+              <img id="clLogoPreview" alt="Current logo" style="max-height:80px;max-width:200px;display:block;background:rgba(255,255,255,0.04);padding:0.5rem;border-radius:var(--radius-sm);" />
+            </div>
+            <div class="form-field full">
+              <label for="clLogoFileInput">Logo</label>
+              <input type="file" id="clLogoFileInput" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" />
+              <span class="admin-toggle-hint">JPG, PNG, or WEBP, up to 20 MB. Uploads immediately.</span>
             </div>
           </div>
         </div>
@@ -146,6 +162,8 @@
 <script src="ui-utils.js"></script>
 <script src="activity-log.js"></script>
 <script src="entity-service.js"></script>
+<script src="media-service.js"></script>
+<script src="image-upload-field.js"></script>
 <script src="clientele-editor.js"></script>
 <script src="clientele.js"></script>
 </body>

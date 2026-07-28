@@ -426,6 +426,13 @@ public site today) with admin-only upload/replace/delete, enforced by
 Row Level Security on `storage.objects` — the same `is_admin()` check
 used everywhere else in the dashboard.
 
+Two more buckets follow this exact same public-read/admin-write pattern
+but aren't part of the Media Manager's own library — `avatars` (endorsement
+photos) and `instagram` (Instagram post/reel media), each uploaded to
+directly from their own editor; see [Clientele
+Manager](#clientele-manager-admin-cms) and [Instagram
+Manager](#instagram-manager-admin-cms).
+
 ### Supported formats
 
 - **Images:** JPG, JPEG, PNG, WEBP
@@ -544,6 +551,16 @@ Homepage CMS's "Clientele Categories" tab.
   governs `js/clientele-data.js`: **only add a real, named endorsement
   once that specific person or brand has explicitly agreed to be quoted
   on the site — never invent a name, quote, or logo.**
+- **Photo and logo are uploads, not URL fields.** Choose a JPG, PNG, or
+  WEBP file (up to 20 MB) and it uploads immediately — no separate
+  Storage step, no pasting a URL. The photo goes to the `avatars`
+  bucket, the logo to the `logos` bucket (under a `clientele/` path, so
+  it never collides with the site's own brand logo there). Replacing a
+  photo/logo on Save deletes the old file; closing the editor without
+  saving deletes the just-uploaded file too, so nothing orphaned is left
+  behind in Storage. Deleting an endorsement also deletes its photo and
+  logo files. Both buckets are public-read, admin-only write, same RLS
+  pattern as the Media Manager buckets below.
 
 ### Approved — the only status field
 
@@ -581,16 +598,27 @@ separately, in Homepage CMS's "Instagram Profile" tab.
   tab) opens a blank editor for that content type. **Edit** opens the
   same editor pre-filled. **Publish**/**Unpublish** is a one-click toggle
   on each card. **Delete** removes an entry permanently.
-- **Post** fields: media type (Image/Video/Carousel Album), media URL,
-  an optional WebP variant, permalink, caption, sort order.
-- **Reel** fields: permalink, thumbnail URL, an optional WebP variant,
+- **Post** fields: media type (Image/Video/Carousel Album), media, an
+  optional WebP variant URL, permalink, caption, sort order.
+- **Reel** fields: permalink, thumbnail, an optional WebP variant URL,
   caption, sort order — reels have no media type field, since they're
   always video.
-- Media URLs and thumbnails are plain text (a path like
-  `/images/photo.jpg` or a full URL) — the same pattern
-  `js/instagram-data.js` already uses, not a Supabase Storage upload.
-  Upload the real file to your hosting the same way you would any other
-  site image, then paste its path or URL here.
+- **Image posts upload directly**, same as Clientele Manager: choose a
+  JPG, PNG, or WEBP file (up to 20 MB) and it uploads immediately to the
+  `instagram` bucket. Switching Media Type to **Video** or **Carousel
+  Album** swaps the field to a plain URL/path box instead — uploading and
+  hosting video isn't something this Manager takes on; paste a link to
+  where the video already lives (YouTube, Vimeo, your own hosting, etc.).
+  Both paths write to the same `media_url` column, so the public homepage
+  doesn't need to know which one was used.
+- **Reel thumbnails always upload** — a reel's thumbnail is a static
+  preview image, so there's no URL-field fallback needed the way posts
+  have one for video.
+- Replacing a post's/reel's image on Save deletes the old file; closing
+  the editor without saving deletes the just-uploaded file too. Deleting
+  a post or reel also deletes its uploaded media/thumbnail file. The
+  `instagram` bucket is public-read, admin-only write, same RLS pattern
+  as the Media Manager buckets below.
 
 Who can use it: same three roles as everywhere else in the dashboard —
 `admin` accounts can edit and save; `staff` and `read_only` accounts can

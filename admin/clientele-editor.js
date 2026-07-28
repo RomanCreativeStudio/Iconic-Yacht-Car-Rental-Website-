@@ -5,6 +5,12 @@
  * shape (open(mode, item) for 'edit'/'create', dispatches
  * 'iconic-admin:endorsement-saved' on save) — a plain form, no
  * dynamic-list fields needed.
+ *
+ * Photo/logo (Phase 6.11) are real uploads via
+ * admin/image-upload-field.js instead of plain-text URL inputs — see
+ * that file's header for the upload-now/save-later state machine this
+ * relies on, since an endorsement being created here has no row (and so
+ * no id) until Save actually succeeds.
  */
 (function (global) {
   'use strict';
@@ -20,10 +26,23 @@
   var fieldName = document.getElementById('clFieldName');
   var fieldRole = document.getElementById('clFieldRole');
   var fieldQuote = document.getElementById('clFieldQuote');
-  var fieldPhoto = document.getElementById('clFieldPhoto');
-  var fieldLogo = document.getElementById('clFieldLogo');
   var fieldSortOrder = document.getElementById('clFieldSortOrder');
   var fieldApproved = document.getElementById('clFieldApproved');
+
+  var photoField = global.IconicImageUploadField.create({
+    fileInput: document.getElementById('clPhotoFileInput'),
+    previewImg: document.getElementById('clPhotoPreview'),
+    previewWrap: document.getElementById('clPhotoPreviewWrap'),
+    bucket: 'avatars',
+    pathPrefix: 'clientele/photo'
+  });
+  var logoField = global.IconicImageUploadField.create({
+    fileInput: document.getElementById('clLogoFileInput'),
+    previewImg: document.getElementById('clLogoPreview'),
+    previewWrap: document.getElementById('clLogoPreviewWrap'),
+    bucket: 'logos',
+    pathPrefix: 'clientele/logo'
+  });
 
   var currentMode = null; // 'edit' | 'create'
   var currentId = null;
@@ -57,10 +76,10 @@
     fieldName.value = item.name || '';
     fieldRole.value = item.role || '';
     fieldQuote.value = item.quote || '';
-    fieldPhoto.value = item.photo || '';
-    fieldLogo.value = item.logo || '';
     fieldSortOrder.value = item.sort_order != null ? item.sort_order : 0;
     fieldApproved.checked = !!item.approved;
+    photoField.reset(item.photo);
+    logoField.reset(item.logo);
     isDirty = false;
   }
 
@@ -83,8 +102,8 @@
       name: fieldName.value.trim(),
       role: fieldRole.value.trim() || null,
       quote: fieldQuote.value.trim(),
-      photo: fieldPhoto.value.trim() || null,
-      logo: fieldLogo.value.trim() || null,
+      photo: photoField.getUrl(),
+      logo: logoField.getUrl(),
       sort_order: fieldSortOrder.value !== '' ? parseInt(fieldSortOrder.value, 10) : 0,
       approved: fieldApproved.checked
     };
@@ -115,7 +134,10 @@
       confirmLabel: 'Discard Changes',
       cancelLabel: 'Keep Editing'
     }).then(function (confirmed) {
-      if (confirmed) closeImmediately();
+      if (!confirmed) return;
+      photoField.onAbandoned();
+      logoField.onAbandoned();
+      closeImmediately();
     });
   }
 
@@ -164,6 +186,8 @@
       if (global.IconicActivityLog) {
         global.IconicActivityLog.log(currentMode === 'edit' ? 'update' : 'create', 'clientele_endorsement', result.data.id, { name: result.data.name });
       }
+      photoField.onSaved();
+      logoField.onSaved();
       isDirty = false;
       closeImmediately();
       global.IconicAdminUI.showToast(currentMode === 'edit' ? 'Endorsement updated.' : 'Endorsement created.', 'success');
