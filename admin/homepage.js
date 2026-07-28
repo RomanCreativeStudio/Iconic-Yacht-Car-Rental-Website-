@@ -15,6 +15,18 @@
  * public homepage (js/data-service.js + js/homepage-content.js) reads
  * eight of these nine sections live — Luxury Experience categories is
  * the one exception, with no public read path yet.
+ *
+ * Field type 'image' (Phase 6.13) is the one exception to the generic
+ * text/textarea/list shapes above — it reuses admin/image-upload-field.js
+ * exactly like admin/clientele-editor.js and admin/instagram-post-editor.js
+ * do, rather than a plain text URL input. Only instagram_profile.avatar
+ * uses it today, but it's implemented as a real field type (not a
+ * one-off avatar hack) since that's this file's whole point: one schema
+ * entry drives the form, not hand-written per-field code. Same full
+ * public-URL storage convention as the other upload fields — see
+ * image-upload-field.js's header comment for why (js/instagram.js reads
+ * instagram_profile.avatar straight into an <img src>, no publicUrl()
+ * transform at read time).
  */
 (function () {
   'use strict';
@@ -72,7 +84,7 @@
         { key: 'name', label: 'Display Name', type: 'text' },
         { key: 'url', label: 'Profile URL', type: 'text' },
         { key: 'bio', label: 'Bio', type: 'textarea' },
-        { key: 'avatar', label: 'Avatar URL', type: 'text' },
+        { key: 'avatar', label: 'Avatar', type: 'image', bucket: 'avatars', pathPrefix: 'instagram/avatar' },
         { key: 'follower_count', label: 'Follower Count', type: 'text', placeholder: 'Leave blank until real — never invent a number' },
         { key: 'post_count', label: 'Post Count', type: 'text', placeholder: 'Leave blank until real — never invent a number' }
       ]
@@ -112,6 +124,7 @@
   var allContent = {}; // section key -> stored data object
   var activeSection = SECTIONS[0].key;
   var listControllers = {}; // field key -> { getValues() }
+  var imageControllers = {}; // field key -> IconicImageUploadField instance
   var canWrite = true;
 
   function escapeHtml(str) {
@@ -278,11 +291,20 @@
      Form rendering, driven entirely by the active section's schema.
   ------------------------------------------------------------------- */
   function renderForm() {
+    // Leaving a section behind (switching tabs) is this page's closest
+    // equivalent to closing Clientele/Instagram's editor overlay without
+    // saving — clean up any freshly-uploaded-but-unsaved image the same
+    // way requestClose()'s discard branch does there. A no-op for any
+    // controller whose upload was already saved (onSaved() already
+    // cleared its freshUpload flag) or that never uploaded anything.
+    Object.keys(imageControllers).forEach(function (key) { imageControllers[key].onAbandoned(); });
+
     var section = SECTIONS.filter(function (s) { return s.key === activeSection; })[0];
     var data = allContent[activeSection] || {};
     formTitle.textContent = section.label;
     fieldsEl.innerHTML = '';
     listControllers = {};
+    imageControllers = {};
 
     section.fields.forEach(function (f) {
       var wrap = document.createElement('div');
@@ -303,6 +325,35 @@
         wrap.appendChild(listEl);
         wrap.appendChild(addBtn);
         listControllers[f.key] = createObjectListEditor(listEl, addBtn, data[f.key], f.itemFields, f.addLabel);
+      } else if (f.type === 'image') {
+        var previewWrap = document.createElement('div');
+        previewWrap.hidden = true;
+        previewWrap.style.marginBottom = '0.5rem';
+        var previewImg = document.createElement('img');
+        previewImg.alt = 'Current ' + f.label.toLowerCase();
+        previewImg.style.cssText = 'max-height:120px;max-width:200px;display:block;background:rgba(255,255,255,0.04);padding:0.5rem;border-radius:var(--radius-sm);';
+        previewWrap.appendChild(previewImg);
+        wrap.appendChild(previewWrap);
+
+        var fileInput = document.createElement('input');
+        fileInput.type = 'file';
+        fileInput.id = 'homepageField_' + f.key;
+        fileInput.accept = '.jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp';
+        wrap.appendChild(fileInput);
+
+        var hint = document.createElement('span');
+        hint.className = 'admin-toggle-hint';
+        hint.textContent = 'JPG, PNG, or WEBP, up to 20 MB. Uploads immediately.';
+        wrap.appendChild(hint);
+
+        imageControllers[f.key] = window.IconicImageUploadField.create({
+          fileInput: fileInput,
+          previewImg: previewImg,
+          previewWrap: previewWrap,
+          bucket: f.bucket,
+          pathPrefix: f.pathPrefix
+        });
+        imageControllers[f.key].reset(data[f.key]);
       } else {
         var input = document.createElement(f.type === 'textarea' ? 'textarea' : 'input');
         if (f.type !== 'textarea') input.type = 'text';
@@ -327,6 +378,8 @@
     section.fields.forEach(function (f) {
       if (f.type === 'list') {
         out[f.key] = listControllers[f.key] ? listControllers[f.key].getValues() : [];
+      } else if (f.type === 'image') {
+        out[f.key] = imageControllers[f.key] ? imageControllers[f.key].getUrl() : null;
       } else {
         var input = document.getElementById('homepageField_' + f.key);
         out[f.key] = input ? input.value.trim() : '';
@@ -357,6 +410,7 @@
           return;
         }
         allContent[activeSection] = data;
+        Object.keys(imageControllers).forEach(function (key) { imageControllers[key].onSaved(); });
         if (window.IconicActivityLog) window.IconicActivityLog.log('update', 'site_content', activeSection, null);
         showBanner(successBanner, SECTIONS.filter(function (s) { return s.key === activeSection; })[0].label + ' saved.');
         window.IconicAdminUI.showToast('Homepage content saved.', 'success');

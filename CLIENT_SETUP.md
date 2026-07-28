@@ -657,6 +657,15 @@ counters, FAQ questions, Clientele categories, Experience categories).
 Every list supports adding, removing, and drag-to-reorder, the same
 interaction as Fleet Manager's Specifications/Features/Amenities lists.
 
+The Instagram Profile tab's **Avatar** is the one image field in Homepage
+CMS, and it's an upload, not a text field — choose a JPG, PNG, or WEBP
+(up to 20 MB) and it uploads immediately to the `avatars` bucket, same
+upload widget and same replace/orphan-cleanup behavior as Clientele
+Manager's Photo/Logo fields (see [Clientele
+Manager](#clientele-manager-admin-cms)). Switching tabs away from
+Instagram Profile without saving discards an unsaved upload, the same as
+closing an editor without saving elsewhere in the dashboard.
+
 This exists so that, whenever a future phase does wire the homepage up
 to read from the database, the content is already there waiting rather
 than needing to be entered for the first time under deadline pressure.
