@@ -100,16 +100,10 @@
               <label>Current Media</label>
               <img id="igPostMediaPreview" alt="Current media" style="max-height:120px;max-width:200px;display:block;background:rgba(255,255,255,0.04);padding:0.5rem;border-radius:var(--radius-sm);" />
             </div>
-            <div class="form-field full" id="igPostMediaUploadWrap">
+            <div class="form-field full">
               <label for="igPostMediaFileInput">Media</label>
               <input type="file" id="igPostMediaFileInput" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" />
-              <span class="admin-toggle-hint">JPG, PNG, or WEBP, up to 20 MB. Uploads immediately.</span>
-            </div>
-            <div class="form-field full" id="igPostMediaUrlWrap" hidden>
-              <label for="igPostFieldMediaUrl">Media URL</label>
-              <span class="admin-toggle-hint" style="display:block;margin-bottom:.4rem;">Video and carousel posts aren't uploaded here — paste a URL to where the file is already hosted.</span>
-              <input type="text" id="igPostFieldMediaUrl" maxlength="500" placeholder="https://..." />
-              <span class="form-error" role="alert" aria-live="polite"></span>
+              <span class="admin-toggle-hint">JPG, PNG, or WEBP, up to 20 MB. Uploads immediately. This is the feed thumbnail — for Video and Carousel Album posts, it's the cover image; the actual post still lives on Instagram, linked via Permalink below.</span>
             </div>
             <div class="form-field full">
               <label for="igPostFieldMediaUrlWebp">Media URL (WebP, optional)</label>

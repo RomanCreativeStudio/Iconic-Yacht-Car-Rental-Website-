@@ -5,16 +5,26 @@
  * shape (open(mode, item) for 'edit'/'create', dispatches
  * 'iconic-admin:instagram-post-saved' on save).
  *
- * Media (Phase 6.11) is a real upload via admin/image-upload-field.js
- * for IMAGE posts — the overwhelming majority of manually-curated posts,
- * matching js/instagram-data.js's own static content, which is entirely
- * photos. VIDEO/CAROUSEL_ALBUM posts keep the manual URL field: video
- * upload/hosting is a materially bigger scope (a new video bucket, much
- * larger files) this phase deliberately doesn't take on — see
- * CLIENT_SETUP.md for that documented limitation. Both paths write to
- * the same `media_url` column either way, so nothing downstream
- * (js/data-service.js, js/instagram.js) needs to know which one was
- * used.
+ * Media Type (IMAGE/VIDEO/CAROUSEL_ALBUM) is metadata only — it doesn't
+ * change how `media_url` itself is populated. media_url is always a
+ * single representative image, uploaded via admin/image-upload-field.js
+ * exactly like instagram_reels.thumbnail_url (Phase 6.11 built the same
+ * "always uploads, no manual URL fallback" pattern there first).
+ *
+ * This was genuinely re-examined in Phase 6.12, which set out to add
+ * real video-file upload support for VIDEO/CAROUSEL_ALBUM posts and
+ * initially built exactly that — before catching, via the public
+ * renderer, that it would have broken the site: js/instagram.js's feed
+ * grid renders every post through a plain `<img src="' + post.media_url
+ * + '">`, with no branching on media_type and no <video> element
+ * anywhere in that code path. instagram_posts also has no thumbnail_url
+ * column (unlike instagram_reels), confirming media_url was always meant
+ * to be the feed-tile image, not raw video — a real MP4 upload here would
+ * have rendered as a broken image icon on the public homepage the moment
+ * an owner used it. So there is no "video upload" feature: every media
+ * type just uploads one representative image the same way, and the real,
+ * actual video (if any) lives on Instagram itself via the required
+ * Permalink field, same as Reels already work.
  */
 (function (global) {
   'use strict';
@@ -30,9 +40,6 @@
   var cancelBtn = document.getElementById('igPostEditorCancelBtn');
 
   var fieldMediaType = document.getElementById('igPostFieldMediaType');
-  var mediaUploadWrap = document.getElementById('igPostMediaUploadWrap');
-  var mediaUrlWrap = document.getElementById('igPostMediaUrlWrap');
-  var fieldMediaUrl = document.getElementById('igPostFieldMediaUrl');
   var fieldMediaUrlWebp = document.getElementById('igPostFieldMediaUrlWebp');
   var fieldPermalink = document.getElementById('igPostFieldPermalink');
   var fieldCaption = document.getElementById('igPostFieldCaption');
@@ -53,16 +60,6 @@
 
   fieldMediaType.innerHTML = MEDIA_TYPES.map(function (t) { return '<option value="' + t + '">' + t + '</option>'; }).join('');
 
-  function isImageMode() { return fieldMediaType.value === 'IMAGE'; }
-
-  function syncMediaModeUI() {
-    var imageMode = isImageMode();
-    mediaUploadWrap.hidden = !imageMode;
-    mediaUrlWrap.hidden = imageMode;
-    document.getElementById('igPostMediaPreviewWrap').hidden = !imageMode || !mediaField.getUrl();
-  }
-  fieldMediaType.addEventListener('change', syncMediaModeUI);
-
   function showBanner(message) { banner.textContent = message; banner.hidden = false; }
   function hideBanner() { banner.hidden = true; banner.textContent = ''; }
 
@@ -73,7 +70,7 @@
     if (errorEl) errorEl.textContent = message || '';
   }
   function clearFieldErrors() {
-    [fieldMediaUrl, fieldPermalink].forEach(function (el) { setFieldError(el, ''); });
+    [fieldPermalink].forEach(function (el) { setFieldError(el, ''); });
   }
 
   function markDirty() { isDirty = true; }
@@ -89,27 +86,20 @@
 
   function populate(item) {
     fieldMediaType.value = item.media_type || 'IMAGE';
-    fieldMediaUrl.value = item.media_url || '';
     fieldMediaUrlWebp.value = item.media_url_webp || '';
     fieldPermalink.value = item.permalink || '';
     fieldCaption.value = item.caption || '';
     fieldSortOrder.value = item.sort_order != null ? item.sort_order : 0;
     fieldPublished.checked = !!item.published;
-    // Both the upload field and the manual URL field start from the same
-    // existing value — whichever mode is active at save time decides
-    // which one actually gets written, so switching media type mid-edit
-    // never silently drops the current media.
     mediaField.reset(item.media_url);
-    syncMediaModeUI();
     isDirty = false;
   }
 
   function validate() {
     clearFieldErrors();
     var ok = true;
-    var hasMedia = isImageMode() ? !!mediaField.getUrl() : !!fieldMediaUrl.value.trim();
-    if (!hasMedia) {
-      setFieldError(fieldMediaUrl, isImageMode() ? 'Upload an image.' : 'Media URL is required.');
+    if (!mediaField.getUrl()) {
+      global.IconicAdminUI.showToast('Upload an image for this post.', 'error');
       ok = false;
     }
     if (!fieldPermalink.value.trim()) {
@@ -122,7 +112,7 @@
   function collectPayload() {
     return {
       media_type: fieldMediaType.value,
-      media_url: isImageMode() ? mediaField.getUrl() : fieldMediaUrl.value.trim(),
+      media_url: mediaField.getUrl(),
       media_url_webp: fieldMediaUrlWebp.value.trim() || null,
       permalink: fieldPermalink.value.trim(),
       caption: fieldCaption.value.trim() || null,

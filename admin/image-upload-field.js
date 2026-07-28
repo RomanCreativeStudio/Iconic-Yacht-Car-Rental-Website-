@@ -30,6 +30,14 @@
  * abandoning a pre-existing external value never attempts (or risks) a
  * Storage delete against something this system never uploaded.
  *
+ * Note (Phase 6.12): instagram_posts.media_url is upload-only here for
+ * every media_type (IMAGE/VIDEO/CAROUSEL_ALBUM alike) — see
+ * admin/instagram-post-editor.js's header comment for why an actual
+ * video/multi-image file was never the right target for this column in
+ * the first place, matching how instagram_reels.thumbnail_url already
+ * always uploads too. This file itself only ever handles images; no
+ * video-upload branch exists or is needed anywhere in this field.
+ *
  * Orphan handling (mirrors admin/media.js's documented rules, adapted
  * for a field embedded in a create/edit form rather than a standalone
  * media row):

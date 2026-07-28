@@ -598,22 +598,21 @@ separately, in Homepage CMS's "Instagram Profile" tab.
   tab) opens a blank editor for that content type. **Edit** opens the
   same editor pre-filled. **Publish**/**Unpublish** is a one-click toggle
   on each card. **Delete** removes an entry permanently.
-- **Post** fields: media type (Image/Video/Carousel Album), media, an
-  optional WebP variant URL, permalink, caption, sort order.
+- **Post** fields: media type (Image/Video/Carousel Album — see below),
+  media, an optional WebP variant URL, permalink, caption, sort order.
 - **Reel** fields: permalink, thumbnail, an optional WebP variant URL,
   caption, sort order — reels have no media type field, since they're
   always video.
-- **Image posts upload directly**, same as Clientele Manager: choose a
-  JPG, PNG, or WEBP file (up to 20 MB) and it uploads immediately to the
-  `instagram` bucket. Switching Media Type to **Video** or **Carousel
-  Album** swaps the field to a plain URL/path box instead — uploading and
-  hosting video isn't something this Manager takes on; paste a link to
-  where the video already lives (YouTube, Vimeo, your own hosting, etc.).
-  Both paths write to the same `media_url` column, so the public homepage
-  doesn't need to know which one was used.
-- **Reel thumbnails always upload** — a reel's thumbnail is a static
-  preview image, so there's no URL-field fallback needed the way posts
-  have one for video.
+- **Media always uploads directly**, for every Media Type and for Reel
+  thumbnails alike: choose a JPG, PNG, or WEBP file (up to 20 MB) and it
+  uploads immediately to the `instagram` bucket — no manual URL entry
+  anywhere in this Manager. This is the feed/grid thumbnail image, not
+  the actual video: exactly like Reels already work (a static preview
+  image plus the Permalink field linking out to the real post on
+  Instagram), a Video or Carousel Album post's upload is its cover image,
+  and the real video/album lives on Instagram itself. Media Type is
+  recordkeeping for what the original Instagram post actually was — it
+  doesn't change how the upload field behaves.
 - Replacing a post's/reel's image on Save deletes the old file; closing
   the editor without saving deletes the just-uploaded file too. Deleting
   a post or reel also deletes its uploaded media/thumbnail file. The
