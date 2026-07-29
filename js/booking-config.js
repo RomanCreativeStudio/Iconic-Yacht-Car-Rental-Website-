@@ -16,3 +16,4 @@ window.IconicBookingConfig = {
   SUPABASE_URL: 'https://slokljslqyanbqabvzkk.supabase.co',
   SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNsb2tsanNscXlhbmJxYWJ2emtrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUwMTE5NzIsImV4cCI6MjEwMDU4Nzk3Mn0.jV0v5ql8vBDdHiPJfMTmLfxcB8lOWCGpkjqKzozopew',
   EMAIL_FUNCTION_URL:''
+};
