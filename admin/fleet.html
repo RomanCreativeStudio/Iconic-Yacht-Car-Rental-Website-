@@ -20,6 +20,13 @@
   <nav class="admin-nav" aria-label="Admin sections">
     <a href="index.html" class="admin-nav-link">Inquiries</a>
     <a href="fleet.html" class="admin-nav-link is-active" aria-current="page">Fleet</a>
+    <a href="media.html" class="admin-nav-link">Media</a>
+    <a href="experiences.html" class="admin-nav-link">Experiences</a>
+    <a href="clientele.html" class="admin-nav-link">Clientele</a>
+    <a href="instagram.html" class="admin-nav-link">Instagram</a>
+    <a href="homepage.html" class="admin-nav-link">Homepage</a>
+    <a href="team.html" class="admin-nav-link">Team</a>
+    <a href="settings.html" class="admin-nav-link">Settings</a>
   </nav>
   <button type="button" class="btn btn-ghost admin-signout" id="signOutBtn" hidden>Sign Out</button>
 </header>
@@ -42,10 +49,17 @@
         <button type="button" class="admin-filter-tab" data-filter="published" data-value="false">Draft</button>
       </div>
 
-      <div class="fleet-filter-group" role="group" aria-label="Filter by featured / availability">
+      <div class="fleet-filter-group" role="group" aria-label="Filter by featured">
         <button type="button" class="admin-filter-tab" data-filter="featured" data-value="true">Featured</button>
-        <button type="button" class="admin-filter-tab" data-filter="available" data-value="false">Unavailable</button>
       </div>
+
+      <select class="fleet-sort" id="fleetAvailabilityFilter" aria-label="Filter by availability">
+        <option value="">Any Availability</option>
+        <option value="available">Available</option>
+        <option value="unavailable">Unavailable</option>
+        <option value="maintenance">Maintenance</option>
+        <option value="reserved">Reserved</option>
+      </select>
 
       <select class="fleet-sort" id="fleetSort" aria-label="Sort fleet">
         <option value="category">Sort: Category</option>
@@ -88,6 +102,7 @@
         <span class="eyebrow" id="fleetEditorEyebrow">Edit Vehicle</span>
         <h2 id="fleetEditorTitle">Vehicle</h2>
       </div>
+      <button type="button" class="btn btn-ghost" id="fleetEditorMediaBtn" hidden>Open Media Manager</button>
       <button type="button" class="quick-book-close" data-editor-close aria-label="Close editor">
         <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg>
       </button>
@@ -156,6 +171,14 @@
               <div class="dynamic-list" id="durationList"></div>
               <button type="button" class="btn btn-ghost dynamic-list-add" data-add="duration">+ Add Duration Option</button>
             </div>
+            <div class="form-field full">
+              <label for="fieldSeasonalNotes">Seasonal Notes</label>
+              <input type="text" id="fieldSeasonalNotes" maxlength="300" placeholder="e.g. Holiday weekends carry a premium" />
+            </div>
+            <div class="form-field full">
+              <label for="fieldInternalNotes">Internal Notes <span class="admin-toggle-hint">(staff only — never shown publicly)</span></label>
+              <textarea id="fieldInternalNotes" rows="3" maxlength="2000"></textarea>
+            </div>
           </div>
         </div>
 
@@ -165,7 +188,7 @@
           <div class="admin-toggle-row">
             <span>
               <span class="admin-toggle-label">Published</span>
-              <span class="admin-toggle-hint">Visible on the public site once the frontend migration is complete.</span>
+              <span class="admin-toggle-hint">Visible on the public site the next time a visitor loads the page.</span>
             </span>
             <label class="admin-toggle">
               <input type="checkbox" id="fieldPublished" />
@@ -184,13 +207,23 @@
           </div>
           <div class="admin-toggle-row">
             <span>
-              <span class="admin-toggle-label">Available</span>
-              <span class="admin-toggle-hint">Currently bookable — turn off during maintenance without unpublishing.</span>
+              <span class="admin-toggle-label">Public Pricing</span>
+              <span class="admin-toggle-hint">Show Starting Price on the public site instead of "available upon request".</span>
             </span>
             <label class="admin-toggle">
-              <input type="checkbox" id="fieldAvailable" />
+              <input type="checkbox" id="fieldPricingPublic" />
               <span class="admin-toggle-track"></span>
             </label>
+          </div>
+          <div class="form-field full">
+            <label for="fieldAvailability">Availability</label>
+            <select id="fieldAvailability">
+              <option value="available">Available</option>
+              <option value="unavailable">Unavailable</option>
+              <option value="maintenance">Maintenance</option>
+              <option value="reserved">Reserved</option>
+            </select>
+            <span class="admin-toggle-hint">Independent of Published — a published vehicle can still be temporarily unavailable, in maintenance, or reserved.</span>
           </div>
         </div>
 
@@ -231,6 +264,7 @@
 <script src="../js/supabase-client.js"></script>
 <script src="auth-guard.js"></script>
 <script src="ui-utils.js"></script>
+<script src="activity-log.js"></script>
 <script src="fleet-service.js"></script>
 <script src="fleet-editor.js"></script>
 <script src="fleet.js"></script>

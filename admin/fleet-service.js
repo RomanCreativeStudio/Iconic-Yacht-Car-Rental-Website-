@@ -31,6 +31,7 @@
    * @param {boolean} [opts.published]
    * @param {boolean} [opts.featured]
    * @param {boolean} [opts.available]
+   * @param {string} [opts.availabilityStatus] - 'available'|'unavailable'|'maintenance'|'reserved'
    * @param {string} [opts.sort] - 'name' | 'updated' | 'category' (default: 'category')
    */
   function list(opts) {
@@ -44,6 +45,7 @@
     if (typeof opts.published === 'boolean') query = query.eq('published', opts.published);
     if (typeof opts.featured === 'boolean') query = query.eq('featured', opts.featured);
     if (typeof opts.available === 'boolean') query = query.eq('available', opts.available);
+    if (opts.availabilityStatus) query = query.eq('availability_status', opts.availabilityStatus);
     if (opts.search) {
       var term = '%' + opts.search.replace(/[%_]/g, '\\$&') + '%';
       query = query.or('name.ilike.' + term + ',category.ilike.' + term + ',slug.ilike.' + term);
@@ -137,12 +139,39 @@
       book_label: null,
       sort_order: source.sort_order,
       featured: false,
-      available: source.available,
+      availability_status: source.availability_status,
       starting_price: source.starting_price,
       deposit_amount: source.deposit_amount,
       duration_options: source.duration_options || [],
+      seasonal_notes: source.seasonal_notes,
+      pricing_public: source.pricing_public,
       published: false
+      // Internal notes (fleet_item_private_notes) are deliberately not
+      // copied — they're commentary about one physical vehicle's history,
+      // not something a duplicate of its database row should inherit.
     };
+  }
+
+  /** Phase 6.4: internal notes live in a separate admin-only table, not a
+   *  fleet_items column — see the migration's comment for why (RLS is
+   *  row-level, so a column here would be exposed to anyone who can read
+   *  the parent row at all). */
+  function getPrivateNotes(fleetItemId) {
+    var supabase = client();
+    if (!supabase) return Promise.resolve({ data: null, error: { message: 'Not connected.' } });
+    return supabase.from('fleet_item_private_notes').select('notes').eq('fleet_item_id', fleetItemId).maybeSingle().then(function (result) {
+      return { data: result.data, error: result.error || null };
+    });
+  }
+
+  function savePrivateNotes(fleetItemId, notes) {
+    var supabase = client();
+    if (!supabase) return Promise.resolve({ error: { message: 'Not connected.' } });
+    return supabase.from('fleet_item_private_notes')
+      .upsert({ fleet_item_id: fleetItemId, notes: notes }, { onConflict: 'fleet_item_id' })
+      .then(function (result) {
+        return { error: result.error || null };
+      });
   }
 
   /** name + category, e.g. "Azure Horizon — Motor Yacht" — matches the
@@ -160,6 +189,8 @@
     update: update,
     remove: remove,
     duplicatePayload: duplicatePayload,
-    deriveBookLabel: deriveBookLabel
+    deriveBookLabel: deriveBookLabel,
+    getPrivateNotes: getPrivateNotes,
+    savePrivateNotes: savePrivateNotes
   };
 })(window);

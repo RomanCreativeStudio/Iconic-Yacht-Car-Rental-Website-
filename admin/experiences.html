@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en-US">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Experience Manager | Iconic Rentals Admin</title>
+<meta name="robots" content="noindex, nofollow" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230a0a0b'/%3E%3Ctext x='50' y='68' font-family='Georgia,serif' font-size='58' fill='%23c6a15b' text-anchor='middle'%3EI%3C/text%3E%3C/svg%3E" />
+
+<link rel="preload" as="font" type="font/woff2" href="../fonts/cormorant-garamond-normal.woff2" crossorigin />
+<link rel="preload" as="font" type="font/woff2" href="../fonts/jost.woff2" crossorigin />
+<link rel="stylesheet" href="../css/fonts.min.css" />
+<link rel="stylesheet" href="../css/style.min.css" />
+<link rel="stylesheet" href="../css/admin.css" />
+</head>
+<body class="admin-body">
+
+<header class="admin-header">
+  <a href="../index.html" class="brand">Iconic <strong>Rentals</strong></a>
+  <nav class="admin-nav" aria-label="Admin sections">
+    <a href="index.html" class="admin-nav-link">Inquiries</a>
+    <a href="fleet.html" class="admin-nav-link">Fleet</a>
+    <a href="media.html" class="admin-nav-link">Media</a>
+    <a href="experiences.html" class="admin-nav-link is-active" aria-current="page">Experiences</a>
+    <a href="clientele.html" class="admin-nav-link">Clientele</a>
+    <a href="instagram.html" class="admin-nav-link">Instagram</a>
+    <a href="homepage.html" class="admin-nav-link">Homepage</a>
+    <a href="team.html" class="admin-nav-link">Team</a>
+    <a href="settings.html" class="admin-nav-link">Settings</a>
+  </nav>
+  <button type="button" class="btn btn-ghost admin-signout" id="signOutBtn" hidden>Sign Out</button>
+</header>
+
+<main class="admin-main">
+  <section class="admin-dashboard" id="experiencesView" hidden>
+
+    <div class="fleet-toolbar">
+      <input type="search" class="fleet-search" id="expSearch" placeholder="Search by title or category…" aria-label="Search experiences" />
+
+      <div class="fleet-filter-group" role="group" aria-label="Filter by publish status">
+        <button type="button" class="admin-filter-tab is-active" data-filter="published" data-value="">Any Status</button>
+        <button type="button" class="admin-filter-tab" data-filter="published" data-value="true">Published</button>
+        <button type="button" class="admin-filter-tab" data-filter="published" data-value="false">Draft</button>
+      </div>
+
+      <div class="fleet-filter-group" role="group" aria-label="Filter by featured / archived">
+        <button type="button" class="admin-filter-tab" data-filter="featured" data-value="true">Featured</button>
+        <button type="button" class="admin-filter-tab" data-filter="archived" data-value="true">Archived</button>
+      </div>
+
+      <select class="fleet-sort" id="expSort" aria-label="Sort experiences">
+        <option value="sort_order">Sort: Sort Order</option>
+        <option value="title">Sort: Title</option>
+        <option value="updated">Sort: Recently Updated</option>
+      </select>
+
+      <button type="button" class="btn btn-primary" id="addExperienceBtn">+ Add Experience</button>
+    </div>
+
+    <div class="admin-banner" id="expBanner" role="alert" hidden></div>
+
+    <div class="fleet-grid" id="expGrid"></div>
+
+    <div class="fleet-empty" id="expEmpty" hidden>
+      <h3>No experiences found</h3>
+      <p id="expEmptyText">Try a different search term or filter.</p>
+    </div>
+  </section>
+</main>
+
+<!-- ============ VIEW PANEL (read-only) ============ -->
+<div class="admin-detail" id="expViewPanel" role="dialog" aria-modal="true" aria-labelledby="expViewTitle" hidden>
+  <div class="admin-detail-backdrop" data-view-close></div>
+  <div class="admin-detail-card">
+    <button type="button" class="quick-book-close" data-view-close aria-label="Close details">
+      <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+    <span class="eyebrow" id="expViewEyebrow">Category</span>
+    <h2 id="expViewTitle">Title</h2>
+    <dl class="admin-detail-grid" id="expViewBody"></dl>
+    <button type="button" class="btn btn-primary btn-block" id="expViewEditBtn">Edit This Experience</button>
+  </div>
+</div>
+
+<!-- ============ EDITOR PANEL ============ -->
+<div class="admin-editor" id="expEditor" role="dialog" aria-modal="true" aria-labelledby="expEditorTitle" hidden>
+  <div class="admin-editor-backdrop" data-editor-close></div>
+  <div class="admin-editor-card">
+    <div class="admin-editor-header">
+      <div>
+        <span class="eyebrow" id="expEditorEyebrow">Edit Experience</span>
+        <h2 id="expEditorTitle">Experience</h2>
+      </div>
+      <button type="button" class="quick-book-close" data-editor-close aria-label="Close editor">
+        <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+
+    <form id="expEditorForm" novalidate>
+      <div class="admin-editor-body">
+        <div class="admin-banner" id="expEditorBanner" role="alert" hidden></div>
+
+        <div class="admin-editor-section">
+          <h3>General</h3>
+          <div class="admin-editor-fieldgrid">
+            <div class="form-field full">
+              <label for="expFieldTitle">Title</label>
+              <input type="text" id="expFieldTitle" required maxlength="160" />
+              <span class="form-error" role="alert" aria-live="polite"></span>
+            </div>
+            <div class="form-field">
+              <label for="expFieldCategory">Category</label>
+              <select id="expFieldCategory" required></select>
+              <span class="form-error" role="alert" aria-live="polite"></span>
+            </div>
+            <div class="form-field">
+              <label for="expFieldYacht">Vehicle (optional)</label>
+              <select id="expFieldYacht"><option value="">— Not tied to one vehicle —</option></select>
+            </div>
+            <div class="form-field">
+              <label for="expFieldDate">Date (free text)</label>
+              <input type="text" id="expFieldDate" maxlength="60" placeholder="e.g. June 2026" />
+            </div>
+            <div class="form-field">
+              <label for="expFieldSortOrder">Sort Order</label>
+              <input type="number" id="expFieldSortOrder" step="1" value="0" />
+            </div>
+            <div class="form-field full">
+              <label for="expFieldDescription">Description</label>
+              <textarea id="expFieldDescription" rows="4" maxlength="2000"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="admin-editor-section">
+          <h3>Social &amp; Review</h3>
+          <div class="admin-editor-fieldgrid">
+            <div class="form-field">
+              <label for="expFieldInstaPost">Instagram Post URL</label>
+              <input type="url" id="expFieldInstaPost" maxlength="300" />
+            </div>
+            <div class="form-field">
+              <label for="expFieldInstaReel">Instagram Reel URL</label>
+              <input type="url" id="expFieldInstaReel" maxlength="300" />
+            </div>
+            <div class="form-field full">
+              <label for="expFieldReviewQuote">Client Review Quote</label>
+              <textarea id="expFieldReviewQuote" rows="2" maxlength="500"></textarea>
+              <span class="admin-toggle-hint">Never populate without a real, permitted guest review.</span>
+            </div>
+            <div class="form-field">
+              <label for="expFieldReviewName">Guest Name</label>
+              <input type="text" id="expFieldReviewName" maxlength="120" />
+            </div>
+            <div class="form-field">
+              <label for="expFieldReviewRating">Rating (1–5)</label>
+              <input type="number" id="expFieldReviewRating" min="1" max="5" step="1" />
+            </div>
+          </div>
+        </div>
+
+        <div class="admin-editor-section">
+          <h3>Status</h3>
+          <div class="admin-toggle-row">
+            <span>
+              <span class="admin-toggle-label">Published</span>
+              <span class="admin-toggle-hint">Visible on the public site the next time a visitor loads the page.</span>
+            </span>
+            <label class="admin-toggle">
+              <input type="checkbox" id="expFieldPublished" />
+              <span class="admin-toggle-track"></span>
+            </label>
+          </div>
+          <div class="admin-toggle-row">
+            <span>
+              <span class="admin-toggle-label">Featured</span>
+              <span class="admin-toggle-hint">Surfaced first in the homepage Luxury Experiences section.</span>
+            </span>
+            <label class="admin-toggle">
+              <input type="checkbox" id="expFieldFeatured" />
+              <span class="admin-toggle-track"></span>
+            </label>
+          </div>
+          <div class="admin-toggle-row">
+            <span>
+              <span class="admin-toggle-label">Archived</span>
+              <span class="admin-toggle-hint">Retired — was live before, no longer offered. Archiving un-publishes automatically.</span>
+            </span>
+            <label class="admin-toggle">
+              <input type="checkbox" id="expFieldArchived" />
+              <span class="admin-toggle-track"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="admin-editor-footer">
+        <button type="button" class="btn btn-ghost" id="expEditorCancelBtn">Cancel</button>
+        <div class="admin-editor-footer-actions">
+          <button type="submit" class="btn btn-primary" id="expEditorSaveBtn" data-label="Save Changes" data-loading-label="Saving…">Save Changes</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="../js/booking-config.js"></script>
+<script src="../js/vendor/supabase-js.min.js"></script>
+<script src="../js/supabase-client.js"></script>
+<script src="auth-guard.js"></script>
+<script src="ui-utils.js"></script>
+<script src="activity-log.js"></script>
+<script src="experience-service.js"></script>
+<script src="experience-editor.js"></script>
+<script src="experiences.js"></script>
+</body>
+</html>

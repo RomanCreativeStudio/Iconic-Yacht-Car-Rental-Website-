@@ -81,6 +81,7 @@
           showBanner('Your account doesn’t have dashboard access. Contact your administrator.');
           return;
         }
+        if (window.IconicActivityLog) window.IconicActivityLog.log('login', 'session', null, null);
         loginForm.reset();
         goToDashboard();
       })

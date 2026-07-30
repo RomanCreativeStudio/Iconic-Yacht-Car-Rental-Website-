@@ -931,3 +931,321 @@
     max-width: none;
   }
 }
+
+/* ==========================================================================
+   Media Manager — Phase 6.3. Reuses .fleet-toolbar / .admin-filter-tab /
+   .fleet-badge / .admin-editor / .admin-banner / .admin-toast wholesale
+   (see above) — only genuinely new patterns (grid card thumbnails,
+   dropzone, per-file progress rows) get new classes here.
+   ========================================================================== */
+.media-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: var(--space-3);
+}
+
+.media-card {
+  background: var(--surface-glass);
+  border: 1px solid var(--surface-glass-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: border-color var(--dur-fast) var(--ease-luxury);
+}
+
+.media-card:hover {
+  border-color: rgba(198, 161, 91, 0.4);
+}
+
+.media-card-thumb {
+  aspect-ratio: 4 / 3;
+  background: linear-gradient(135deg, var(--color-charcoal-soft), var(--color-black));
+  overflow: hidden;
+}
+
+.media-card-thumb img,
+.media-card-thumb video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.media-card-thumb--empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: rgba(250, 249, 247, 0.4);
+  font-size: 0.8rem;
+}
+
+.media-card-badges {
+  display: flex;
+  gap: 0.35rem;
+  padding: 0.6rem 0.75rem 0;
+  flex-wrap: wrap;
+}
+
+.media-card-body {
+  padding: var(--space-2) var(--space-3) var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.media-card-title {
+  font-size: 1rem;
+  color: var(--color-white);
+  margin: 0;
+}
+
+.media-card-meta {
+  font-size: 0.76rem;
+  color: var(--color-gold-light);
+  text-transform: capitalize;
+}
+
+.media-card-filename {
+  font-size: 0.74rem;
+  color: var(--color-white-dim);
+  word-break: break-all;
+}
+
+.media-card-actions {
+  display: flex;
+  gap: 0.4rem;
+  margin-top: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.media-card-actions .btn {
+  padding: 0.4rem 0.75rem;
+  font-size: 0.72rem;
+}
+
+.media-card-actions .btn-danger {
+  border-color: rgba(177, 85, 79, 0.5);
+  color: #e8a7a3;
+}
+
+.media-card-actions .btn-danger:hover {
+  background: rgba(177, 85, 79, 0.16);
+}
+
+/* Dropzone */
+.media-dropzone {
+  border: 1px dashed rgba(250, 249, 247, 0.24);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  text-align: center;
+  color: var(--color-white-dim);
+  cursor: pointer;
+  transition: border-color var(--dur-fast) var(--ease-luxury), background-color var(--dur-fast) var(--ease-luxury);
+}
+
+.media-dropzone svg {
+  width: 32px;
+  height: 32px;
+  color: var(--color-gold-light);
+  margin-bottom: var(--space-2);
+}
+
+.media-dropzone p {
+  margin: 0 0 var(--space-2);
+  color: var(--color-white);
+}
+
+.media-dropzone-hint {
+  display: block;
+  margin-top: var(--space-2);
+  font-size: 0.74rem;
+  color: rgba(233, 231, 226, 0.5);
+}
+
+.media-dropzone.is-dragover {
+  border-color: var(--color-gold);
+  background: var(--color-gold-dim);
+}
+
+/* Upload queue rows */
+.media-upload-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: var(--space-3);
+}
+
+.media-upload-row {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.5rem;
+  border: 1px solid rgba(250, 249, 247, 0.1);
+  border-radius: var(--radius-sm);
+}
+
+.media-upload-thumb {
+  width: 52px;
+  height: 52px;
+  flex-shrink: 0;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: var(--color-charcoal-soft);
+}
+
+.media-upload-thumb img,
+.media-upload-thumb video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.media-upload-thumb--empty {
+  width: 100%;
+  height: 100%;
+}
+
+.media-upload-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.media-upload-name {
+  font-size: 0.85rem;
+  color: var(--color-white);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.media-upload-error {
+  font-size: 0.76rem;
+  color: #e8a7a3;
+}
+
+.media-upload-done {
+  font-size: 0.76rem;
+  color: #8fd39a;
+}
+
+.media-upload-actions {
+  display: flex;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+
+.media-upload-actions .btn {
+  padding: 0.35rem 0.65rem;
+  font-size: 0.72rem;
+}
+
+.media-progress {
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(250, 249, 247, 0.12);
+  overflow: hidden;
+}
+
+.media-progress-bar {
+  height: 100%;
+  background: var(--color-gold);
+  transition: width 0.15s linear;
+}
+
+@media (max-width: 640px) {
+  .media-upload-row {
+    flex-wrap: wrap;
+  }
+  .media-upload-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
+
+/* ==========================================================================
+   Homepage CMS — Phase 6.4. The generic object-list editor (multiple named
+   fields per reorderable row) extends .dynamic-list-row's single-input
+   layout from Fleet Manager to N inputs, laid out in their own grid.
+   ========================================================================== */
+.dynamic-object-row {
+  align-items: flex-start;
+}
+
+.dynamic-object-fields {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.dynamic-object-fields input,
+.dynamic-object-fields textarea {
+  width: 100%;
+  background: rgba(250, 249, 247, 0.04);
+  border: 1px solid rgba(250, 249, 247, 0.16);
+  border-radius: var(--radius-sm);
+  color: var(--color-white);
+  padding: 0.5rem 0.7rem;
+  font-size: 0.85rem;
+  font-family: inherit;
+}
+
+.dynamic-object-fields input:focus,
+.dynamic-object-fields textarea:focus {
+  outline: none;
+  border-color: var(--color-gold);
+}
+
+@media (max-width: 640px) {
+  .dynamic-object-fields {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ==========================================================================
+   Dashboard summary cards — Phase 6.4 task 8.
+   ========================================================================== */
+.admin-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+}
+
+.admin-summary-card {
+  background: var(--surface-glass);
+  border: 1px solid var(--surface-glass-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  text-decoration: none;
+  transition: border-color var(--dur-fast) var(--ease-luxury);
+}
+
+/* Cards rendered as <a> (a quick link to that item's manager) get the
+   same hover affordance as .fleet-card — reused, not a new hover style. */
+a.admin-summary-card:hover {
+  border-color: rgba(198, 161, 91, 0.4);
+}
+
+.admin-summary-value {
+  font-size: 1.8rem;
+  font-family: var(--font-serif, serif);
+  color: var(--color-gold-light);
+}
+
+.admin-summary-label {
+  font-size: 0.74rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-white-dim);
+}

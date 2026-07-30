@@ -64,20 +64,29 @@ apple touch icon, and social share image) — see
 2. [Brand Logo](#brand-logo)
 3. [Replacing Images](#replacing-images)
 4. [Adding or Editing Fleet Items](#adding-or-editing-fleet-items)
-5. [Updating Business Information](#updating-business-information)
-6. [Instagram Section](#instagram-section)
-7. [Luxury Experiences & Recent Charters](#luxury-experiences--recent-charters)
-8. [Clientele / Social Proof Section](#clientele--social-proof-section)
-9. [Videos Section](#videos-section)
-10. [How Booking Requests Work](#how-booking-requests-work)
-11. [Database Setup](#database-setup)
-12. [Environment Variables](#environment-variables)
-13. [Email Configuration](#email-configuration)
-14. [Analytics & Tracking](#analytics--tracking)
-15. [Structured Data & SEO](#structured-data--seo)
-16. [Future CMS Integration](#future-cms-integration)
-17. [How Deployment Works](#how-deployment-works)
-18. [Making Code Changes — the Minified Files](#making-code-changes--the-minified-files)
+5. [Fleet Manager (Admin CMS)](#fleet-manager-admin-cms)
+6. [Media Manager (Admin CMS)](#media-manager-admin-cms)
+7. [Experience Manager (Admin CMS)](#experience-manager-admin-cms)
+8. [Clientele Manager (Admin CMS)](#clientele-manager-admin-cms)
+9. [Instagram Manager (Admin CMS)](#instagram-manager-admin-cms)
+10. [Homepage CMS (Admin CMS)](#homepage-cms-admin-cms)
+11. [Team (Admin CMS)](#team-admin-cms)
+12. [Settings (Admin CMS)](#settings-admin-cms)
+13. [Updating Business Information](#updating-business-information)
+14. [Instagram Section](#instagram-section)
+15. [Luxury Experiences & Recent Charters](#luxury-experiences--recent-charters)
+16. [Clientele / Social Proof Section](#clientele--social-proof-section)
+17. [Videos Section](#videos-section)
+18. [How Booking Requests Work](#how-booking-requests-work)
+19. [Customer Accounts](#customer-accounts)
+20. [Database Setup](#database-setup)
+21. [Environment Variables](#environment-variables)
+22. [Email Configuration](#email-configuration)
+23. [Analytics & Tracking](#analytics--tracking)
+24. [Structured Data & SEO](#structured-data--seo)
+25. [Live Data & Automatic Fallback](#live-data--automatic-fallback)
+26. [How Deployment Works](#how-deployment-works)
+27. [Making Code Changes — the Minified Files](#making-code-changes--the-minified-files)
 
 ---
 
@@ -239,20 +248,22 @@ After any edit to `fleet-data.js`, re-minify it (see
 [Making Code Changes](#making-code-changes--the-minified-files)) —
 `index.html` and `fleet/vehicle.html` both load the minified copy.
 
-**This is still the only way to change what visitors actually see.** A
-Fleet Manager now exists in the admin dashboard (below) backed by a real
-database — but the public site doesn't read from that database yet, on
-purpose (see "Fleet Manager" below for why). Editing `fleet-data.js` the
-way this section describes remains the real, live editing path today.
+**As of Phase 6.5, this is the fallback path, not the only path.** A
+Fleet Manager exists in the admin dashboard (below), backed by a real
+database the public site now reads from first — see [Live Data &
+Automatic Fallback](#live-data--automatic-fallback). Editing
+`fleet-data.js` the way this section describes still works and is what
+the public site shows for any vehicle not published in the database yet.
 
 ---
 
 ## Fleet Manager (Admin CMS)
 
 `admin/fleet.html` (linked from the "Fleet" tab in the admin dashboard
-header) is a database-backed fleet management tool, separate from — and
-not yet connected to — the public website. Think of it as the staging
-ground for a CMS the site will eventually run on, not a live editor yet.
+header) is a database-backed fleet management tool. As of Phase 6.5, it's
+connected to the public website — see [Live Data & Automatic
+Fallback](#live-data--automatic-fallback) — a vehicle you publish here
+with real photos uploaded shows live on the public site automatically.
 
 ### What it does today
 
@@ -265,24 +276,40 @@ ground for a CMS the site will eventually run on, not a live editor yet.
   toggles (see below). **Duplicate** opens the editor pre-filled from an
   existing vehicle, saved as a new one once you save. **Delete** removes
   a vehicle permanently, after a confirmation prompt.
-- Everything you change here is saved to the real database immediately —
-  this part is real, not a mockup. What it isn't connected to yet is the
-  public site.
+- Everything you change here is saved to the real database immediately,
+  and — as of Phase 6.5 — the public site reads from it directly (with
+  automatic fallback to `fleet-data.js` for anything not published here).
 
-### Publishing, Availability, and Featured — three separate switches
+### Publishing, Availability, Featured, and Pricing
 
 - **Published** — whether this vehicle is meant to be public at all.
-  Turning this on today does **not** make it appear on the live site
-  (see "Why the public site doesn't read from here yet" below) — it's
-  groundwork for when it does.
-- **Available** — whether it's currently bookable, independent of
-  whether it's published. A published yacht getting serviced can be
-  marked unavailable without hiding it from the site entirely — once the
-  frontend migration below happens, this is how a temporary "currently
-  unavailable" state would work without unpublishing anything.
+  Turning this on makes it appear on the live site the next time a
+  visitor loads the page (see [The public site now reads from here,
+  automatically](#the-public-site-now-reads-from-here-automatically)
+  below) — real photos should already be uploaded before publishing.
+- **Availability** — a four-state field, independent of Published:
+  **Available**, **Unavailable**, **Maintenance**, or **Reserved**. A
+  published yacht getting serviced can be marked "Maintenance" without
+  hiding it from the site entirely — once the frontend migration below
+  happens, this is how a temporary unavailable state would work without
+  unpublishing anything. There's no booking calendar behind "Reserved"
+  yet — it's a manual status an admin sets, not something tied to an
+  actual reservation record.
 - **Featured** — surfaces a vehicle first wherever "featured" vehicles
   are shown. Has no visible effect on the public site today, for the
   same reason as Published.
+- **Public Pricing** — whether Starting Price should be shown publicly
+  once the frontend migration happens, or stay "available upon request."
+  Defaults off, matching the site's current quote-personally policy.
+- **Starting Price / Deposit / Duration Options** — as before.
+  **Seasonal Notes** is free text for pricing caveats (e.g. "Holiday
+  weekends carry a premium"). **Internal Notes** is staff-only
+  commentary that's never shown publicly, no matter what — it's stored
+  in a separate, admin-only-readable table specifically so it can't leak
+  through even after the frontend migration (see
+  `supabase/migrations/20260727000000_phase_6_4_cms_extensions.sql`'s
+  comment on `fleet_item_private_notes` for why a column wouldn't have
+  been safe).
 
 ### How new vehicles will be added later
 
@@ -295,21 +322,433 @@ real photography before it makes sense to publish, so the two are being
 built together rather than shipping a vehicle record with no way to add
 its pictures.
 
-### Why the public site doesn't read from here yet
+### The public site now reads from here, automatically
 
-Two things have to both be true before the public site can safely switch
-from `fleet-data.js` to this database: every vehicle's real photography
-needs to exist in Supabase Storage (media upload isn't built yet), and
-the frontend templates need to be pointed at the new data source. Neither
-has happened yet, on purpose — see "Future CMS Integration" below for the
-exact mechanism already prepared for when that switch happens.
+The public site tries this database first and falls back to
+`fleet-data.js` if a vehicle isn't published here yet, or if Supabase is
+briefly unreachable — see [Live Data & Automatic
+Fallback](#live-data--automatic-fallback) for exactly how that works. In
+practice, that means: a vehicle you publish here with real photos
+uploaded (via [Media Manager](#media-manager-admin-cms)) starts showing
+live data on the public site immediately, with nothing else to
+configure; a vehicle left unpublished (or with no photos yet) keeps
+showing its `fleet-data.js` entry until you publish it.
 
 Who can use it: the same sign-in as the booking dashboard (see "Admin
-Dashboard Access" above) — both `admin` and `staff` accounts can sign in
-and use the Fleet Manager today; only `admin` accounts can actually save
-changes (create, edit, duplicate, or delete a vehicle). A `staff` account
-attempting to save sees a clear "you may not have permission" message
-rather than a silent failure.
+Dashboard Access" above) — `admin`, `staff`, and `read_only` accounts can
+all sign in and view the Fleet Manager today; only `admin` accounts can
+actually save changes (create, edit, duplicate, or delete a vehicle). A
+`read_only` account doesn't even see the write buttons (Edit, Duplicate,
+Delete); a `staff` account attempting to save some other way sees a
+clear "you may not have permission" message rather than a silent
+failure.
+
+---
+
+## Media Manager (Admin CMS)
+
+`admin/media.html` (linked from the "Media" tab in the admin dashboard
+header, and from a "Media" button on each vehicle card / a "Open Media
+Manager" button inside the Fleet Editor) is where real photos and videos
+actually get uploaded to Supabase Storage and attached to a vehicle or
+experience. Like the Fleet Manager, this is real — every upload, replace,
+and delete here happens against the live database and Storage buckets
+immediately.
+
+**The Fleet Manager itself never uploads files.** Editing a vehicle's
+name, pricing, or specs happens in the Fleet Editor; attaching its
+photos and videos always happens here, in the Media Manager.
+
+### Uploading media
+
+1. Click **+ Upload Media**.
+2. Choose what the file(s) attach to — a **Vehicle** (pick it from the
+   dropdown, then a media kind and section/slot) or an **Experience**
+   (pick it from the dropdown — this stays empty until an experience
+   exists to attach media to; documenting a charter in
+   `js/experiences-data.js` today doesn't create a database row yet, so
+   there's nothing to select until a later phase adds an Experience
+   Manager).
+3. For vehicles, most sections (Exterior, Interior, Lifestyle, Drone,
+   and all four video categories) are made of fixed slots — Bow, Master
+   Cabin, Full Walkthrough, and so on — so you upload one file per slot.
+   **Gallery** is the exception: it's an open list, so drag in as many
+   photos as you like at once.
+4. Drag files onto the dropzone, or click **Browse Files**. Each file
+   gets its own progress bar; you can **Cancel** an in-flight upload or
+   **Retry** one that failed (wrong file type, too large, a dropped
+   connection) without re-selecting everything else in the batch.
+5. Click **Upload All**.
+
+### Replacing media
+
+Every item in the Media Library has a **Replace** button. Pick a new
+file of the same kind (a photo slot only accepts another photo, a video
+slot only another video) and confirm — the old file is swapped out
+immediately; nothing needs to be deleted and re-uploaded separately.
+
+### Deleting media
+
+Click **Delete** on any item and confirm. This removes both the file in
+Storage and its database record together — Iconic Rentals' Media Manager
+never leaves one without the other, so there's nothing to clean up by
+hand afterward.
+
+### The Media Library
+
+The main view lists every uploaded item across every vehicle and
+experience, with:
+
+- **Filters** — Vehicle vs. Experience, Images vs. Videos, Published vs.
+  Draft (this follows the parent vehicle's/experience's own Published
+  toggle from the Fleet Editor — a media item has no separate published
+  state of its own).
+- **Search** — matches filename, the vehicle/experience name, or the
+  section/slot.
+- **Sort** — Newest, Oldest, or Filename.
+
+There's no pagination yet — fine for the current fleet size, worth
+revisiting if the library grows into the hundreds of items.
+
+### Storage buckets
+
+Four buckets, all pre-existing on the Supabase project and reused as-is
+(no new buckets were created for this):
+
+| Bucket | Holds |
+|---|---|
+| `fleet-images` | Vehicle photos (hero, card, gallery, exterior, interior, lifestyle, drone) |
+| `fleet-videos` | Vehicle videos (walkthrough, Reels, TikTok, 360° tours) |
+| `experience-images` | Experience cover photos and photo galleries |
+| `experience-videos` | Experience videos |
+
+All four are public-read (matching how `/images/*` already works on the
+public site today) with admin-only upload/replace/delete, enforced by
+Row Level Security on `storage.objects` — the same `is_admin()` check
+used everywhere else in the dashboard.
+
+Two more buckets follow this exact same public-read/admin-write pattern
+but aren't part of the Media Manager's own library — `avatars` (endorsement
+photos) and `instagram` (Instagram post/reel media), each uploaded to
+directly from their own editor; see [Clientele
+Manager](#clientele-manager-admin-cms) and [Instagram
+Manager](#instagram-manager-admin-cms).
+
+**Unused buckets (Phase 7.2 audit):** the Supabase project also has four
+other Storage buckets — `documents`, `gallery`, `hero`, and `media` —
+that predate this project's admin CMS and were never wired up: private,
+empty (zero objects, confirmed as of this audit), no Row Level Security
+policies, and no size/type limits. Nothing in this codebase references
+them. With RLS enabled and no policy granting access, they're
+inaccessible to anyone but the project owner directly in the Supabase
+dashboard — not a live exposure, just unused. They're left in place
+rather than deleted, since removing Storage infrastructure isn't this
+codebase's call to make unilaterally; delete them yourself in **Supabase
+Dashboard → Storage** if you're confident you'll never use them, or
+repurpose one the same way `avatars`/`instagram` were (configure
+public-read + admin-write RLS, wire it into the relevant admin page).
+
+### Supported formats
+
+- **Images:** JPG, JPEG, PNG, WEBP
+- **Videos:** MP4, MOV, WEBM
+
+Anything else is rejected before it uploads, both by the Media Manager
+itself and — as a second, server-side check that a direct API call
+can't bypass — by the Storage buckets' own `allowed_mime_types`
+configuration.
+
+### Maximum upload sizes
+
+- **Images:** 20 MB per file
+- **Videos:** 500 MB per file
+
+Also enforced twice (client-side and on the bucket itself), same
+reasoning as file types above. If you need larger video files than this,
+increase the relevant buckets' `file_size_limit` in **Supabase Dashboard
+> Storage** (or via
+`supabase/migrations/20260726220000_media_storage_constraints.sql`) —
+just confirm your Supabase plan's own per-file limit can accommodate it
+first.
+
+### Recommended image sizes
+
+For sharp results without unnecessarily large page weight:
+
+- **Hero / Card images:** 1600×1200px (4:3), optimized to roughly
+  200–500 KB.
+- **Gallery / Exterior / Interior / Lifestyle / Drone:** 1600×1200px
+  (4:3) is a good default; wider aerial/drone shots can go up to
+  1920×1080px (16:9).
+
+### Recommended video sizes
+
+- **Walkthrough videos:** 1080p (1920×1080), H.264 MP4, under ~2 minutes
+  where possible.
+- **Reels / TikTok:** vertical 1080×1920 (9:16), matching how they're
+  filmed for those platforms natively.
+- **360° tours:** whatever your tour provider exports — these are
+  usually embedded/linked rather than re-encoded.
+
+None of this is enforced by the Media Manager — they're recommendations
+for what looks good and loads quickly on the public site once the
+frontend migration in [Future CMS Integration](#future-cms-integration)
+happens.
+
+---
+
+## Experience Manager (Admin CMS)
+
+`admin/experiences.html` (linked from the "Experiences" tab) manages the
+`experiences` table the same way Fleet Manager manages `fleet_items` —
+real database CRUD, and (as of the frontend migration — see [Live Data &
+Automatic Fallback](#live-data--automatic-fallback)) connected to the
+public site: a published, non-archived experience here shows up live on
+the homepage and its linked yacht's page, with `js/experiences-data.js`
+as the automatic fallback if none are published yet.
+
+### What it does today
+
+- Lists every documented experience with search, filters (published,
+  draft, featured, archived), and sorting (sort order, title, recently
+  updated).
+- **View** opens a read-only summary. **Edit** opens the full editor —
+  title, category, an optional linked vehicle, date (free text),
+  description, Instagram post/Reel links, client review, sort order, and
+  three status toggles. **Duplicate** copies an existing experience into
+  a new, unpublished draft. **Publish**/**Unpublish** and
+  **Archive**/**Unarchive** are one-click toggles right on each card, not
+  buried in the editor. **Delete** removes an experience permanently.
+- **+ Add Experience** creates a genuinely blank one — unlike Fleet
+  Manager, Experience Manager doesn't need real photography to exist
+  first before a row can be created, so there's no Duplicate-only
+  workaround here.
+
+### Published, Featured, and Archived
+
+- **Published** — same meaning as Fleet Manager's: visible on the public
+  site (and archived experiences excluded from it).
+- **Featured** — surfaces an experience first in the homepage Luxury
+  Experiences section.
+- **Archived** — for an experience that was live before and is being
+  retired (e.g. a one-time charter that won't repeat), as opposed to
+  "draft" (never published yet). Checking Archived automatically
+  unchecks Published in the editor — an archived experience can't stay
+  marked as currently live.
+
+Who can use it: same three roles as everywhere else in the dashboard —
+see "Roles today vs. later" under [Admin Dashboard
+Access](#admin-dashboard-access).
+
+---
+
+## Clientele Manager (Admin CMS)
+
+`admin/clientele.html` (linked from the "Clientele" tab) manages the
+`clientele_endorsements` table — real, named testimonials from clients or
+brands who've explicitly agreed to be quoted. The public homepage's
+"Trusted by Miami's Most Discerning Clientele" endorsements row reads
+from here live (see [Live Data & Automatic
+Fallback](#live-data--automatic-fallback)), falling back to
+`js/clientele-data.js` whenever nothing is approved yet. Category cards
+(Professional Athletes, Influencers, etc.) are managed separately, in
+Homepage CMS's "Clientele Categories" tab.
+
+### What it does today
+
+- Lists every endorsement with search (name or quote), a status filter
+  (Any / Approved / Unapproved), and sort (sort order, name, recently
+  updated).
+- **+ Add Endorsement** opens a blank editor. **Edit** opens the same
+  editor pre-filled. **Approve**/**Unapprove** is a one-click toggle
+  right on each card. **Delete** removes an endorsement permanently.
+- The editor's own on-screen reminder repeats the rule that already
+  governs `js/clientele-data.js`: **only add a real, named endorsement
+  once that specific person or brand has explicitly agreed to be quoted
+  on the site — never invent a name, quote, or logo.**
+- **Photo and logo are uploads, not URL fields.** Choose a JPG, PNG, or
+  WEBP file (up to 20 MB) and it uploads immediately — no separate
+  Storage step, no pasting a URL. The photo goes to the `avatars`
+  bucket, the logo to the `logos` bucket (under a `clientele/` path, so
+  it never collides with the site's own brand logo there). Replacing a
+  photo/logo on Save deletes the old file; closing the editor without
+  saving deletes the just-uploaded file too, so nothing orphaned is left
+  behind in Storage. Deleting an endorsement also deletes its photo and
+  logo files. Both buckets are public-read, admin-only write, same RLS
+  pattern as the Media Manager buckets below.
+
+### Approved — the only status field
+
+Unlike Fleet Manager or Experience Manager, there's a single status
+toggle here, **Approved**, not a separate Published/Approved pair — the
+database has one gate column (`approved`), and the admin UI matches it
+exactly rather than inventing a second toggle that would do the same
+thing. An endorsement only appears on the public site once Approved is
+checked.
+
+Who can use it: same three roles as everywhere else in the dashboard —
+`admin` accounts can edit and save; `staff` and `read_only` accounts can
+view every endorsement but don't see the write buttons (Edit, Approve/
+Unapprove, Delete, + Add Endorsement) — see "Roles today vs. later"
+under [Admin Dashboard Access](#admin-dashboard-access).
+
+---
+
+## Instagram Manager (Admin CMS)
+
+`admin/instagram.html` (linked from the "Instagram" tab) manages the
+`instagram_posts` and `instagram_reels` tables via two tabs, **Posts**
+and **Reels**, sharing one toolbar and grid. The public homepage's
+Instagram feed and Reels row both read from here live, falling back to
+`js/instagram-data.js` whenever nothing is published yet. The Instagram
+**profile** (handle, bio, avatar, follower/post counts) is managed
+separately, in Homepage CMS's "Instagram Profile" tab.
+
+### What it does today
+
+- Switch between the Posts and Reels tabs at the top of the toolbar —
+  each has its own search, publish-status filter, and sort, reset when
+  you switch tabs.
+- **+ Add Post** / **+ Add Reel** (the button's label follows the active
+  tab) opens a blank editor for that content type. **Edit** opens the
+  same editor pre-filled. **Publish**/**Unpublish** is a one-click toggle
+  on each card. **Delete** removes an entry permanently.
+- **Post** fields: media type (Image/Video/Carousel Album — see below),
+  media, an optional WebP variant URL, permalink, caption, sort order.
+- **Reel** fields: permalink, thumbnail, an optional WebP variant URL,
+  caption, sort order — reels have no media type field, since they're
+  always video.
+- **Media always uploads directly**, for every Media Type and for Reel
+  thumbnails alike: choose a JPG, PNG, or WEBP file (up to 20 MB) and it
+  uploads immediately to the `instagram` bucket — no manual URL entry
+  anywhere in this Manager. This is the feed/grid thumbnail image, not
+  the actual video: exactly like Reels already work (a static preview
+  image plus the Permalink field linking out to the real post on
+  Instagram), a Video or Carousel Album post's upload is its cover image,
+  and the real video/album lives on Instagram itself. Media Type is
+  recordkeeping for what the original Instagram post actually was — it
+  doesn't change how the upload field behaves.
+- Replacing a post's/reel's image on Save deletes the old file; closing
+  the editor without saving deletes the just-uploaded file too. Deleting
+  a post or reel also deletes its uploaded media/thumbnail file. The
+  `instagram` bucket is public-read, admin-only write, same RLS pattern
+  as the Media Manager buckets below.
+
+Who can use it: same three roles as everywhere else in the dashboard —
+`admin` accounts can edit and save; `staff` and `read_only` accounts can
+view every post and reel but don't see the write buttons — see "Roles
+today vs. later" under [Admin Dashboard Access](#admin-dashboard-access).
+
+---
+
+## Homepage CMS (Admin CMS)
+
+`admin/homepage.html` (linked from the "Homepage" tab) is a staging
+ground for the copy currently hardcoded directly in `index.html`: Hero,
+About, Trust section, Statistics, FAQ, Instagram profile, the Videos
+section's intro copy, Clientele categories, and Luxury Experience
+categories. Saving here writes to a `site_content` table — **it does
+not edit `index.html` directly.**
+
+As of Phase 6.6, every section here except **Luxury Experience
+categories** is wired for live reads on the public site (see [Live Data &
+Automatic Fallback](#live-data--automatic-fallback)) — `site_content` is
+now readable by anyone (`anon`), not just signed-in staff, so saving Hero,
+About, Trust, Statistics, FAQ, Instagram profile, Videos intro copy, or
+Clientele categories here takes effect on the public homepage the next
+time a visitor loads it (subject to the same live-first-with-fallback
+behavior as everything else, and — for the five list-shaped sections —
+subject to the live count matching `index.html`'s markup exactly; see
+[Live Data & Automatic Fallback](#live-data--automatic-fallback) for what
+that means in practice). **Luxury Experience categories is the one
+remaining section with no public read path** — saving it here stages the
+content for whenever a future phase wires the Experiences section's
+category filter up to read from here instead of its own hardcoded list.
+
+Each section has its own tab and its own small form — some are a few
+text fields (Hero, About, Videos section intro, Instagram profile), some
+are a reorderable list of small entries (Trust pillars, Statistics
+counters, FAQ questions, Clientele categories, Experience categories).
+Every list supports adding, removing, and drag-to-reorder, the same
+interaction as Fleet Manager's Specifications/Features/Amenities lists.
+
+The Instagram Profile tab's **Avatar** is the one image field in Homepage
+CMS, and it's an upload, not a text field — choose a JPG, PNG, or WEBP
+(up to 20 MB) and it uploads immediately to the `avatars` bucket, same
+upload widget and same replace/orphan-cleanup behavior as Clientele
+Manager's Photo/Logo fields (see [Clientele
+Manager](#clientele-manager-admin-cms)). Switching tabs away from
+Instagram Profile without saving discards an unsaved upload, the same as
+closing an editor without saving elsewhere in the dashboard.
+
+This exists so that, whenever a future phase does wire the homepage up
+to read from the database, the content is already there waiting rather
+than needing to be entered for the first time under deadline pressure.
+
+Who can use it: `admin` accounts can edit and save; `staff` and
+`read_only` accounts can view every section's current saved content but
+the form fields are disabled — see "Roles today vs. later" under
+[Admin Dashboard Access](#admin-dashboard-access).
+
+---
+
+## Team (Admin CMS)
+
+`admin/team.html` (linked from the "Team" tab, **admin accounts only** —
+staff and read_only accounts don't see this tab at all) is where you
+manage who has dashboard access, without ever needing Supabase's SQL
+Editor. See [Creating another admin or staff
+account](#creating-another-admin-or-staff-account) above for the full
+step-by-step; in short: change anyone's role from the dropdown next to
+their name and click **Save Role**, or click **Remove Access** to
+immediately revoke someone's ability to sign in. Both actions log to
+Recent Activity on the main dashboard, same as every other change in the
+CMS.
+
+This page is deliberately admin-only, not "staff/read_only can view,
+admin can edit" like every other manager — it lists teammates' email
+addresses and access levels, which is more sensitive than fleet or
+experience content. You also can't change your own role or remove your
+own access from here — a deliberate safeguard so the last remaining
+admin can never accidentally lock themselves out.
+
+**Creating someone's initial login still requires the Supabase
+dashboard** (Authentication > Users > Add user) — this is a permanent,
+deliberate limitation, not a missing feature: doing that safely from the
+CMS itself would mean putting your project's privileged service key
+somewhere a browser could ever reach it, which is exactly what this
+project's whole security model refuses to do (see [Environment
+Variables](#environment-variables)). Once their account exists, they
+appear on this page automatically the first time they sign in.
+
+---
+
+## Settings (Admin CMS)
+
+`admin/settings.html` (linked from the "Settings" tab) holds business-
+wide values — currently duplicated across `js/booking-config.js`,
+`index.html`'s structured data, and this document's own "Updating
+Business Information" section — in one `site_settings` database row.
+**Saving here does not update those files** — it's the future source of
+truth for a later phase to actually read from, not a live editor of the
+current site yet.
+
+Covers:
+
+- **Business Information** — name, phone, public email, booking
+  notification email, address, Google Maps URL.
+- **Social Links** — Instagram, Facebook, TikTok, YouTube URLs, and a
+  WhatsApp number.
+- **Logo** — upload replaces the file at a fixed path in the `logos`
+  Storage bucket (now RLS-enabled: public read, admin-only write, same
+  pattern as the Media Manager's buckets) and updates the saved path
+  immediately, no separate "Save" click needed for the logo specifically.
+- **SEO Defaults** — a default title and description for pages that
+  don't set their own.
+
+Who can use it: `admin` accounts can edit and save (including
+uploading a new logo); `staff` and `read_only` accounts can view the
+current saved settings with the form disabled.
 
 ---
 
@@ -383,6 +822,17 @@ for the exact steps.
 After editing, re-minify `js/instagram-data.js` (see
 [Making Code Changes](#making-code-changes--the-minified-files)).
 
+**A live database path also exists as of Phase 6.6, with an admin UI as
+of Phase 6.7** — the `instagram_posts` and `instagram_reels` tables
+(`published = true` rows only) take priority over this file on the
+public site the moment they have real rows in them, exactly like Fleet
+Manager's `fleet_items`. Manage them from **Instagram Manager** in the
+admin dashboard — see [Instagram Manager
+(Admin CMS)](#instagram-manager-admin-cms) — rather than editing this
+file or the Supabase Table Editor directly. Editing
+`js/instagram-data.js` remains the fallback content shown whenever
+neither table has a published row.
+
 ---
 
 ## Luxury Experiences & Recent Charters
@@ -450,6 +900,18 @@ two parts, both driven by `js/clientele-data.js`:
   message rather than fabricated social proof.
 
 After editing, re-minify `js/clientele-data.js`.
+
+**A live database path also exists for endorsements as of Phase 6.6, with
+an admin UI as of Phase 6.7** — the `clientele_endorsements` table
+(`approved = true` rows only) takes priority over
+`CLIENTELE_ENDORSEMENTS` the moment it has real rows, exactly like Fleet
+Manager's `fleet_items`. Manage endorsements from **Clientele Manager**
+in the admin dashboard — see [Clientele Manager
+(Admin CMS)](#clientele-manager-admin-cms) — with the same "never invent
+a name, quote, or logo" rule enforced there as a reminder in the editor
+itself. Category cards are wired through Homepage CMS instead (see
+[Homepage CMS](#homepage-cms-admin-cms)). Editing `js/clientele-data.js`
+remains the fallback content shown whenever no endorsement is approved.
 
 ---
 
@@ -543,6 +1005,79 @@ free tier and a small JS snippet.
 
 ---
 
+## Customer Accounts
+
+Separate from the admin dashboard (`admin/`, for you and your staff),
+visitors can create their own account to manage their own reservations:
+
+- **`signup.html`** — Full name, email, password. Calls Supabase Auth's
+  `signUp()` with `account_type: 'customer'` in the account's metadata —
+  this is what makes the new account a `customer`, not `staff` (see
+  below). If your Supabase project has "Confirm email" enabled
+  (**Authentication > Providers > Email** — on by default), the new
+  visitor gets a "check your email" message and must click the
+  confirmation link before they can sign in; if it's off, they're signed
+  in immediately and taken straight to their account page.
+- **`login.html`** — Email/password sign-in for an existing account,
+  admin or customer alike (the page itself doesn't check role — it's
+  `admin/auth-guard.js`, entirely separate code, that keeps a customer
+  account out of `/admin/`, covered below).
+- **`account.html`** — Signed-in customers land here: their name, their
+  email, a form to update their name, and a Logout button. Redirects to
+  `login.html` immediately if nobody's signed in.
+- The public nav (every page) shows **Sign In**/**Sign Up** when signed
+  out, and **Account**/**Logout** when signed in — toggled automatically
+  by `js/auth.js`, no page-specific wiring needed beyond including that
+  script.
+
+### Why a new account isn't a staff account
+
+Every Supabase Auth signup — whether it's you adding a staff login by
+hand in the Supabase dashboard, or a visitor using `signup.html` — runs
+through the same database trigger, `handle_new_user()`. Before this
+feature existed, every new account defaulted to `staff` role, which was
+fine when the *only* way to create an account was you, personally,
+inviting someone to help run the dashboard. That default would have been
+a real problem the moment a public signup form existed: anyone
+registering on the public site would have silently gotten a staff-level
+login to `/admin/`, including every customer's name/email/phone in the
+Inquiries dashboard.
+
+`handle_new_user()` now checks for the `account_type: 'customer'` marker
+`signup.html` sends. If it's there, the new profile gets `role =
+'customer'`; if it's not (the Supabase dashboard's "Add user" flow sets
+no such marker), the profile still defaults to `role = 'staff'` exactly
+as before — see [Admin Dashboard Access](#admin-dashboard-access) for
+that unchanged flow. `admin/auth-guard.js`'s allowed-role list
+(`admin`/`staff`/`read_only`) was not changed — `customer` was never
+added to it, so a customer account cannot sign into `/admin/` at all;
+visiting it while signed in as a customer sends them straight to
+`admin/login.html`, the same as not being signed in at all.
+
+### What a customer can — and can't — do
+
+A signed-in customer can view and update their own `full_name` in
+`profiles`, nothing else. This is enforced at the database level, not
+just hidden in the UI: `profiles` has a Row Level Security policy
+scoped to `auth.uid() = id` (their own row only) *and* a column-level
+grant covering only `full_name` — so even a hand-crafted API request
+trying to also change `role` (or update a different customer's row) is
+rejected by Postgres before Row Level Security is even evaluated, not
+just hidden by the account page's own form.
+
+**Booking history isn't connected yet.** `account.html` shows a "Booking
+History will be available in a future update" message instead of a real
+list — `booking_requests` has no column linking a submitted inquiry to a
+signed-in account, and its existing read policy isn't scoped per-customer
+(it's built for staff viewing every inquiry, not a customer viewing their
+own). Wiring this up for real needs both a schema change (a column
+linking a booking to the account that made it) and a new, carefully
+scoped RLS policy — deliberately out of scope for this phase rather than
+building something that would show a customer every other customer's
+bookings, or require weakening `booking_requests`' existing policies.
+
+---
+
 ## Database Setup
 
 The booking system is built on [Supabase](https://supabase.com) — a
@@ -552,11 +1087,48 @@ edge functions, all on a generous free tier for a business this size.
 1. **Create a Supabase account and project** at
    [supabase.com](https://supabase.com/dashboard). Pick a region close to
    Miami (e.g. US East) for the best latency.
-2. **Run the schema.** In your project dashboard, go to **SQL Editor >
-   New query**, paste the entire contents of `supabase/schema.sql` from
-   this project, and click **Run**. This creates the `booking_requests`
-   table with the exact fields below, plus the security rules described
-   next. It's safe to re-run if you're ever unsure whether it applied.
+2. **Apply every migration in `supabase/migrations/`, in order.** This is
+   the complete, current schema — `booking_requests`, `profiles`,
+   `fleet_items`/`fleet_media`/`fleet_item_private_notes`,
+   `experiences`/`experience_media`, `site_content`, `site_settings`,
+   `clientele_endorsements`, `instagram_posts`/`instagram_reels`,
+   `activity_log`, every RLS policy, and the
+   `is_admin()`/`get_storage_usage()`/Team-management functions — not
+   just the original booking table. The reliable way to apply all of
+   them, in the right order, is the Supabase CLI:
+
+   ```bash
+   npm install -g supabase   # if you don't already have it
+   supabase login
+   supabase link --project-ref YOUR-PROJECT-REF
+   supabase db push
+   ```
+
+   `supabase/schema.sql` (the older copy-paste-into-SQL-Editor path) only
+   creates the original `booking_requests` table by itself — it
+   pre-dates the CMS and is not a substitute for the migrations above.
+   It's still there, and still correct for exactly what it does, but
+   running it alone on a fresh project will leave the admin dashboard and
+   every CMS page unable to load (their tables won't exist yet).
+3. **Create three Storage buckets by hand:** `logos`, `avatars`, and
+   `instagram` (**Storage > New bucket**, names must match exactly). Every
+   *other* bucket (`fleet-images`, `fleet-videos`, `experience-images`,
+   `experience-videos`) is created automatically by the migrations in
+   step 2 — but these three were originally set up directly in the
+   dashboard on this project rather than by a migration, so their
+   migrations only configure an *existing* bucket (public access, file
+   size/type limits, RLS) rather than create one. On a brand-new project,
+   create the bucket first, then re-run `supabase db push` (or just the
+   one migration file matching each bucket — see
+   `supabase/migrations/20260727000000_phase_6_4_cms_extensions.sql` for
+   `logos` and `20260728175925_phase_6_11_clientele_instagram_media_uploads.sql`
+   for `avatars`/`instagram`) so the configuration actually applies.
+4. **Verify the schema landed.** In **Table Editor**, you should see all
+   13 tables named above; in **Storage**, all 7 buckets. If something's
+   missing, re-run `supabase db push` — every migration here is written
+   to be safe to re-run.
+
+`booking_requests`' fields, for reference:
 
    | Field | Type | Notes |
    |---|---|---|
@@ -575,9 +1147,10 @@ edge functions, all on a generous free tier for a business this size.
    | `status` | text | One of: New, Contacted, Confirmed, Completed, Cancelled |
    | `source` | text | "full_form" or "quick_form" — which form was used |
 
-3. **Row Level Security (RLS) is already configured by the schema** and
-   is the real security boundary for this data — not any secret key. In
-   plain terms:
+### Row Level Security
+
+RLS is already configured by the migrations above and is the real
+security boundary for this data — not any secret key. In plain terms:
    - Anyone on the public website can *submit* a new inquiry (that's the
      whole point of the form), but can never read, edit, or delete any
      inquiry — including their own — through the public API.
@@ -615,44 +1188,66 @@ data.
 #### Creating another admin or staff account
 
 There's no self-service sign-up (deliberately — see the security notes
-below), so every account is created by hand, once, in the Supabase
-dashboard:
+below), so a new person's login itself is still created by hand, once,
+in the Supabase dashboard — but as of Phase 6.10, everything after that
+(setting their role, removing someone's access) happens in **Team**
+(`admin/team.html`, admin-only) instead of the SQL Editor:
 
 1. Go to **Authentication > Users > Add user** and create an account
    (email + password) for the person who needs access. Repeat for each
-   person individually.
+   person individually. This one step still requires the Supabase
+   dashboard — creating a login isn't something the CMS can safely do
+   itself (it would need your project's privileged service key exposed
+   somewhere it could ever be reached from a browser, which is exactly
+   what this project's whole security model refuses to do — see
+   "Environment Variables" below).
 2. That's enough for **staff-level** access on its own — a newly created
    account defaults to the `staff` role automatically and can already
-   sign in and use the dashboard.
-3. To grant **admin** instead of staff (there's no functional difference
-   between the two yet — see "Roles today vs. later" below, but the
-   distinction exists for tables added in a future phase), open
-   **SQL Editor > New query** and run, filling in the new user's ID from
-   the Users list:
-   ```sql
-   update profiles set role = 'admin' where id = '<the-user-id>';
-   ```
+   sign in and use the dashboard. Their name and email appear in **Team**
+   automatically the first time they sign in.
+3. To grant **admin** or **read_only** instead of staff (see "Roles
+   today vs. later" below for what each one can actually do), sign in
+   yourself, open **Team**, and change their role from the dropdown next
+   to their name, then **Save Role**. No SQL Editor needed.
 4. **Turn off public sign-ups** once, the first time you set this up, so
    a stranger can never create their own account: **Authentication >
    Providers > Email**, disable "Allow new users to sign up." Staff
    accounts are only ever added by you, from the dashboard.
 
-Removing someone's access: delete their row in **Authentication > Users**
-— their profile record and dashboard access go with it.
+Removing someone's dashboard access: open **Team** and click **Remove
+Access** next to their name — takes effect immediately, no SQL Editor
+needed. This revokes their sign-in access to the *dashboard* without
+deleting their underlying login; to remove their account entirely (e.g.
+they'll never need any access again), also delete their row in
+**Authentication > Users** in the Supabase dashboard. An admin can't
+change their own role or remove their own access from Team — this is a
+deliberate safeguard so the last admin can never accidentally lock
+themselves out; use another admin's account, or the SQL Editor as a last
+resort, if that's ever genuinely needed.
 
 #### Roles today vs. later
 
-Every account is one of two roles, tracked in a `profiles` table:
+Every account is one of three roles, tracked in a `profiles` table:
 
-- **`staff`** — the default for a brand-new account. Can sign in and use
-  the booking inquiries dashboard exactly like an admin can today.
-- **`admin`** — the same access today, plus it's the role that will gate
-  full content-management (fleet, experiences) once that's built in a
-  future phase. Granting `admin` now to whoever should eventually manage
-  that content saves a step later.
+- **`staff`** — the default for a brand-new account. Can sign in, view
+  every CMS page (Fleet, Media, Experiences, Homepage, Settings), and
+  see published content plus anything they're viewing in the editors —
+  but every save is rejected by the database (Row Level Security, not
+  just the UI) unless the account is `admin`.
+- **`read_only`** — same read access as `staff`. The only difference is
+  in the UI: `read_only` sessions don't even see the write buttons
+  (Edit, Duplicate, Delete, Upload, Save) that `staff` sessions do see
+  and then get rejected from using. Both are equally unable to write —
+  `read_only` exists so you can hand someone a truly read-only view
+  without the "why can't I click Save" confusion.
+- **`admin`** — full read/write on every content table (fleet_items,
+  fleet_media, experiences, experience_media, site_content,
+  site_settings) and the four/five CMS Storage buckets. This is the role
+  that can actually use the Fleet Manager, Media Manager, Experience
+  Manager, Homepage CMS, and Settings pages to make changes.
 
-Both roles are allowed into the dashboard as it exists today — the
-distinction is groundwork for later, not a restriction you'll notice yet.
+All three roles are allowed into the dashboard itself — the distinction
+is entirely about what each one can change once inside.
 
 #### Security notes
 
@@ -666,11 +1261,25 @@ distinction is groundwork for later, not a restriction you'll notice yet.
   `service_role` key — the anon key is meant to be public (see
   "Environment Variables" below) and RLS is what makes that safe.
 - A signed-in session with no matching `profiles` row (or a role outside
-  `admin`/`staff`) is treated as **no access** and sent back to the login
-  page — access fails closed, not open, if anything about a user's
-  profile is missing or unexpected.
+  `admin`/`staff`/`read_only`) is treated as **no access** and sent back
+  to the login page — access fails closed, not open, if anything about a
+  user's profile is missing or unexpected.
 - This page is marked `noindex` so search engines won't list it, but
   that alone doesn't secure it — the points above are what do.
+
+#### Dashboard summary and Activity Log
+
+The Inquiries page (`admin/index.html`) now opens with a row of summary
+cards — Fleet Vehicles, Experiences, Media Items, Pending Bookings,
+Published Items, Draft Items, and Storage Used — each a live count from
+the database, not a cached or estimated number.
+
+Below the inquiries table is a **Recent Activity** table: the last 25
+entries from an `activity_log` table that every CMS page writes to on
+create, update, delete, publish/unpublish, login, logout, and media
+upload/delete. It's deliberately just a plain table, admin-only (the
+same RLS pattern as everything else) — there's no filtering, export, or
+per-entity history view yet, just a record of who did what and when.
 
 ---
 
@@ -835,37 +1444,142 @@ using your live URL once deployed.
 
 ---
 
-## Future CMS Integration
+## Live Data & Automatic Fallback
 
-This site is intentionally structured so that hooking it up to a CMS
-later is a data change, not a rebuild — and as of the Fleet Manager
-(above), the database half of that CMS already exists:
+The public site tries Supabase first for fleet vehicles, luxury
+experiences, clientele categories and endorsements, Instagram profile
+info/posts/Reels, and (as of Phase 6.6) the homepage's Hero, About,
+Trust, Statistics, FAQ, and Videos-section intro copy — falling back
+automatically to the original static `js/*-data.js` files (or, for the
+homepage copy, to `index.html`'s own existing markup) whenever live data
+isn't available or isn't usable yet. This is handled by one file,
+`js/data-service.js`, loaded on every public page alongside the static
+data files it can fall back to.
 
-- Every fleet item (yacht or car) is a single JavaScript object in
-  `js/fleet-data.js`, with a flat, predictable shape (`slug`, `type`,
-  `name`, `category`, `description`, `specs`, `amenities`, `gallery`,
-  etc.). The `fleet_items` / `fleet_media` tables in Supabase (see
-  `supabase/SCHEMA_PROPOSAL.md`) already use that same shape — that
-  wasn't a coincidence, it was designed this way from the start.
-- All rendering logic (`js/fleet-render.js` for cards,
-  `js/fleet-detail.js` for the detail page) reads from `js/fleet-data.js`
-  through a small set of functions (`getFleetItem`, `getFleetByType`,
-  `getRelatedFleet`) — it never reaches into the data array directly.
-  That indirection is what makes the swap possible.
-- `js/fleet-supabase-adapter.js` already implements the Supabase side of
-  that swap — same function names, same data shape, built to satisfy the
-  exact migration steps documented in the comment block at the bottom of
-  `js/fleet-data.js`. It is **not loaded by any page yet.**
+### How the fallback decides what to show
 
-A developer doing this migration would: (1) make sure every vehicle
-meant to go live has `published = true` and real photos uploaded to the
-`fleet-images`/`fleet-videos` Storage buckets, (2) swap the `<script
-src="js/fleet-data.js">` tag for `js/fleet-supabase-adapter.js` plus a
-call to its `.load()` method, and (3) move the existing render calls in
-`fleet-render.js`/`fleet-detail.js` inside a listener for the
-`iconic:fleet-ready` event that `.load()` dispatches, instead of running
-at the bottom of the script as they do today. The HTML templates, CSS,
-and card markup stay untouched either way.
+For every data type, in order:
+
+1. **Is Supabase even configured?** If `js/booking-config.js` still has
+   its placeholder values (see [Environment
+   Variables](#environment-variables)), or the Supabase library failed to
+   load, the site skips straight to the static file — no network request
+   is attempted, so an un-configured site never shows a console error or
+   a failed request for this.
+2. **Is the live request fast enough?** A live request gets 3 seconds.
+   If Supabase is slow or unreachable, the page doesn't hang waiting —
+   it falls back the moment the timeout fires, the same as if the
+   request had failed outright.
+3. **Did the live request actually return usable content?** A vehicle
+   with `published = false`, an experience that isn't published, an
+   unapproved endorsement, an unpublished Instagram post/Reel, or an
+   empty/missing `site_content` row all count as "no usable data," and
+   fall back to static — the same as a hard error would. An empty
+   section is never shown just because a query technically succeeded
+   with zero rows; the static file's (or index.html's own) real content
+   is always the fallback of last resort.
+4. **Either way, the page renders.** Once a domain's data is settled
+   (live or static), `js/data-service.js` fires an `iconic:<domain>-ready`
+   event (`iconic:fleet-ready`, `iconic:experiences-ready`,
+   `iconic:clientele-ready`, `iconic:instagram-ready`, `iconic:hero-ready`,
+   `iconic:about-ready`, `iconic:trust-ready`, `iconic:statistics-ready`,
+   `iconic:faq-ready`, `iconic:videos-intro-ready`) and every script that
+   renders that section — `main.js`, `fleet-render.js`,
+   `fleet-detail.js`, `experiences.js`, `clientele.js`, `instagram.js`,
+   `videos.js`, `homepage-content.js` — renders from whichever source
+   ended up populated. Those scripts don't know or care whether the data
+   came from Supabase or from a static file; they read the same
+   `window.Iconic*` globals either way.
+
+**What's live-capable today:**
+
+| Data | Live source | Falls back to |
+|---|---|---|
+| Fleet vehicles | `fleet_items` + `fleet_media` (published only) | `js/fleet-data.js` |
+| Luxury Experiences | `experiences` + `experience_media` (published, not archived) | `js/experiences-data.js` |
+| Clientele categories | `site_content` (`clientele_categories` section) | `js/clientele-data.js` |
+| Clientele endorsements | `clientele_endorsements` table (approved only) | `js/clientele-data.js` |
+| Instagram profile fields | `site_content` (`instagram_profile` section) | `js/instagram-data.js` |
+| Instagram posts | `instagram_posts` table (published only) | `js/instagram-data.js` |
+| Instagram Reels | `instagram_reels` table (published only) | `js/instagram-data.js` |
+| Hero copy + stats | `site_content` (`hero` section) | `index.html`'s existing markup |
+| About copy + pillars | `site_content` (`about` section) | `index.html`'s existing markup |
+| Trust title + pillars | `site_content` (`trust` section) | `index.html`'s existing markup |
+| Trust statistics counters | `site_content` (`statistics` section) | `index.html`'s existing markup |
+| FAQ questions | `site_content` (`faq` section) | `index.html`'s existing markup |
+| Videos section intro copy | `site_content` (`videos_section` section) | `index.html`'s existing markup |
+
+Every row above is reachable by `anon` today — Phase 6.6 widened
+`site_content`'s Phase 6.4 authenticated-only read policy to public, and
+`clientele_endorsements`/`instagram_posts`/`instagram_reels` were created
+with the same public-read-when-approved-or-published pattern already used
+by `fleet_items`/`experiences`. Nothing here is waiting on a future RLS
+change anymore.
+
+**List-shaped homepage content (hero stats, about/trust pillars,
+statistics counters, FAQ questions) only patches in place when the live
+count matches what `index.html` already has** — e.g. exactly 4 About
+pillars, exactly 7 FAQ questions. This is intentional, not a bug: these
+sections have scroll-reveal animations and (for the statistics counters)
+a count-up animation bound to the specific DOM elements already on the
+page at load time, and `js/homepage-content.js` only ever retexts those
+existing elements — it never adds, removes, or replaces one, which is
+what keeps every animation working unmodified. Adding or removing an
+item in the Homepage CMS (so the live count no longer matches
+`index.html`) makes that one list fall back to its static content until
+a developer updates `index.html`'s own markup to match the new count —
+see that file's header comment for the full reasoning. Icons on pillar
+entries are accepted from the CMS but not yet rendered on the public
+site (only inline SVGs are used today); only each pillar's text updates
+live.
+
+### Disabling the fallback later (going "live-only")
+
+Once you're confident every vehicle and experience you want published is
+published in Supabase with real photos, and you'd rather see a loud
+failure than a silent fallback to (by then stale) static content, you
+have two options, from least to most permanent:
+
+- **Delete the static content, keep the mechanism.** Empty out the
+  arrays in `js/fleet-data.js` / `js/experiences-data.js` / etc. (or
+  reduce them to a single "please check back soon" placeholder entry).
+  The fallback logic itself doesn't change — it just has nothing useful
+  to fall back to, so a Supabase outage would show a real empty state
+  instead of masking the problem with old content.
+- **Remove the fallback path entirely.** In `js/data-service.js`, each
+  `load*()` function (`loadFleet`, `loadExperiences`, `loadClientele`,
+  `loadInstagram`, `loadHero`, `loadAbout`, `loadTrust`, `loadStatistics`,
+  `loadFaq`, `loadVideosIntro`) would need its `.catch()` block changed to
+  surface the error instead of quietly falling back — e.g. showing an
+  error state in the relevant grid rather than calling `dispatch()` with
+  the old data still in place. This is a deliberate future step, not
+  something to do casually — it trades resilience (the site staying up
+  during a brief Supabase hiccup) for correctness (never showing outdated
+  content), and should only be done once the team's comfortable relying
+  on Supabase's uptime for the public site, not just the admin dashboard.
+
+### Removing the static files entirely (future phase)
+
+The static `js/*-data.js` files (and `index.html`'s own hardcoded
+Hero/About/Trust/Statistics/FAQ/Videos-intro copy) can eventually be
+retired altogether now that every data domain is live-capable, once the
+team is comfortable with the "live-only" behavior described above — a
+static file (or hardcoded markup) is what makes today's graceful fallback
+possible at all, so removing one is a deliberate tradeoff, not cleanup.
+One real gap remains first: the list-shaped homepage sections (hero
+stats, about/trust pillars, statistics counters, FAQ items) only patch
+live when the count matches `index.html`'s markup exactly (see above) —
+going fully live-only for those would mean generating that markup from
+the CMS data instead of only ever retexting a fixed number of existing
+elements, which is a real (if modest) frontend change, not just a
+flag flip. Until any of this happens, keep editing the static files and
+`index.html` as documented throughout this guide ([Adding or Editing
+Fleet Items](#adding-or-editing-fleet-items), [Instagram
+Section](#instagram-section), [Luxury Experiences & Recent
+Charters](#luxury-experiences--recent-charters), [Clientele / Social
+Proof Section](#clientele--social-proof-section)) — they're not legacy
+files being phased out on their own; they're the safety net every public
+page still depends on.
 
 ---
 
@@ -934,6 +1648,46 @@ consider restricting the Edge Function's CORS header (currently `*` in
 once you know it, and disabling public sign-ups in Supabase Auth so only
 staff you personally invite can access `admin/`.
 
+### Content Security Policy
+
+`netlify.toml`'s baseline security headers (Phase 7.2) include a
+`Content-Security-Policy` and `Strict-Transport-Security` on Netlify —
+like the other headers in that file, they only take effect there and are
+safe to leave in place (ignored) or delete if you deploy elsewhere. The
+policy is scoped to exactly what this site loads today, not a generic
+template:
+
+- **Supabase** (`connect-src`/`img-src`) is allowed as `https://*.supabase.co`
+  rather than one hardcoded project ref, so switching to a different
+  Supabase project only ever means editing `js/booking-config.js` —
+  never this file too.
+- **Google Analytics and the Meta Pixel** are allowed even though both
+  are commented out in `index.html`/`fleet/vehicle.html` by default (see
+  [Analytics & Tracking](#analytics--tracking)) — so activating either
+  one later is just deleting the comment markers and dropping in a real
+  ID, with nothing to debug in the security headers.
+- **Google Maps** (`frame-src`) is allowed for the embedded map in the
+  homepage Contact section.
+- `style-src` allows `'unsafe-inline'` because the admin dashboard's
+  upload-preview widgets use inline `style=""` attributes; `script-src`
+  does not need the same exception — no inline `<script>` executes
+  anywhere on the live site today.
+
+If you add a new third-party integration (a chat widget, a different
+analytics tool, an embedded video player, etc.), it will likely need its
+own domain added to the relevant directive here or the resource will be
+silently blocked — check your browser console for a CSP violation
+message naming exactly which directive and domain to add.
+
+**HSTS note:** `includeSubDomains` assumes every subdomain of your real
+domain serves HTTPS — confirm that's true before deploying (an HTTP-only
+subdomain, like an old mail or FTP service, would break under this
+header). The `preload` directive in the header alone does nothing by
+itself; submitting your domain to the browser-vendor HSTS preload list
+at [hstspreload.org](https://hstspreload.org) is a separate, deliberate
+step worth taking only once you're confident the domain will run HTTPS
+indefinitely — removal from that list can take months to propagate.
+
 ---
 
 ## Making Code Changes — the Minified Files
@@ -973,6 +1727,13 @@ npx terser js/clientele-data.js -o js/clientele-data.min.js --compress --mangle
 npx terser js/clientele.js -o js/clientele.min.js --compress --mangle
 npx terser js/videos.js -o js/videos.min.js --compress --mangle
 npx terser js/analytics.js -o js/analytics.min.js --compress --mangle
+npx terser js/fleet-supabase-adapter.js -o js/fleet-supabase-adapter.min.js --compress --mangle
+npx terser js/data-service.js -o js/data-service.min.js --compress --mangle
+npx terser js/homepage-content.js -o js/homepage-content.min.js --compress --mangle
+npx terser js/auth.js -o js/auth.min.js --compress --mangle
+npx terser js/signup.js -o js/signup.min.js --compress --mangle
+npx terser js/login.js -o js/login.min.js --compress --mangle
+npx terser js/account.js -o js/account.min.js --compress --mangle
 ```
 
 Re-run only the command for the file(s) you actually changed. If you'd

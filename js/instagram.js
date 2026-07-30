@@ -3,8 +3,13 @@
  * js/instagram-data.js. Kept as its own script (like fleet-detail.js) so
  * the day this reads from a real Instagram Graph API feed instead of
  * manually-curated data, only this file changes.
+ *
+ * Waits for 'iconic:instagram-ready' (Phase 6.5) — js/data-service.js may
+ * still be deciding between a live profile and this static fallback when
+ * this script first executes (posts/reels are always static; see
+ * js/data-service.js's header comment for why).
  */
-(function () {
+document.addEventListener('iconic:instagram-ready', function () {
   'use strict';
 
   if (!window.IconicInstagram || !window.IconicMedia) return;
@@ -86,4 +91,4 @@
         '</div>';
     }
   }
-})();
+});

@@ -20,6 +20,13 @@
   <nav class="admin-nav" aria-label="Admin sections">
     <a href="index.html" class="admin-nav-link is-active" aria-current="page">Inquiries</a>
     <a href="fleet.html" class="admin-nav-link">Fleet</a>
+    <a href="media.html" class="admin-nav-link">Media</a>
+    <a href="experiences.html" class="admin-nav-link">Experiences</a>
+    <a href="clientele.html" class="admin-nav-link">Clientele</a>
+    <a href="instagram.html" class="admin-nav-link">Instagram</a>
+    <a href="homepage.html" class="admin-nav-link">Homepage</a>
+    <a href="team.html" class="admin-nav-link">Team</a>
+    <a href="settings.html" class="admin-nav-link">Settings</a>
   </nav>
   <button type="button" class="btn btn-ghost admin-signout" id="signOutBtn" hidden>Sign Out</button>
 </header>
@@ -32,6 +39,20 @@
 
   <!-- ============ DASHBOARD VIEW ============ -->
   <section class="admin-dashboard" id="dashboardView" hidden>
+
+    <div class="admin-summary-grid" id="summaryGrid">
+      <a class="admin-summary-card" href="fleet.html"><span class="admin-summary-value" id="summaryFleet">—</span><span class="admin-summary-label">Fleet Vehicles</span></a>
+      <a class="admin-summary-card" href="experiences.html"><span class="admin-summary-value" id="summaryExperiences">—</span><span class="admin-summary-label">Experiences</span></a>
+      <a class="admin-summary-card" href="media.html"><span class="admin-summary-value" id="summaryMedia">—</span><span class="admin-summary-label">Media Items</span></a>
+      <a class="admin-summary-card" href="clientele.html"><span class="admin-summary-value" id="summaryEndorsements">—</span><span class="admin-summary-label">Endorsements</span></a>
+      <a class="admin-summary-card" href="instagram.html"><span class="admin-summary-value" id="summaryInstagram">—</span><span class="admin-summary-label">Instagram Content</span></a>
+      <a class="admin-summary-card" href="homepage.html"><span class="admin-summary-value" id="summaryHomepage">—</span><span class="admin-summary-label">Homepage Sections</span></a>
+      <div class="admin-summary-card"><span class="admin-summary-value" id="summaryPending">—</span><span class="admin-summary-label">Pending Bookings</span></div>
+      <div class="admin-summary-card"><span class="admin-summary-value" id="summaryPublished">—</span><span class="admin-summary-label">Published Items</span></div>
+      <div class="admin-summary-card"><span class="admin-summary-value" id="summaryDraft">—</span><span class="admin-summary-label">Draft Items</span></div>
+      <div class="admin-summary-card"><span class="admin-summary-value" id="summaryStorage">—</span><span class="admin-summary-label">Storage Used</span></div>
+    </div>
+
     <div class="admin-toolbar">
       <div class="admin-filter-tabs" id="statusFilterTabs" role="tablist" aria-label="Filter by status">
         <button class="admin-filter-tab is-active" data-status="all" role="tab" aria-selected="true">All</button>
@@ -61,6 +82,24 @@
         </thead>
         <tbody id="inquiriesTableBody">
           <tr><td colspan="7" class="admin-table-empty">Loading inquiries…</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2 style="font-size:1.1rem;margin:var(--space-5) 0 var(--space-3);color:var(--color-white);">Recent Activity</h2>
+    <div class="admin-table-wrap">
+      <table class="admin-table" id="activityTable">
+        <thead>
+          <tr>
+            <th scope="col">When</th>
+            <th scope="col">User</th>
+            <th scope="col">Action</th>
+            <th scope="col">Entity</th>
+            <th scope="col">Details</th>
+          </tr>
+        </thead>
+        <tbody id="activityTableBody">
+          <tr><td colspan="5" class="admin-table-empty">Loading activity…</td></tr>
         </tbody>
       </table>
     </div>
@@ -97,6 +136,7 @@
 <script src="../js/vendor/supabase-js.min.js"></script>
 <script src="../js/supabase-client.js"></script>
 <script src="auth-guard.js"></script>
+<script src="activity-log.js"></script>
 <script src="dashboard.js"></script>
 </body>
 </html>

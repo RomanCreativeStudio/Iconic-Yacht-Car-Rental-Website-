@@ -1,7 +1,23 @@
 # Database Schema Proposal — Phase 6.0 Foundation
 
-**Status, as of Phase 6.1: the core tables below are implemented and
-live** on the connected project (`booking_requests`, `profiles`,
+> **⚠️ Superseded (Phase 8.0).** This is Phase 6.0/6.1 planning history,
+> kept for the design rationale — not a current reference. Everything
+> this document proposed has since shipped: `instagram_profile` lives in
+> `site_content`, and `instagram_posts`, `instagram_reels`, and
+> `clientele_endorsements` are all real, live tables with their own admin
+> Managers (Clientele Manager, Instagram Manager) and public read paths
+> since Phase 6.6–6.8. The public site has read from these tables live,
+> with automatic static-file fallback, since Phase 6.5. **For the actual,
+> current schema, use `supabase/migrations/` (source of truth) and
+> `CLIENT_SETUP.md`'s "Database Setup" and "Live Data & Automatic
+> Fallback" sections** — not the status notes below, which describe a
+> much earlier point in the project.
+
+---
+
+**Original status note, as of Phase 6.1 (superseded — see above):** the
+core tables below are implemented and live on the connected project
+(`booking_requests`, `profiles`,
 `fleet_items`, `fleet_media`, `experiences`, `experience_media`, plus RLS
 on all of them and the storage buckets in §5) — see §8 for exactly what
 changed and what's still just a proposal. `instagram_profile`,
@@ -137,7 +153,14 @@ key/value settings table, so the shape stays obvious and typed.
 | `post_count` | integer, nullable | |
 | `updated_at` | timestamptz | |
 
-### `instagram_posts` — proposal only, not implemented
+### `instagram_posts` — implemented differently (Phase 6.6)
+Built as two separate tables, `instagram_posts` and `instagram_reels`,
+each with a `published` gate and direct `media_url`/`thumbnail_url` text
+fields rather than a cached `storage_path` — see
+`supabase/migrations/20260727020000_phase_6_6_social_content_and_public_site_content_read.sql`.
+The `is_reel` design below was superseded; kept here for the original
+reasoning, not as the current schema.
+
 Replaces `INSTAGRAM_POSTS` and `INSTAGRAM_REELS` (`is_reel` distinguishes
 them, rather than two tables, since they share every other field).
 
@@ -153,7 +176,13 @@ them, rather than two tables, since they share every other field).
 | `posted_at` | timestamptz, nullable | Maps to Graph API's `timestamp` |
 | `sort_order` | integer, not null default `0` | |
 
-### `clientele_categories` — proposal only, not implemented
+### `clientele_categories` — implemented differently (Phase 6.4/6.5)
+Built as a `site_content` row (`section = 'clientele_categories'`,
+`data.items`) via Homepage CMS, not a dedicated table — reuses the same
+single `site_content` table every other homepage-copy section uses,
+rather than a one-off table for this one list. Live-read by the public
+site as of Phase 6.5.
+
 Replaces `CLIENTELE_CATEGORIES`. Low-churn marketing copy — included for
 completeness/editability, but arguably the weakest case for migrating out
 of a static file of the four (see §4).
@@ -166,7 +195,13 @@ of a static file of the four (see §4).
 | `description` | text | |
 | `sort_order` | integer, not null default `0` | |
 
-### `clientele_endorsements` — proposal only, not implemented
+### `clientele_endorsements` — implemented differently (Phase 6.6)
+Built with plain `photo`/`logo` text fields (a URL or path string) rather
+than `photo_storage_path`/`logo_storage_path` — no dedicated Storage
+bucket exists for endorsement photos/logos yet, so this stayed simpler
+than the proposal below. See
+`supabase/migrations/20260727020000_phase_6_6_social_content_and_public_site_content_read.sql`.
+
 Replaces `CLIENTELE_ENDORSEMENTS`. The `approved` gate that already exists
 in the JS file's own contract carries over unchanged.
 

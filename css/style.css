@@ -1462,6 +1462,86 @@ html {
 }
 
 /* ==========================================================================
+   Customer Auth (signup.html, login.html, account.html) — reuses
+   .booking-form/.form-grid/.form-field/.form-error/.form-banner/
+   .form-success as-is; this block only adds the single-column centered
+   page layout those pages need that .booking-wrap's two-column grid
+   doesn't provide.
+   ========================================================================== */
+.auth-page {
+  padding: var(--space-7) 0;
+}
+
+.auth-page-wrap {
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.auth-page-wrap .eyebrow {
+  display: block;
+  text-align: center;
+  margin-bottom: var(--space-2);
+}
+
+.auth-page-wrap .section-title {
+  text-align: center;
+}
+
+.auth-page-wrap .section-sub {
+  text-align: center;
+  margin: 0 auto var(--space-4);
+}
+
+.auth-switch {
+  text-align: center;
+  margin-top: var(--space-4);
+  color: var(--color-white-dim);
+}
+
+.auth-switch a {
+  color: var(--color-gold-light);
+}
+
+.account-page-wrap {
+  max-width: 640px;
+  margin: 0 auto;
+  display: grid;
+  gap: var(--space-4);
+}
+
+.account-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.account-summary dl {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.account-summary dt {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-white-dim);
+}
+
+.account-summary dd {
+  font-size: 1.1rem;
+  color: var(--color-white);
+  margin: 0 0 var(--space-2);
+}
+
+.account-bookings-placeholder {
+  text-align: center;
+  color: var(--color-white-dim);
+  padding: var(--space-4);
+}
+
+/* ==========================================================================
    About
    ========================================================================== */
 

@@ -11,10 +11,21 @@
 -- As of Phase 6.0, this exact table design also exists as a proper,
 -- CLI-managed migration at supabase/migrations/20260726120000_booking_
 -- requests_baseline.sql. Both are kept in sync intentionally: this file
--- remains the copy-paste path for a non-technical client (per
--- CLIENT_SETUP.md), the migration is the path for `supabase db push` and
--- everything layered on top of it going forward. See
--- supabase/SCHEMA_PROPOSAL.md for what's planned next.
+-- remains the copy-paste path for a non-technical client who only wants
+-- the original booking table, the migration is the path for
+-- `supabase db push` and everything layered on top of it since.
+--
+-- IMPORTANT (Phase 8.0): this file only ever creates booking_requests.
+-- Everything else — profiles, fleet_items, experiences, site_content,
+-- clientele_endorsements, instagram_posts/reels, activity_log, every RLS
+-- policy, and every Storage bucket — now lives exclusively in
+-- supabase/migrations/, applied via `supabase db push`. Running this
+-- file alone on a fresh project sets up booking_requests but leaves the
+-- admin dashboard and every CMS page with nothing to read — see
+-- CLIENT_SETUP.md's "Database Setup" section for the current, complete
+-- setup path. supabase/SCHEMA_PROPOSAL.md is Phase 6.0/6.1 planning
+-- history, not a current reference — everything it proposed has since
+-- shipped; see CLIENT_SETUP.md for what the schema actually is today.
 -- ============================================================================
 
 -- Status values are constrained at the database level, not just in the UI,

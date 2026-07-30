@@ -7,8 +7,12 @@
  * localStorage by default — "remember me" is the library default, not
  * something this file configures); this file only adds the role check on
  * top: a valid session alone isn't enough, `profiles.role` must also be
- * 'admin' or 'staff' (see supabase/migrations/20260726130000_profiles_
- * and_roles.sql).
+ * 'admin', 'staff', or 'read_only' (see supabase/migrations/20260726130000_
+ * profiles_and_roles.sql and 20260727000000_phase_6_4_cms_extensions.sql
+ * for where 'read_only' was added). 'read_only' exists purely for the
+ * admin UI to hide write controls it would otherwise offer — RLS already
+ * treats it identically to 'staff' (read-only, is_admin() gates every
+ * write), so this file's allow-list is the only place that changes.
  *
  * Like dashboard.js already said before this phase: the real security
  * boundary is the database's Row Level Security, not this JS — a role
@@ -20,7 +24,7 @@
 (function (global) {
   'use strict';
 
-  var ALLOWED_ROLES = ['admin', 'staff'];
+  var ALLOWED_ROLES = ['admin', 'staff', 'read_only'];
 
   function showFatalError(title, message) {
     document.body.innerHTML =

@@ -22,6 +22,7 @@
   var signOutBtn = document.getElementById('signOutBtn');
   var searchInput = document.getElementById('fleetSearch');
   var sortSelect = document.getElementById('fleetSort');
+  var availabilityFilterSelect = document.getElementById('fleetAvailabilityFilter');
   var groupsEl = document.getElementById('fleetGroups');
   var emptyEl = document.getElementById('fleetEmpty');
   var emptyTextEl = document.getElementById('fleetEmptyText');
@@ -34,10 +35,11 @@
   var viewBody = document.getElementById('fleetViewBody');
   var viewEditBtn = document.getElementById('fleetViewEditBtn');
 
-  var filters = { type: '', published: '', featured: '', available: '' };
+  var filters = { type: '', published: '', featured: '', availabilityStatus: '' };
   var searchDebounceHandle = null;
   var allItems = [];
   var viewingId = null;
+  var canWrite = true; // narrowed once the session's role is known (read_only)
 
   function showBanner(message) {
     bannerEl.textContent = message;
@@ -65,10 +67,12 @@
       window.location.replace('login.html');
       return;
     }
+    canWrite = result.role === 'admin';
     showDashboard();
   });
 
   signOutBtn.addEventListener('click', function () {
+    if (window.IconicActivityLog) window.IconicActivityLog.log('logout', 'session', null, null);
     supabase.auth.signOut().then(function () {
       window.location.replace('login.html');
     });
@@ -82,9 +86,14 @@
     if (filters.type) opts.type = filters.type;
     if (filters.published) opts.published = filters.published === 'true';
     if (filters.featured) opts.featured = filters.featured === 'true';
-    if (filters.available) opts.available = filters.available === 'true';
+    if (filters.availabilityStatus) opts.availabilityStatus = filters.availabilityStatus;
     return opts;
   }
+
+  availabilityFilterSelect.addEventListener('change', function () {
+    filters.availabilityStatus = availabilityFilterSelect.value;
+    loadFleet();
+  });
 
   function loadFleet() {
     hideBanner();
@@ -120,15 +129,26 @@
     return '<div class="fleet-card-media">' + icon + '</div>';
   }
 
+  var AVAILABILITY_LABELS = { unavailable: 'Unavailable', maintenance: 'Maintenance', reserved: 'Reserved' };
+
   function badgesMarkup(item) {
     var badges = [];
     badges.push('<span class="fleet-badge ' + (item.published ? 'fleet-badge--published' : 'fleet-badge--draft') + '">' + (item.published ? 'Published' : 'Draft') + '</span>');
     if (item.featured) badges.push('<span class="fleet-badge fleet-badge--featured">Featured</span>');
-    if (!item.available) badges.push('<span class="fleet-badge fleet-badge--unavailable">Unavailable</span>');
+    if (item.availability_status && item.availability_status !== 'available') {
+      badges.push('<span class="fleet-badge fleet-badge--unavailable">' + (AVAILABILITY_LABELS[item.availability_status] || item.availability_status) + '</span>');
+    }
     return badges.join('');
   }
 
   function cardMarkup(item) {
+    var writeActions = canWrite ? (
+      '<button type="button" class="btn btn-ghost" data-action="edit" data-id="' + item.id + '">Edit</button>' +
+      '<button type="button" class="btn btn-ghost" data-action="media" data-id="' + item.id + '">Media</button>' +
+      '<button type="button" class="btn btn-ghost" data-action="duplicate" data-id="' + item.id + '">Duplicate</button>' +
+      '<button type="button" class="btn btn-danger" data-action="delete" data-id="' + item.id + '">Delete</button>'
+    ) : '<button type="button" class="btn btn-ghost" data-action="media" data-id="' + item.id + '">Media</button>';
+
     return (
       '<div class="fleet-card" data-id="' + item.id + '">' +
       fleetCardMedia(item) +
@@ -138,9 +158,7 @@
       '<span class="fleet-card-category">' + escapeHtml(item.category) + '</span>' +
       '<div class="fleet-card-actions">' +
       '<button type="button" class="btn btn-ghost" data-action="view" data-id="' + item.id + '">View</button>' +
-      '<button type="button" class="btn btn-ghost" data-action="edit" data-id="' + item.id + '">Edit</button>' +
-      '<button type="button" class="btn btn-ghost" data-action="duplicate" data-id="' + item.id + '">Duplicate</button>' +
-      '<button type="button" class="btn btn-danger" data-action="delete" data-id="' + item.id + '">Delete</button>' +
+      writeActions +
       '</div></div></div>'
     );
   }
@@ -230,16 +248,23 @@
       return '<dt>' + escapeHtml(key) + '</dt><dd>' + escapeHtml(item.specs[key]) + '</dd>';
     }).join('');
 
+    var priceDisplay = item.starting_price != null
+      ? '$' + Number(item.starting_price).toLocaleString() + (item.pricing_public ? ' (public)' : ' (internal only)')
+      : 'Available upon request';
+
     viewBody.innerHTML =
-      '<dt>Status</dt><dd>' + (item.published ? 'Published' : 'Draft') + (item.featured ? ' · Featured' : '') + (item.available === false ? ' · Unavailable' : '') + '</dd>' +
+      '<dt>Status</dt><dd>' + (item.published ? 'Published' : 'Draft') + (item.featured ? ' · Featured' : '') + '</dd>' +
+      '<dt>Availability</dt><dd>' + escapeHtml((item.availability_status || 'available').replace(/^\w/, function (c) { return c.toUpperCase(); })) + '</dd>' +
       '<dt>Tagline</dt><dd>' + escapeHtml(item.tagline || '—') + '</dd>' +
       '<dt>Capacity</dt><dd>' + escapeHtml(item.capacity != null ? item.capacity : '—') + '</dd>' +
-      '<dt>Starting Price</dt><dd>' + (item.starting_price != null ? '$' + Number(item.starting_price).toLocaleString() : 'Available upon request') + '</dd>' +
+      '<dt>Starting Price</dt><dd>' + priceDisplay + '</dd>' +
+      '<dt>Seasonal Notes</dt><dd>' + escapeHtml(item.seasonal_notes || '—') + '</dd>' +
       '<dt>Description</dt><dd>' + escapeHtml(item.description || '—') + '</dd>' +
       specsHtml +
       '<dt>Amenities</dt><dd>' + (item.amenities && item.amenities.length ? escapeHtml(item.amenities.join(', ')) : '—') + '</dd>' +
       '<dt>Last Updated</dt><dd>' + new Date(item.updated_at).toLocaleString() + '</dd>';
 
+    viewEditBtn.hidden = !canWrite;
     viewPanel.hidden = false;
     requestAnimationFrame(function () { viewPanel.classList.add('is-open'); });
   }
@@ -270,6 +295,8 @@
       openView(item);
     } else if (action === 'edit') {
       window.IconicFleetEditor.open('edit', item);
+    } else if (action === 'media') {
+      window.open('media.html?fleetItemId=' + encodeURIComponent(item.id), '_blank');
     } else if (action === 'duplicate') {
       var existingSlugs = allItems.map(function (i) { return i.slug; });
       var payload = window.IconicFleetService.duplicatePayload(item, existingSlugs);
@@ -287,6 +314,7 @@
             window.IconicAdminUI.showToast('Couldn’t delete: ' + result.error.message, 'error');
             return;
           }
+          if (window.IconicActivityLog) window.IconicActivityLog.log('delete', 'fleet_item', item.id, { slug: item.slug });
           window.IconicAdminUI.showToast(item.name + ' deleted.', 'success');
           loadFleet();
         });

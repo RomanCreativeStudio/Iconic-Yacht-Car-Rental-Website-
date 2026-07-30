@@ -16,12 +16,36 @@
  *   - isConfigured() lets the frontend fail gracefully — with a clear,
  *     honest error message — instead of pretending to work against
  *     placeholder credentials.
+ *   - Customer ownership (booking_requests.customer_user_id, added
+ *     alongside this change): the column defaults to auth.uid() on the
+ *     database side, so nothing about the JSON payload built in
+ *     js/main.js needs to change — the only thing that matters is which
+ *     token this file sends as the request's Authorization bearer. A
+ *     signed-in customer's own access token (not the anon key) is what
+ *     lets auth.uid() resolve to them server-side; getAuthToken() below
+ *     reuses the already-loaded js/supabase-client.js client to check
+ *     for one, falling back to the anon key exactly as before for an
+ *     anonymous visitor.
  */
 (function (global) {
   'use strict';
 
   function getConfig() {
     return global.IconicBookingConfig || null;
+  }
+
+  /** Resolves to a signed-in customer's access token if one exists,
+   *  otherwise the anon key — same fallback js/auth.js's own helpers use
+   *  when the Supabase client isn't available/configured. Never rejects. */
+  function getAuthToken(cfg) {
+    var supabase = global.IconicSupabase && global.IconicSupabase.getClient();
+    if (!supabase) return Promise.resolve(cfg.SUPABASE_ANON_KEY);
+    return supabase.auth.getSession().then(function (result) {
+      var session = result.data && result.data.session;
+      return (session && session.access_token) || cfg.SUPABASE_ANON_KEY;
+    }).catch(function () {
+      return cfg.SUPABASE_ANON_KEY;
+    });
   }
 
   function isConfigured() {
@@ -61,16 +85,22 @@
 
     var endpoint = cfg.SUPABASE_URL.replace(/\/$/, '') + '/rest/v1/booking_requests';
 
-    return fetch(endpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        apikey: cfg.SUPABASE_ANON_KEY,
-        Authorization: 'Bearer ' + cfg.SUPABASE_ANON_KEY,
-        Prefer: 'return=representation'
-      },
-      body: JSON.stringify(payload)
-    })
+    return getAuthToken(cfg)
+      .then(function (bearerToken) {
+        return fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            apikey: cfg.SUPABASE_ANON_KEY,
+            Authorization: 'Bearer ' + bearerToken,
+            // return=minimal: return=representation would require a SELECT
+            // policy on the new row, which anon doesn't have (nor should
+            // it) — that combination makes the whole insert fail under RLS.
+            Prefer: 'return=minimal'
+          },
+          body: JSON.stringify(payload)
+        });
+      })
       .catch(function () {
         throw { type: 'network_error', message: 'We couldn’t reach the reservation system. Please check your connection and try again.' };
       })
@@ -87,9 +117,10 @@
             };
           });
         }
-        return res.json();
+        return res.text();
       })
-      .then(function (rows) {
+      .then(function (text) {
+        var rows = text ? JSON.parse(text) : null;
         var saved = rows && rows[0] ? rows[0] : payload;
 
         if (cfg.EMAIL_FUNCTION_URL) {

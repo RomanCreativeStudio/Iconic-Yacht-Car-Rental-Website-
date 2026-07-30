@@ -24,6 +24,7 @@
   var banner = document.getElementById('fleetEditorBanner');
   var saveBtn = document.getElementById('fleetEditorSaveBtn');
   var cancelBtn = document.getElementById('fleetEditorCancelBtn');
+  var mediaBtn = document.getElementById('fleetEditorMediaBtn');
 
   var fieldType = document.getElementById('fieldType');
   var fieldName = document.getElementById('fieldName');
@@ -36,7 +37,10 @@
   var fieldCapacity = document.getElementById('fieldCapacity');
   var fieldPublished = document.getElementById('fieldPublished');
   var fieldFeatured = document.getElementById('fieldFeatured');
-  var fieldAvailable = document.getElementById('fieldAvailable');
+  var fieldAvailability = document.getElementById('fieldAvailability');
+  var fieldSeasonalNotes = document.getElementById('fieldSeasonalNotes');
+  var fieldInternalNotes = document.getElementById('fieldInternalNotes');
+  var fieldPricingPublic = document.getElementById('fieldPricingPublic');
 
   var specsListEl = document.getElementById('specsList');
   var featuresListEl = document.getElementById('featuresList');
@@ -301,7 +305,23 @@
     fieldCapacity.value = item.capacity != null ? item.capacity : '';
     fieldPublished.checked = !!item.published;
     fieldFeatured.checked = !!item.featured;
-    fieldAvailable.checked = item.available !== false;
+    fieldAvailability.value = item.availability_status || 'available';
+    fieldSeasonalNotes.value = item.seasonal_notes || '';
+    fieldPricingPublic.checked = !!item.pricing_public;
+
+    fieldInternalNotes.value = '';
+    if (item.id) {
+      // Async, resolves after populate() returns and the form is already
+      // interactive — must not touch isDirty here. Setting .value via JS
+      // doesn't fire an 'input'/'change' event (only real user edits do,
+      // per the listeners below), so this was never at risk of being
+      // mistaken for one; the risk was the other direction — resetting
+      // isDirty here would have silently clobbered a real edit the user
+      // made to some other field while this fetch was still in flight.
+      global.IconicFleetService.getPrivateNotes(item.id).then(function (result) {
+        fieldInternalNotes.value = (result.data && result.data.notes) || '';
+      });
+    }
 
     specsController = createKeyValueList(specsListEl, document.querySelector('[data-add="specs"]'), item.specs || {});
     featuresController = createDynamicList(featuresListEl, document.querySelector('[data-add="features"]'), item.features || [], 'e.g. Sun Deck');
@@ -350,7 +370,9 @@
       capacity: fieldCapacity.value !== '' ? parseInt(fieldCapacity.value, 10) : null,
       published: fieldPublished.checked,
       featured: fieldFeatured.checked,
-      available: fieldAvailable.checked,
+      availability_status: fieldAvailability.value,
+      seasonal_notes: fieldSeasonalNotes.value.trim() || null,
+      pricing_public: fieldPricingPublic.checked,
       specs: specsController.getObject(),
       features: featuresController.getValues(),
       amenities: amenitiesController.getValues(),
@@ -366,6 +388,10 @@
     populate(item);
     eyebrow.textContent = mode === 'duplicate' ? 'Duplicate Vehicle' : 'Edit Vehicle';
     titleEl.textContent = item.name || (mode === 'duplicate' ? 'New Vehicle' : 'Vehicle');
+    // Media Manager needs a saved row to attach files to — hidden for
+    // 'duplicate' (not saved yet) the same way a blank-slate "create" flow
+    // would have nothing to link to either.
+    mediaBtn.hidden = mode !== 'edit';
     overlay.hidden = false;
     requestAnimationFrame(function () { overlay.classList.add('is-open'); });
     fieldName.focus();
@@ -395,6 +421,9 @@
     el.addEventListener('click', requestClose);
   });
   cancelBtn.addEventListener('click', requestClose);
+  mediaBtn.addEventListener('click', function () {
+    if (currentId) window.open('media.html?fleetItemId=' + encodeURIComponent(currentId), '_blank');
+  });
 
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape' && overlay.classList.contains('is-open')) requestClose();
@@ -444,6 +473,16 @@
         // silent success, so a non-admin never sees a false "Saved."
         showBanner('This change wasn’t saved — your account may not have permission to edit the fleet, or this vehicle no longer exists.');
         return;
+      }
+      // Internal notes live in their own admin-only table (see
+      // fleet-service.js), saved as a second, best-effort step after the
+      // main row — a notes-save failure shouldn't block or roll back a
+      // vehicle save that already succeeded.
+      global.IconicFleetService.savePrivateNotes(result.data.id, fieldInternalNotes.value.trim() || null).then(function (notesResult) {
+        if (notesResult.error) console.error('Internal notes save failed (vehicle save still succeeded):', notesResult.error);
+      });
+      if (global.IconicActivityLog) {
+        global.IconicActivityLog.log(currentMode === 'edit' ? 'update' : 'create', 'fleet_item', result.data.id, { slug: result.data.slug });
       }
       isDirty = false;
       closeImmediately();

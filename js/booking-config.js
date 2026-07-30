@@ -13,7 +13,7 @@
  * instead of silently doing nothing (see js/booking-api.js).
  */
 window.IconicBookingConfig = {
-  SUPABASE_URL: 'https://YOUR-PROJECT-REF.supabase.co',
-  SUPABASE_ANON_KEY: 'YOUR-SUPABASE-ANON-KEY',
-  EMAIL_FUNCTION_URL: 'https://YOUR-PROJECT-REF.supabase.co/functions/v1/send-booking-emails'
+  SUPABASE_URL: 'https://slokljslqyanbqabvzkk.supabase.co',
+  SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNsb2tsanNscXlhbmJxYWJ2emtrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUwMTE5NzIsImV4cCI6MjEwMDU4Nzk3Mn0.jV0v5ql8vBDdHiPJfMTmLfxcB8lOWCGpkjqKzozopew',
+  EMAIL_FUNCTION_URL:''
 };
