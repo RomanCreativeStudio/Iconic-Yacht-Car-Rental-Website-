@@ -93,7 +93,10 @@
             'Content-Type': 'application/json',
             apikey: cfg.SUPABASE_ANON_KEY,
             Authorization: 'Bearer ' + bearerToken,
-            Prefer: 'return=representation'
+            // return=minimal: return=representation would require a SELECT
+            // policy on the new row, which anon doesn't have (nor should
+            // it) — that combination makes the whole insert fail under RLS.
+            Prefer: 'return=minimal'
           },
           body: JSON.stringify(payload)
         });
@@ -114,9 +117,10 @@
             };
           });
         }
-        return res.json();
+        return res.text();
       })
-      .then(function (rows) {
+      .then(function (text) {
+        var rows = text ? JSON.parse(text) : null;
         var saved = rows && rows[0] ? rows[0] : payload;
 
         if (cfg.EMAIL_FUNCTION_URL) {
