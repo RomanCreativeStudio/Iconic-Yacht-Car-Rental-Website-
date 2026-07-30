@@ -78,14 +78,15 @@ apple touch icon, and social share image) — see
 16. [Clientele / Social Proof Section](#clientele--social-proof-section)
 17. [Videos Section](#videos-section)
 18. [How Booking Requests Work](#how-booking-requests-work)
-19. [Database Setup](#database-setup)
-20. [Environment Variables](#environment-variables)
-21. [Email Configuration](#email-configuration)
-22. [Analytics & Tracking](#analytics--tracking)
-23. [Structured Data & SEO](#structured-data--seo)
-24. [Live Data & Automatic Fallback](#live-data--automatic-fallback)
-25. [How Deployment Works](#how-deployment-works)
-26. [Making Code Changes — the Minified Files](#making-code-changes--the-minified-files)
+19. [Customer Accounts](#customer-accounts)
+20. [Database Setup](#database-setup)
+21. [Environment Variables](#environment-variables)
+22. [Email Configuration](#email-configuration)
+23. [Analytics & Tracking](#analytics--tracking)
+24. [Structured Data & SEO](#structured-data--seo)
+25. [Live Data & Automatic Fallback](#live-data--automatic-fallback)
+26. [How Deployment Works](#how-deployment-works)
+27. [Making Code Changes — the Minified Files](#making-code-changes--the-minified-files)
 
 ---
 
@@ -1004,6 +1005,79 @@ free tier and a small JS snippet.
 
 ---
 
+## Customer Accounts
+
+Separate from the admin dashboard (`admin/`, for you and your staff),
+visitors can create their own account to manage their own reservations:
+
+- **`signup.html`** — Full name, email, password. Calls Supabase Auth's
+  `signUp()` with `account_type: 'customer'` in the account's metadata —
+  this is what makes the new account a `customer`, not `staff` (see
+  below). If your Supabase project has "Confirm email" enabled
+  (**Authentication > Providers > Email** — on by default), the new
+  visitor gets a "check your email" message and must click the
+  confirmation link before they can sign in; if it's off, they're signed
+  in immediately and taken straight to their account page.
+- **`login.html`** — Email/password sign-in for an existing account,
+  admin or customer alike (the page itself doesn't check role — it's
+  `admin/auth-guard.js`, entirely separate code, that keeps a customer
+  account out of `/admin/`, covered below).
+- **`account.html`** — Signed-in customers land here: their name, their
+  email, a form to update their name, and a Logout button. Redirects to
+  `login.html` immediately if nobody's signed in.
+- The public nav (every page) shows **Sign In**/**Sign Up** when signed
+  out, and **Account**/**Logout** when signed in — toggled automatically
+  by `js/auth.js`, no page-specific wiring needed beyond including that
+  script.
+
+### Why a new account isn't a staff account
+
+Every Supabase Auth signup — whether it's you adding a staff login by
+hand in the Supabase dashboard, or a visitor using `signup.html` — runs
+through the same database trigger, `handle_new_user()`. Before this
+feature existed, every new account defaulted to `staff` role, which was
+fine when the *only* way to create an account was you, personally,
+inviting someone to help run the dashboard. That default would have been
+a real problem the moment a public signup form existed: anyone
+registering on the public site would have silently gotten a staff-level
+login to `/admin/`, including every customer's name/email/phone in the
+Inquiries dashboard.
+
+`handle_new_user()` now checks for the `account_type: 'customer'` marker
+`signup.html` sends. If it's there, the new profile gets `role =
+'customer'`; if it's not (the Supabase dashboard's "Add user" flow sets
+no such marker), the profile still defaults to `role = 'staff'` exactly
+as before — see [Admin Dashboard Access](#admin-dashboard-access) for
+that unchanged flow. `admin/auth-guard.js`'s allowed-role list
+(`admin`/`staff`/`read_only`) was not changed — `customer` was never
+added to it, so a customer account cannot sign into `/admin/` at all;
+visiting it while signed in as a customer sends them straight to
+`admin/login.html`, the same as not being signed in at all.
+
+### What a customer can — and can't — do
+
+A signed-in customer can view and update their own `full_name` in
+`profiles`, nothing else. This is enforced at the database level, not
+just hidden in the UI: `profiles` has a Row Level Security policy
+scoped to `auth.uid() = id` (their own row only) *and* a column-level
+grant covering only `full_name` — so even a hand-crafted API request
+trying to also change `role` (or update a different customer's row) is
+rejected by Postgres before Row Level Security is even evaluated, not
+just hidden by the account page's own form.
+
+**Booking history isn't connected yet.** `account.html` shows a "Booking
+History will be available in a future update" message instead of a real
+list — `booking_requests` has no column linking a submitted inquiry to a
+signed-in account, and its existing read policy isn't scoped per-customer
+(it's built for staff viewing every inquiry, not a customer viewing their
+own). Wiring this up for real needs both a schema change (a column
+linking a booking to the account that made it) and a new, carefully
+scoped RLS policy — deliberately out of scope for this phase rather than
+building something that would show a customer every other customer's
+bookings, or require weakening `booking_requests`' existing policies.
+
+---
+
 ## Database Setup
 
 The booking system is built on [Supabase](https://supabase.com) — a
@@ -1656,6 +1730,10 @@ npx terser js/analytics.js -o js/analytics.min.js --compress --mangle
 npx terser js/fleet-supabase-adapter.js -o js/fleet-supabase-adapter.min.js --compress --mangle
 npx terser js/data-service.js -o js/data-service.min.js --compress --mangle
 npx terser js/homepage-content.js -o js/homepage-content.min.js --compress --mangle
+npx terser js/auth.js -o js/auth.min.js --compress --mangle
+npx terser js/signup.js -o js/signup.min.js --compress --mangle
+npx terser js/login.js -o js/login.min.js --compress --mangle
+npx terser js/account.js -o js/account.min.js --compress --mangle
 ```
 
 Re-run only the command for the file(s) you actually changed. If you'd

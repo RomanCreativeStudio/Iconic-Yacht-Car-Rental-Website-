@@ -86,6 +86,10 @@
         <li><a href="../index.html#testimonials">Reviews</a></li>
         <li><a href="../index.html#about">About</a></li>
         <li><a href="../index.html#contact">Contact</a></li>
+        <li data-auth-state="guest"><a href="../login.html">Sign In</a></li>
+        <li data-auth-state="guest"><a href="../signup.html">Sign Up</a></li>
+        <li data-auth-state="user" hidden><a href="../account.html">Account</a></li>
+        <li data-auth-state="user" hidden><a href="#" data-logout-link>Logout</a></li>
       </ul>
       <a href="../index.html#booking" class="btn btn-primary nav-cta" data-quick-book>Book Now</a>
     </nav>
@@ -379,6 +383,7 @@
 <script src="../js/booking-config.js"></script>
 <script src="../js/vendor/supabase-js.min.js"></script>
 <script src="../js/supabase-client.js"></script>
+<script src="../js/auth.min.js"></script>
 <script src="../js/fleet-supabase-adapter.min.js"></script>
 <script src="../js/data-service.min.js"></script>
 <script src="../js/fleet-detail.min.js"></script>

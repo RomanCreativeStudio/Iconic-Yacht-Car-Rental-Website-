@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en-US">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>My Account | Iconic Rentals</title>
+<meta name="description" content="Manage your Iconic Rentals customer account." />
+<meta name="robots" content="noindex, nofollow" />
+<meta name="theme-color" content="#0a0a0b" />
+
+<link rel="canonical" href="https://www.iconicrentalsmiami.com/account.html" />
+<link rel="icon" href="/favicon.ico" sizes="any" />
+<link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32.png" />
+<link rel="icon" type="image/png" sizes="192x192" href="images/favicon-192.png" />
+<link rel="apple-touch-icon" href="images/apple-touch-icon.png" />
+
+<link rel="preload" as="font" type="font/woff2" href="fonts/cormorant-garamond-normal.woff2" crossorigin />
+<link rel="preload" as="font" type="font/woff2" href="fonts/jost.woff2" crossorigin />
+<link rel="stylesheet" href="css/fonts.min.css" />
+<link rel="stylesheet" href="css/style.min.css" />
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to main content</a>
+
+<header class="site-header">
+  <div class="container">
+    <a href="index.html" class="brand">
+      <span class="brand-mark">
+        <picture><source srcset="images/logo-icon.webp" type="image/webp" /><img src="images/logo-icon.png" alt="" width="35" height="40" /></picture>
+      </span>
+      <span class="brand-text">Iconic <strong>Rentals</strong></span>
+    </a>
+
+    <nav class="main-nav" id="primary-nav" aria-label="Primary">
+      <ul class="nav-links">
+        <li><a href="index.html#top">Home</a></li>
+        <li><a href="index.html#fleet">Fleet</a></li>
+        <li><a href="index.html#about">About</a></li>
+        <li><a href="index.html#contact">Contact</a></li>
+        <li data-auth-state="guest"><a href="login.html">Sign In</a></li>
+        <li data-auth-state="guest"><a href="signup.html">Sign Up</a></li>
+        <li data-auth-state="user" hidden><a href="account.html">Account</a></li>
+        <li data-auth-state="user" hidden><a href="#" data-logout-link>Logout</a></li>
+      </ul>
+      <a href="index.html#booking" class="btn btn-primary nav-cta" data-quick-book>Book Now</a>
+    </nav>
+
+    <button class="nav-toggle" aria-expanded="false" aria-controls="primary-nav" aria-label="Toggle navigation menu">
+      <span></span>
+    </button>
+  </div>
+</header>
+
+<main id="main">
+  <section class="section auth-page" aria-labelledby="account-heading">
+    <div class="container account-page-wrap">
+      <div>
+        <span class="eyebrow">Your Account</span>
+        <h1 class="section-title" id="account-heading">My Account</h1>
+      </div>
+
+      <div class="form-banner form-banner--error" id="accountBanner" role="alert" hidden></div>
+      <div class="form-banner" id="accountSuccessBanner" role="status" style="background:rgba(120,190,130,0.12);border-color:rgba(120,190,130,0.4);color:#8fd39a;" hidden></div>
+
+      <div class="booking-form account-summary reveal">
+        <dl>
+          <div>
+            <dt>Full Name</dt>
+            <dd id="accountName">—</dd>
+          </div>
+          <div>
+            <dt>Email</dt>
+            <dd id="accountEmail">—</dd>
+          </div>
+        </dl>
+        <button type="button" class="btn btn-ghost" id="accountLogoutBtn">Logout</button>
+      </div>
+
+      <div class="booking-form reveal">
+        <h3>Update Your Name</h3>
+        <form id="accountNameForm" novalidate>
+          <div class="form-grid">
+            <div class="form-field full">
+              <label for="accountNameInput">Full Name</label>
+              <input type="text" id="accountNameInput" name="fullName" autocomplete="name" required />
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block">Save Name</button>
+        </form>
+      </div>
+
+      <div class="booking-form reveal">
+        <h3>Your Bookings</h3>
+        <p class="account-bookings-placeholder">Booking History will be available in a future update. In the meantime, contact us directly for anything about an existing reservation.</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="container footer-grid">
+    <div class="footer-brand">
+      <a href="index.html" class="brand footer-brand-logo">
+        <span class="brand-mark">
+          <picture><source srcset="images/logo-icon.webp" type="image/webp" /><img src="images/logo-icon.png" alt="" width="35" height="40" /></picture>
+        </span>
+        <span class="brand-text">Iconic <strong>Rentals</strong></span>
+      </a>
+      <p>Miami's private concierge for luxury yacht charters and exotic car rentals.</p>
+    </div>
+
+    <div class="footer-col">
+      <h4>Navigate</h4>
+      <ul>
+        <li><a href="index.html#services">Experiences</a></li>
+        <li><a href="index.html#yacht-fleet">Yacht Fleet</a></li>
+        <li><a href="index.html#car-fleet">Car Fleet</a></li>
+        <li><a href="index.html#about">About</a></li>
+      </ul>
+    </div>
+
+    <div class="footer-col">
+      <h4>Account</h4>
+      <ul>
+        <li><a href="account.html">My Account</a></li>
+        <li><a href="#" data-logout-link>Logout</a></li>
+      </ul>
+    </div>
+
+    <div class="footer-col">
+      <h4>Contact</h4>
+      <ul>
+        <li><a href="tel:+13055550198">(305) 555-0198</a></li>
+        <li><a href="mailto:concierge@iconicrentalsmiami.com">concierge@iconicrentalsmiami.com</a></li>
+        <li><p>Miami, Florida</p></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="container footer-bottom">
+    <span>&copy; <span id="year"></span> Iconic Rentals. All rights reserved.</span>
+    <span>Designed for the Miami luxury lifestyle.</span>
+  </div>
+</footer>
+
+<script src="js/booking-config.js"></script>
+<script src="js/vendor/supabase-js.min.js"></script>
+<script src="js/supabase-client.js"></script>
+<script src="js/auth.min.js"></script>
+<script src="js/account.min.js"></script>
+</body>
+</html>
