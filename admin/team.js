@@ -76,7 +76,7 @@
   }
 
   function roleOptionsMarkup(currentRole) {
-    return ['admin', 'staff', 'read_only'].map(function (r) {
+    return ['admin', 'staff', 'read_only', 'customer'].map(function (r) {
       return '<option value="' + r + '"' + (r === currentRole ? ' selected' : '') + '>' + (r === 'read_only' ? 'Read Only' : r.charAt(0).toUpperCase() + r.slice(1)) + '</option>';
     }).join('');
   }
